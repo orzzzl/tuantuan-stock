@@ -18,8 +18,12 @@ require that, stop and leave a note in the PR instead of guessing.
 2. Create a branch: `task/<id>-<short-slug>` (e.g. `task/04-quote-domain`).
 3. Implement **only what the task spec asks**. Keep the diff minimal and focused.
 4. Run the checks in "Definition of done" below. They must pass.
-5. Open a PR. In the description, link the task file and fill the PR checklist.
-6. Claude reviews. Address review comments on the same branch. Do not merge yourself.
+5. Open a PR. The title MUST start with an author tag — `[codex]` if Codex wrote it,
+   `[claude]` if Claude wrote it. In the description, link the task file and fill the
+   PR checklist.
+6. **Every PR must be reviewed before merge — no exceptions, no self-merge.** Codex PRs
+   are reviewed by Claude; Claude's own PRs are reviewed by the owner. Address review
+   comments on the same branch; merge only after an explicit approval.
 
 ## Hard rules (do not violate)
 
