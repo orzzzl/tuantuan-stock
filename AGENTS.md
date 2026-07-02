@@ -25,6 +25,10 @@ require that, stop and leave a note in the PR instead of guessing.
    agents cross-review: Codex PRs are reviewed by Claude, Claude PRs are reviewed by
    Codex. The owner can always override or add review. Address review comments on the
    same branch; merge only after an explicit approval.
+7. **Agent-to-agent notifications go through the machine-level mailbox** at
+   `~/agents/` (spec: `~/agents/PROTOCOL.md`) — e.g. "PR #N is ready for your
+   review". Review content itself stays on the GitHub PR. Never commit mailbox
+   material into this repository.
 
 ## Hard rules (do not violate)
 
