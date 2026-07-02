@@ -11,11 +11,11 @@ whole project. See [`../AGENTS.md`](../AGENTS.md) for the working agreement and
 |----|------|--------|-----------|
 | 01 | [Flutter scaffold (single-page shell)](v0.1/01-flutter-scaffold.md) | DONE (Codex, PR #2) | — |
 | 02 | [Cute theme foundation](v0.1/02-cute-theme.md) | READY | — |
-| 03 | [Domain models + repository seams](v0.1/03-domain-seams.md) | READY | — |
+| 03 | [Domain models + repository seams](v0.1/03-domain-seams.md) | DONE (Claude, PR #5) | — |
 | 04 | [Provider spike: validate the data source](v0.1/04-provider-spike.md) | DONE (Claude, PR #1) | — |
-| 05 | [Market data: quotes / search / profile](v0.1/05-market-quotes-search.md) | BLOCKED | 03, 04 |
+| 05 | [Market data: quotes / search / profile](v0.1/05-market-quotes-search.md) | READY | 03, 04 |
 | 06 | [Market data: candles / YTD / session](v0.1/06-market-candles-ytd.md) | BLOCKED | 05 |
-| 07 | [Watchlist local persistence](v0.1/07-watchlist-persistence.md) | BLOCKED | 03 |
+| 07 | [Watchlist local persistence](v0.1/07-watchlist-persistence.md) | READY | 03 |
 | 08 | [i18n (zh + en) — do early](v0.1/08-i18n.md) | READY | — |
 | 09 | [CI: format + analyze + test — do early](v0.1/09-ci.md) | DONE (Codex, PR #4) | — |
 | 10 | [Sky/water chart widget](v0.1/10-sky-chart-widget.md) | BLOCKED | 02, 03 |
