@@ -12,7 +12,10 @@ search are pushed routes. No tab bar anywhere.
 
 ## Scope
 - in:
-  - `flutter create` at repo root (org id: `com.tuantuan.stock`, platforms: ios, android).
+  - `flutter create` at repo root (platforms: ios, android). `--org com.tuantuan`, then
+    explicitly set the **final Android `applicationId` AND iOS bundle identifier to
+    `com.tuantuan.stock`** (edit build.gradle / Xcode project — `--org` alone only sets
+    a prefix and is not the final id).
   - Folders under `lib/`: `app/`, `core/`, `domain/`, `data/`,
     `features/{watchlist,detail,search,chart}/`, `l10n/`.
   - `go_router`: `/` (watchlist placeholder), `/stock/:symbol` (detail placeholder),
@@ -25,6 +28,7 @@ search are pushed routes. No tab bar anywhere.
 
 ## Acceptance criteria
 - [ ] `flutter run` launches on an iOS simulator and an Android emulator.
+- [ ] Android `applicationId` and iOS bundle id are exactly `com.tuantuan.stock`.
 - [ ] `/` opens at launch; detail and search can be pushed and popped.
 - [ ] No `NavigationBar`/`TabBar` in the tree.
 - [ ] `dart format .` clean, `flutter analyze` clean, `flutter test` passes.

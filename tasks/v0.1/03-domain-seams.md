@@ -1,8 +1,9 @@
 # 03 — Domain models + repository seams
 
-- **Status:** READY
+- **Status:** BLOCKED (needs 01 — the Dart package, pubspec, and analyze/test tooling
+  must exist before this can add freezed/build_runner and land code in `lib/domain`)
 - **Owner:** —
-- **Blocked by:** —
+- **Blocked by:** 01
 - **Allowed new deps:** freezed, freezed_annotation; dev: build_runner
 
 ## Goal

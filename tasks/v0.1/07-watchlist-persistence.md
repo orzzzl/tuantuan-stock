@@ -1,4 +1,4 @@
-# 05 — Watchlist local persistence
+# 07 — Watchlist local persistence
 
 - **Status:** BLOCKED (needs 03)
 - **Owner:** —

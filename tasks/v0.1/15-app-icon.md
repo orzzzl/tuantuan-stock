@@ -1,4 +1,4 @@
-# 12 — App icon
+# 15 — App icon
 
 - **Status:** BLOCKED (needs 01)
 - **Owner:** —

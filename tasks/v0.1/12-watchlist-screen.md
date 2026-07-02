@@ -1,8 +1,9 @@
-# 08 — Watchlist screen (daily race)
+# 12 — Watchlist screen (daily race)
 
-- **Status:** BLOCKED (needs 02, 04, 05)
+- **Status:** BLOCKED (needs 02, 05, 06, 07, 08, 10)
 - **Owner:** —
-- **Blocked by:** 02, 04, 05
+- **Blocked by:** 02 (theme), 05 (quotes/logos/index), 06 (ytdChangePct for 今年 #N +
+  session tags), 07 (watchlist store), 08 (ARB strings), 10 (`MiniSpark`)
 - **Allowed new deps:** —
 
 ## Goal
@@ -17,7 +18,7 @@ medals, YTD rank, sort toggle, and session tags. This is the root route; no tab 
     - logo avatar with **medal badge** (🥇🥈🥉 for today's top-3 gainers; muted number
       badge for 4+); ticker-ring fallback when no logo.
     - name + subtitle `<中文名> · 今年 #N` (YTD-gain rank within the watchlist, integer).
-    - `MiniSpark` (from 06), price, tinted day-change pill.
+    - `MiniSpark` (from 10), price, tinted day-change pill.
     - **Session tag**: when pre/post market, a tiny `盘前/盘后 ±x.x%` line under the pill.
   - Sort header: `今日排位赛 🏁` + toggle chips `涨跌幅` (default) / `市值`. Medals stay
     with today's top gainers regardless of sort.

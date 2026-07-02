@@ -122,9 +122,12 @@ Every displayed change % states its session — never let a number be misread:
 - `SearchRepository` — symbol/name search → matches.
 - `WatchlistRepository` — local-first CRUD of saved symbols.
 - Concrete provider code lives only in `lib/data`; swapping providers touches nothing else.
-  Default: a free US market-data API (Finnhub free tier fits: quote, profile w/ logo,
-  symbol search, candles); key via `--dart-define=MARKET_API_KEY`. Quotes may be delayed —
-  fine for a "瞄一眼" app.
+  Provider: a free US market-data API. Finnhub free tier is the candidate for
+  quote/profile(logo)/search, but **free access to `/stock/candle` is unverified** (see
+  finnhubio/Finnhub-API#546) — task 04 (provider spike) must validate candles/YTD/session
+  availability and pick the final plan (possibly mixed providers) before the data tasks
+  start. Key via `--dart-define=MARKET_API_KEY`. Quotes may be delayed — fine for a
+  "瞄一眼" app.
 
 ## Tech
 

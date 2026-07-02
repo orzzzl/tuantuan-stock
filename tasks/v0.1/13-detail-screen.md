@@ -1,8 +1,9 @@
-# 09 — Stock detail screen
+# 13 — Stock detail screen
 
-- **Status:** BLOCKED (needs 04, 06, 07)
+- **Status:** BLOCKED (needs 05, 06, 07, 08, 10, 11)
 - **Owner:** —
-- **Blocked by:** 04, 06, 07
+- **Blocked by:** 05 (quote/logo), 06 (candles/baseline/session), 07 (⭐ watch toggle
+  writes the watchlist), 08 (ARB strings), 10 (`SkyChart`), 11 (`PlaneRider`)
 - **Allowed new deps:** —
 
 ## Goal
@@ -18,9 +19,9 @@ sky/water chart with the plane rider, and the stats grid.
     (`盘前/盘后 ±x.x%`).
   - Range chips: zh set `1日 1周 1月 3月 今年 1年` (en set via i18n); selection loads
     candles for that `ChartRange`.
-  - `SkyChart` (06) wired to real candles: baseline = prev close for 1日, period-start
+  - `SkyChart` (10) wired to real candles: baseline = prev close for 1日, period-start
     close otherwise; **baseline centered**; the line may open above/below it (gaps).
-  - `PlaneRider` (07) pinned at the line tip; state from tip position + slope:
+  - `PlaneRider` (11) pinned at the line tip; state from tip position + slope:
     climbing / diving / underwater.
   - Stats grid (3×2 `CandyCard`s): 今开 / 最高(up tint) / 最低(down tint) / 昨收 /
     成交量 / 市值 — compact formatting (48.2M, 3.46T).

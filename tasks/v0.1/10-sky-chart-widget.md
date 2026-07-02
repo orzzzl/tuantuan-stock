@@ -1,8 +1,8 @@
-# 06 — Sky/water chart widget
+# 10 — Sky/water chart widget
 
-- **Status:** BLOCKED (needs 02)
+- **Status:** BLOCKED (needs 02, 03)
 - **Owner:** —
-- **Blocked by:** 02
+- **Blocked by:** 02 (theme), 03 (input types are domain `Candle`/`ChartRange`)
 - **Allowed new deps:** — (CustomPaint only; no chart package)
 
 ## Goal
@@ -24,9 +24,9 @@ water below.
       white button nodes at sampled points; gain-area gradient fill between line and
       baseline when above it.
   - A `MiniSpark` variant for list rows: thick rounded line only, no scenery.
-  - Leave a positioned anchor (offset of the line tip) exposed so 07 can pin the plane.
+  - Leave a positioned anchor (offset of the line tip) exposed so 11 can pin the plane.
 - out:
-  - No data fetching; no mascot (07); no touch interactions yet.
+  - No data fetching; no mascot (11); no touch interactions yet.
 
 ## Acceptance criteria
 - [ ] Golden/widget tests: up-day, down-day, gap-up open, gap-down open — baseline always

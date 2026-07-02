@@ -1,4 +1,4 @@
-# 07 — Plane-rider mascot widget
+# 11 — Plane-rider mascot widget
 
 - **Status:** BLOCKED (needs 02)
 - **Owner:** —
