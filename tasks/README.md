@@ -16,7 +16,7 @@ whole project. See [`../AGENTS.md`](../AGENTS.md) for the working agreement and
 | 05 | [Market data: quotes / search / profile](v0.1/05-market-quotes-search.md) | DONE (Claude, PR #7) | 03, 04 |
 | 06 | [Market data: candles / YTD / session](v0.1/06-market-candles-ytd.md) | READY | 05 |
 | 07 | [Watchlist local persistence](v0.1/07-watchlist-persistence.md) | READY | 03 |
-| 08 | [i18n (zh + en) — do early](v0.1/08-i18n.md) | IN PROGRESS (Codex) | — |
+| 08 | [i18n (zh + en) — do early](v0.1/08-i18n.md) | DONE (Codex, PR #6) | — |
 | 09 | [CI: format + analyze + test — do early](v0.1/09-ci.md) | DONE (Codex, PR #4) | — |
 | 10 | [Sky/water chart widget](v0.1/10-sky-chart-widget.md) | BLOCKED | 02, 03 |
 | 11 | [Plane-rider mascot widget](v0.1/11-plane-rider-widget.md) | BLOCKED | 02 |
