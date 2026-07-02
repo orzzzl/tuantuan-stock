@@ -1,6 +1,6 @@
 # 14 — Search screen
 
-- **Status:** BLOCKED (needs 02, 05, 07, 08)
+- **Status:** READY
 - **Owner:** —
 - **Blocked by:** 02 (theme), 05 (search repo), 07 (watchlist store), 08 (ARB strings)
 - **Allowed new deps:** —

@@ -1,6 +1,6 @@
 # 13 — Stock detail screen
 
-- **Status:** BLOCKED (needs 05, 06, 07, 08, 10, 11)
+- **Status:** READY
 - **Owner:** —
 - **Blocked by:** 05 (quote/logo), 06 (candles/baseline/session), 07 (⭐ watch toggle
   writes the watchlist), 08 (ARB strings), 10 (`SkyChart`), 11 (`PlaneRider`)

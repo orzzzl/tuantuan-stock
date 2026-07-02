@@ -1,6 +1,6 @@
 # 12 — Watchlist screen (daily race)
 
-- **Status:** BLOCKED (needs 02, 05, 06, 07, 08, 10)
+- **Status:** READY
 - **Owner:** —
 - **Blocked by:** 02 (theme), 05 (quotes/logos/index), 06 (ytdChangePct for 今年 #N +
   session tags), 07 (watchlist store), 08 (ARB strings), 10 (`MiniSpark`)
