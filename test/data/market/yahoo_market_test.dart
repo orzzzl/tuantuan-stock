@@ -5,6 +5,7 @@ import 'package:tuantuan_stock/data/market/yahoo_client.dart';
 import 'package:tuantuan_stock/data/market/yahoo_company_profiles.dart';
 import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
 import 'package:tuantuan_stock/data/market/yahoo_search_repository.dart';
+import 'package:tuantuan_stock/domain/models/chart_range.dart';
 import 'package:tuantuan_stock/domain/models/data_failure.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 
@@ -20,7 +21,24 @@ const _aaplQuoteJson = <String, Object?>{
   'regularMarketVolume': 51234567,
   'marketCap': 4323663937536,
   'regularMarketTime': 1782936000,
+  'marketState': 'POST',
+  'postMarketChangePercent': 0.088,
 };
+
+/// The AAPL fixture with the session fields replaced; a null field is
+/// removed entirely, matching Yahoo omitting it from the payload.
+Map<String, Object?> _quoteWith({
+  String? marketState,
+  double? pre,
+  double? post,
+}) {
+  return {
+    ..._aaplQuoteJson,
+    'marketState': marketState,
+    'preMarketChangePercent': pre,
+    'postMarketChangePercent': post,
+  }..removeWhere((_, value) => value == null);
+}
 
 const _gspcQuoteJson = <String, Object?>{
   'symbol': '^GSPC',
@@ -45,6 +63,7 @@ class _FakeYahoo {
     this.searchResults = const [],
     this.websiteBySymbol = const {},
     this.quoteStatusOverride,
+    this.chartBaselines = const {},
   });
 
   final List<String> crumbs;
@@ -54,10 +73,16 @@ class _FakeYahoo {
   final Map<String, String> websiteBySymbol;
   final int? quoteStatusOverride;
 
+  /// `'SYMBOL:range'` -> chartPreviousClose served by the v8 endpoint;
+  /// unknown keys get a 404 (YTD enrichment then degrades to null).
+  final Map<String, double> chartBaselines;
+
   int cookieCalls = 0;
   int crumbCalls = 0;
   int quoteCalls = 0;
   final quoteRequests = <http.Request>[];
+  final chartRequests = <http.Request>[];
+  final chartCallsBySymbol = <String, int>{};
   final summaryCallsBySymbol = <String, int>{};
 
   Future<http.Response> handle(http.Request request) async {
@@ -94,6 +119,28 @@ class _FakeYahoo {
           .toList();
       return http.Response(
         '{"quoteResponse":{"result":${_jsonList(result)},"error":null}}',
+        200,
+      );
+    }
+    if (url.path.startsWith('/v8/finance/chart/')) {
+      final symbol = url.pathSegments.last;
+      chartRequests.add(request);
+      chartCallsBySymbol.update(symbol, (n) => n + 1, ifAbsent: () => 1);
+      final key = '$symbol:${url.queryParameters['range']}';
+      final baseline = chartBaselines[key];
+      if (baseline == null) {
+        return http.Response('{"chart":{"result":null}}', 404);
+      }
+      return http.Response(
+        '{"chart":{"result":[{'
+        '"meta":{"chartPreviousClose":$baseline},'
+        '"timestamp":[1000,2000,3000],'
+        '"indicators":{"quote":[{'
+        '"open":[1.0,2.0,3.0],'
+        '"high":[1.5,2.5,3.5],'
+        '"low":[0.5,1.5,2.5],'
+        '"close":[1.2,null,3.2]'
+        '}]}}],"error":null}}',
         200,
       );
     }
@@ -135,6 +182,7 @@ void main() {
     test('maps a batched v7 quote to the domain Quote', () async {
       final yahoo = _FakeYahoo(
         quoteResults: const [_aaplQuoteJson, _gspcQuoteJson],
+        chartBaselines: const {'AAPL:ytd': 271.86, '^GSPC:ytd': 6900.0},
       );
       final repo = YahooQuoteRepository(yahoo.client());
 
@@ -152,9 +200,145 @@ void main() {
       expect(aapl.volume, 51234567);
       expect(aapl.marketCap, 4323663937536.0);
       expect(aapl.asOf, DateTime.utc(2026, 7, 1, 20));
-      expect(aapl.ytdChangePct, isNull, reason: 'lands with task 06');
-      expect(aapl.session, MarketSession.closed, reason: 'task 06');
-      expect(aapl.extChangePct, isNull, reason: 'task 06');
+      expect(
+        aapl.ytdChangePct,
+        closeTo((294.38 - 271.86) / 271.86 * 100, 1e-9),
+        reason: 'price vs the ytd chartPreviousClose',
+      );
+      expect(aapl.session, MarketSession.post);
+      expect(aapl.extChangePct, 0.088);
+    });
+
+    test('leaves ytdChangePct null when the ytd chart fetch fails', () async {
+      // No chartBaselines configured -> the v8 endpoint 404s.
+      final yahoo = _FakeYahoo(quoteResults: const [_aaplQuoteJson]);
+
+      final quote = await YahooQuoteRepository(yahoo.client()).quote('AAPL');
+
+      expect(quote.ytdChangePct, isNull);
+      expect(quote.price, 294.38, reason: 'quote itself must still succeed');
+    });
+
+    test('caches the YTD baseline across refreshes', () async {
+      final yahoo = _FakeYahoo(
+        quoteResults: const [_aaplQuoteJson],
+        chartBaselines: const {'AAPL:ytd': 271.86},
+      );
+      final repo = YahooQuoteRepository(yahoo.client());
+
+      await repo.quotes(['AAPL']);
+      await repo.quotes(['AAPL']);
+
+      expect(yahoo.quoteCalls, 2);
+      expect(
+        yahoo.chartCallsBySymbol['AAPL'],
+        1,
+        reason: 'the ytd baseline is constant within a year',
+      );
+    });
+
+    test(
+      'chart() sends the per-range v8 request and maps the series',
+      () async {
+        const requestByRange = <ChartRange, (String, String)>{
+          ChartRange.day: ('1d', '5m'),
+          ChartRange.week: ('5d', '1d'),
+          ChartRange.month: ('1mo', '1d'),
+          ChartRange.quarter: ('3mo', '1d'),
+          ChartRange.ytd: ('ytd', '1d'),
+          ChartRange.year: ('1y', '1d'),
+        };
+        const baselineByYahooRange = <String, double>{
+          '1d': 289.36,
+          '5d': 288.1,
+          '1mo': 280.4,
+          '3mo': 250.9,
+          'ytd': 271.86,
+          '1y': 240.5,
+        };
+        final yahoo = _FakeYahoo(
+          chartBaselines: {
+            for (final MapEntry(key: range, value: baseline)
+                in baselineByYahooRange.entries)
+              'AAPL:$range': baseline,
+          },
+        );
+        final repo = YahooQuoteRepository(yahoo.client());
+
+        for (final MapEntry(key: range, value: (yahooRange, interval))
+            in requestByRange.entries) {
+          final series = await repo.chart('AAPL', range);
+          final query = yahoo.chartRequests.last.url.queryParameters;
+
+          expect(query['range'], yahooRange);
+          expect(query['interval'], interval);
+          expect(
+            query['includePrePost'],
+            range == ChartRange.day ? 'true' : isNull,
+            reason: 'extended-hours bars only make sense on the day chart',
+          );
+          expect(
+            series.baseline,
+            baselineByYahooRange[yahooRange],
+            reason: 'baseline == chartPreviousClose of the same response',
+          );
+          expect(
+            series.candles.map((c) => c.close),
+            [1.2, 3.2],
+            reason: 'the null-padded unfinished bar is skipped',
+          );
+          expect(
+            series.candles.first.time,
+            DateTime.fromMillisecondsSinceEpoch(1000 * 1000, isUtc: true),
+          );
+        }
+      },
+    );
+
+    test(
+      'maps every marketState to session + state-matched ext field',
+      () async {
+        // Both ext fields are present so a wrong-field read cannot pass.
+        const pre = 0.42;
+        const post = -0.31;
+        const expected = <String, (MarketSession, double?)>{
+          'PRE': (MarketSession.pre, pre),
+          'REGULAR': (MarketSession.regular, null),
+          'POST': (MarketSession.post, post),
+          'POSTPOST': (MarketSession.post, post),
+          'PREPRE': (MarketSession.post, post),
+          'CLOSED': (MarketSession.closed, null),
+          'SOME_FUTURE_STATE': (MarketSession.closed, null),
+        };
+
+        for (final MapEntry(key: state, value: (session, extChangePct))
+            in expected.entries) {
+          final yahoo = _FakeYahoo(
+            quoteResults: [
+              _quoteWith(marketState: state, pre: pre, post: post),
+            ],
+          );
+
+          final quote = await YahooQuoteRepository(
+            yahoo.client(),
+          ).quote('AAPL');
+
+          expect(quote.session, session, reason: state);
+          expect(quote.extChangePct, extChangePct, reason: state);
+        }
+      },
+    );
+
+    test('null ext field means no extended data, not zero', () async {
+      for (final state in const ['PRE', 'POST']) {
+        final yahoo = _FakeYahoo(
+          quoteResults: [_quoteWith(marketState: state)],
+        );
+
+        final quote = await YahooQuoteRepository(yahoo.client()).quote('AAPL');
+
+        expect(quote.extChangePct, isNull, reason: state);
+      }
     });
 
     test(
