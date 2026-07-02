@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="TuanTuan flying a stock-watching plane">
+  <defs>
+    <radialGradient id="warm-glow" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#FFFDFA"/>
+      <stop offset="100%" stop-color="#FFF7EF"/>
+    </radialGradient>
+    <linearGradient id="plane" x1="260" y1="420" x2="760" y2="700" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFB07C"/>
+      <stop offset="100%" stop-color="#FF9B6A"/>
+    </linearGradient>
+    <linearGradient id="matcha" x1="380" y1="220" x2="610" y2="510" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#B8E6C4"/>
+      <stop offset="100%" stop-color="#8AD6A3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#warm-glow)"/>
+  <circle cx="182" cy="308" r="62" fill="#FFE9D6"/>
+  <circle cx="824" cy="760" r="78" fill="#FAF1E3"/>
+  <circle cx="790" cy="218" r="42" fill="#E2F5E6"/>
+  <circle cx="228" cy="746" r="34" fill="#F3E6FF"/>
+  <path d="M144 764 C270 674 370 692 482 612 S678 498 850 364" fill="none" stroke="#B8E6C4" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M844 364 L854 500 L748 412 Z" fill="#8AD6A3" stroke="#6CC488" stroke-width="20" stroke-linejoin="round"/>
+
+  <g transform="rotate(-14 520 520)">
+    <circle cx="210" cy="694" r="34" fill="#EADFD2"/>
+    <circle cx="270" cy="664" r="25" fill="#F4ECE1"/>
+    <path d="M250 638 L315 424 L444 592 Z" fill="#FFB07C" stroke="#F08A55" stroke-width="26" stroke-linejoin="round"/>
+    <ellipse cx="590" cy="646" rx="300" ry="96" fill="url(#plane)" stroke="#F08A55" stroke-width="28"/>
+    <path d="M548 646 L402 820 Q366 858 426 858 L640 746 Z" fill="#FF9B6A" stroke="#F08A55" stroke-width="24" stroke-linejoin="round"/>
+    <path d="M402 618 L878 612 L524 720 Z" fill="#FFD19A" opacity="0.72"/>
+    <circle cx="888" cy="646" r="36" fill="#8A7766"/>
+    <path d="M888 526 V766" stroke="#8A7766" stroke-width="24" stroke-linecap="round" opacity="0.75"/>
+
+    <path d="M510 238 Q558 172 612 222" fill="none" stroke="#3F7D5C" stroke-width="28" stroke-linecap="round"/>
+    <circle cx="526" cy="374" r="152" fill="url(#matcha)" stroke="#6CC488" stroke-width="10"/>
+    <circle cx="466" cy="424" r="28" fill="#FF9B8A" opacity="0.74"/>
+    <circle cx="594" cy="424" r="28" fill="#FF9B8A" opacity="0.74"/>
+    <circle cx="474" cy="354" r="34" fill="#3A4A3F"/>
+    <circle cx="586" cy="354" r="34" fill="#3A4A3F"/>
+    <circle cx="488" cy="340" r="11" fill="#FFFDFA"/>
+    <circle cx="600" cy="340" r="11" fill="#FFFDFA"/>
+    <path d="M484 412 Q526 464 572 412" fill="none" stroke="#3A4A3F" stroke-width="20" stroke-linecap="round"/>
+    <path d="M828 214 L828 296 M786 255 H870 M798 224 L858 286 M858 224 L798 286" stroke="#FFCF6E" stroke-width="18" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -23,6 +23,15 @@ dev_dependencies:
   custom_lint: ^0.7.6
   flutter_lints: ^6.0.0
   riverpod_lint: ^2.6.5
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/tuantuan_stock_icon.png
+  adaptive_icon_background: assets/icon/tuantuan_stock_icon_background.png
+  adaptive_icon_foreground: assets/icon/tuantuan_stock_icon_foreground.png
+  remove_alpha_ios: true
 
 flutter:
   generate: true
