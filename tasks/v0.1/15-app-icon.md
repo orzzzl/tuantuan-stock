@@ -1,7 +1,7 @@
 # 15 — App icon
 
-- **Status:** BLOCKED (needs 01)
-- **Owner:** —
+- **Status:** DONE (PR #12)
+- **Owner:** Codex
 - **Blocked by:** 01
 - **Allowed new deps:** dev: flutter_launcher_icons
 
