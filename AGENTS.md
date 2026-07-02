@@ -18,13 +18,15 @@ require that, stop and leave a note in the PR instead of guessing.
 2. Create a branch: `task/<id>-<short-slug>` (e.g. `task/04-quote-domain`).
 3. Implement **only what the task spec asks**. Keep the diff minimal and focused.
 4. Run the checks in "Definition of done" below. They must pass.
-5. Open a PR. The title MUST start with an author tag — `[codex]` if Codex wrote it,
-   `[claude]` if Claude wrote it. In the description, link the task file and fill the
-   PR checklist.
-6. **Every PR must be reviewed before merge — no exceptions, no self-merge.** The two
-   agents cross-review: Codex PRs are reviewed by Claude, Claude PRs are reviewed by
-   Codex. The owner can always override or add review. Address review comments on the
-   same branch; merge only after an explicit approval.
+5. Open a PR. The title MUST start with an author tag — `[codex]`, `[claude]`, or
+   `[antigravity]`, naming the agent that wrote it. In the description, link the task
+   file and fill the PR checklist.
+6. **Every PR must be reviewed before merge — no exceptions, no self-merge.** Cross-
+   review: every PR is reviewed by a DIFFERENT agent than its author. Default pairing
+   is Codex↔Claude; Antigravity (Gemini) is an equal reviewer — route reviews to it
+   (mailbox `~/agents/inbox/antigravity/new/`) when the default reviewer is out of
+   quota or unresponsive. The owner can always override or add review. Address review
+   comments on the same branch; merge only after an explicit approval.
 7. **Agent-to-agent notifications go through the machine-level mailbox** at
    `~/agents/` (spec: `~/agents/PROTOCOL.md`) — e.g. "PR #N is ready for your
    review". Review content itself stays on the GitHub PR. Never commit mailbox
