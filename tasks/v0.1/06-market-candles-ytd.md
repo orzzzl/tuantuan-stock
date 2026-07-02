@@ -1,7 +1,7 @@
 # 06 — Market data: candles, YTD, session labeling
 
-- **Status:** BLOCKED (needs 05)
-- **Owner:** —
+- **Status:** DONE (PR #13)
+- **Owner:** Claude
 - **Blocked by:** 05
 - **Allowed new deps:** — (extends the 05 client)
 
