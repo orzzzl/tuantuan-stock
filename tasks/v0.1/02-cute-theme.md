@@ -1,6 +1,6 @@
 # 02 — Cute theme foundation
 
-- **Status:** IN PROGRESS
+- **Status:** DONE (PR #8)
 - **Owner:** Codex
 - **Blocked by:** —
 - **Allowed new deps:** google_fonts
