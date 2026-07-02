@@ -16,6 +16,7 @@ dependencies:
   google_fonts: ^8.1.0
   http: ^1.5.0
   intl: ^0.20.2
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
@@ -24,6 +25,8 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   riverpod_lint: ^2.6.5
   flutter_launcher_icons: ^0.14.4
+  # The in-memory fake behind shared_preferences, for tests only.
+  shared_preferences_platform_interface: ^2.4.1
 
 flutter_launcher_icons:
   android: true
