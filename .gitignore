@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Flutter/Dart (for when the app code lands)
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+
+# Secrets — the market-data API key is passed via --dart-define, never committed
+*.env

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>团团看盘 · v3 定稿</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  body {
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:#fff7ef;
+    background-image:
+      radial-gradient(circle at 15% 12%, #ffe9d6 0%, transparent 35%),
+      radial-gradient(circle at 85% 85%, #e2f5e6 0%, transparent 38%),
+      radial-gradient(circle at 70% 25%, #f3e6ff 0%, transparent 30%);
+    min-height:100vh; padding:46px 24px 80px; color:#5a4a3f;
+  }
+  .page-title{ text-align:center; font-size:30px; font-weight:900; letter-spacing:-0.5px; color:#3f7d5c;}
+  .page-title span{ color:#ff9b6a; }
+  .page-sub{ text-align:center; margin:8px 0 44px; color:#b6a395; font-size:15px; font-weight:600;}
+  .screens{ display:flex; flex-wrap:wrap; gap:40px 48px; justify-content:center; align-items:flex-start;}
+  .frame-wrap{ display:flex; flex-direction:column; align-items:center; gap:16px;}
+  .frame-label{ font-size:14px; color:#a8917f; font-weight:700;}
+  .frame-label b{ color:#3f7d5c;}
+
+  .phone{
+    width:320px; height:660px; background:#fffdfa;
+    border-radius:46px;
+    box-shadow:0 0 0 12px #6b5a4d, 0 0 0 15px #54463b, 0 30px 60px rgba(120,90,60,0.25);
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+  }
+  .notch{ position:absolute; top:0; left:50%; transform:translateX(-50%); width:120px; height:26px; background:#6b5a4d; border-radius:0 0 16px 16px; z-index:50;}
+  .statusbar{ height:44px; display:flex; align-items:center; justify-content:space-between; padding:8px 26px 0; font-size:13px; font-weight:700; color:#9a8576;}
+
+  .nav{ padding:6px 20px 10px; display:flex; align-items:center; justify-content:space-between;}
+  .brand{ font-size:21px; font-weight:900; letter-spacing:-0.3px; color:#3f7d5c; display:flex; align-items:center; gap:6px;}
+  .brand .heart{ font-size:15px;}
+  .gear{ width:36px; height:36px; border-radius:50%; background:#fff2e4; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow:0 2px 0 #f0ddca;}
+
+  /* ===== mascot 团团 (+ magnifier prop) ===== */
+  .blob{
+    position:relative; background:linear-gradient(160deg,#b8e6c4,#8ad6a3);
+    border-radius:50% 50% 48% 48%/55% 55% 45% 45%;
+    box-shadow:0 6px 0 #6cc488, inset 0 -6px 10px rgba(255,255,255,0.4);
+  }
+  .blob .leaf{ position:absolute; top:-9px; left:50%; transform:translateX(-50%) rotate(-12deg); font-size:16px;}
+  .blob .eye{ position:absolute; top:42%; width:6px; height:8px; background:#3a4a3f; border-radius:50%;}
+  .blob .cheek{ position:absolute; top:58%; width:7px; height:5px; background:#ff9b8a; border-radius:50%; opacity:.6;}
+  .blob .mouth{ position:absolute; top:60%; left:50%; transform:translateX(-50%); width:9px; height:5px; border:1.6px solid #3a4a3f; border-top:none; border-radius:0 0 9px 9px;}
+  .blob.big{ width:104px; height:100px; margin:0 auto 4px;}
+  .blob.big .leaf{ top:-16px; font-size:26px;}
+  .blob.big .eye{ width:10px; height:13px;} .blob.big .eye.l{ left:30%;} .blob.big .eye.r{ right:30%;}
+  .blob.big .eye::after{ content:""; position:absolute; top:1px; right:0px; width:3px; height:3px; background:#fff; border-radius:50%;}
+  .blob.big .cheek{ width:13px; height:8px;} .blob.big .cheek.l{ left:18%;} .blob.big .cheek.r{ right:18%;}
+  .blob.big .mouth{ width:16px; height:9px; border-width:2.2px;}
+  .blob.big .spark{ position:absolute; font-size:15px;}
+  /* magnifier the mascot holds */
+  .mag{ position:absolute; right:-14px; bottom:-2px; width:40px; height:40px; transform:rotate(8deg);}
+  .mag .lens{ position:absolute; top:0; left:0; width:30px; height:30px; border-radius:50%; border:4px solid #3f7d5c; background:rgba(255,255,255,0.45);}
+  .mag .grip{ position:absolute; right:1px; bottom:1px; width:6px; height:16px; background:#3f7d5c; border-radius:4px; transform:rotate(-45deg);}
+
+  /* ===== generic body ===== */
+  .body{ flex:1; overflow:hidden; padding:2px 16px 8px;}
+  .mood{ text-align:center; padding:8px 0 12px;}
+  .mood .say{ display:inline-block; background:#fff; border:2px solid #eadfd2; border-radius:18px; padding:9px 17px; font-size:14px; font-weight:800; color:#3f7d5c; margin-top:8px;}
+
+  .index-row{ display:flex; gap:9px; margin:2px 0 14px;}
+  .idx{ flex:1; border:2px solid #f1e7da; border-radius:16px; padding:9px 10px; box-shadow:0 4px 0 #f4ece1;}
+  .idx .nm{ font-size:11px; color:#a8917f; font-weight:800;}
+  .idx .vl{ font-size:15px; font-weight:900; color:#5a4a3f; font-variant-numeric:tabular-nums; margin-top:2px;}
+  .idx .ch{ font-size:11px; font-weight:800; font-variant-numeric:tabular-nums; margin-top:1px;}
+
+  /* US convention: green = up, red = down */
+  .up{ color:#2e9e6b;} .dn{ color:#e0604a;}
+  .up-bg{ background:#eafaf0;} .dn-bg{ background:#fdeeeb;}
+
+  .section-t{ font-size:13px; font-weight:800; color:#a8917f; margin:6px 2px 10px;}
+
+  /* home highlight card */
+  .hl{ background:#fff; border:2px solid #f1e7da; border-radius:20px; padding:6px 4px; box-shadow:0 4px 0 #f4ece1; display:flex;}
+  .hl .col{ flex:1; text-align:center; padding:8px 6px;}
+  .hl .col + .col{ border-left:2px solid #f4ece1;}
+  .hl .cap{ font-size:11px; color:#a8917f; font-weight:800;}
+  .hl .sym{ font-size:15px; font-weight:900; color:#5a4a3f; margin-top:4px;}
+  .hl .chg{ font-size:13px; font-weight:900; margin-top:2px; font-variant-numeric:tabular-nums;}
+  .home-btn{ text-align:center; margin-top:14px; background:linear-gradient(135deg,#8ad6a3,#5cc78f); color:#fff; border-radius:18px; padding:13px; font-size:15px; font-weight:800; box-shadow:0 5px 0 #4fb87f;}
+
+  /* watchlist cards */
+  .wlist{ display:flex; flex-direction:column; gap:7px;}
+  .sechead{ display:flex; align-items:center; justify-content:space-between; margin:6px 2px 10px;}
+  .sechead .section-t{ margin:0;}
+  .sorttog{ display:flex; gap:5px;}
+  .stchip{ font-size:10.5px; font-weight:800; color:#c89368; background:#fff; border:2px solid #ffe0c2; border-radius:11px; padding:3px 10px;}
+  .stchip.on{ background:linear-gradient(135deg,#ffb07c,#ff9b6a); color:#fff; border-color:#ff9b6a; box-shadow:0 2px 0 #f08a55;}
+  .icwrap{ position:relative; flex-shrink:0;}
+  .medal{ position:absolute; top:-7px; left:-7px; font-size:14px; z-index:2; filter:drop-shadow(0 1px 0 rgba(0,0,0,.10));}
+  .medal.num{ width:15px; height:15px; border-radius:50%; background:#f1e7da; color:#a8917f; font-size:10.5px; font-weight:900; display:flex; align-items:center; justify-content:center; top:-6px; left:-6px;}
+  .scard{ background:#fff; border:2px solid #f1e7da; border-radius:17px; padding:8px 12px; display:flex; align-items:center; gap:9px; box-shadow:0 3px 0 #f4ece1;}
+  /* logo slot: white round avatar that holds the fetched company logo;
+     mockup shows the ticker fallback (brand-tinted ring + code) */
+  .scard .ic{ width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; color:#5a4a3f; flex-shrink:0; background:#fff; border:2px solid #ece2d4;}
+  .scard .meta{ flex:1; min-width:0;}
+  .scard .nm{ font-size:14px; font-weight:900; color:#5a4a3f; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .scard .cd{ font-size:10.5px; color:#bba894; font-weight:700; margin-top:1px; white-space:nowrap;}
+  .scard .pr{ text-align:right; flex-shrink:0;}
+  .scard .pr .p{ font-size:14.5px; font-weight:900; color:#5a4a3f; font-variant-numeric:tabular-nums;}
+  .scard .pr .pill{ font-size:10.5px; font-weight:900; border-radius:9px; padding:1.5px 6px; margin-top:2px; display:inline-block; font-variant-numeric:tabular-nums;}
+  .svgspark{ width:44px; height:24px; flex-shrink:0;}
+
+  .tabbar{ height:66px; background:#fffdfa; border-top:2px solid #f4e7d8; display:flex;}
+  .tab{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:11px; color:#cbb6a3; font-weight:800;}
+  .tab.active{ color:#3f7d5c;}
+  .tab .ti{ font-size:21px;}
+  .tab.active .pill2{ background:#eafaf0;}
+  .pill2{ padding:3px 13px; border-radius:14px;}
+
+  /* ===== detail ===== */
+  .dhead{ display:flex; align-items:center; gap:10px; margin:2px 2px 12px;}
+  .dhead .ic{ width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:900; color:#5a4a3f; background:#fff; border:2px solid #ece2d4;}
+  .dhead .nm{ font-size:18px; font-weight:900; color:#5a4a3f;}
+  .dhead .cd{ font-size:12px; color:#bba894; font-weight:700;}
+  .dhead .star{ margin-left:auto; font-size:20px;}
+
+  .hero{ border-radius:26px; padding:18px 20px; color:#fff; margin:4px 0 14px; text-align:center;}
+  .hero.up{ background:linear-gradient(135deg,#8ad6a3,#5cc78f); box-shadow:0 8px 0 #4fb87f;}
+  .hero.dn-hero{ background:linear-gradient(135deg,#ff9d86,#e0604a); box-shadow:0 8px 0 #cf5440;}
+  .hero .label{ font-size:12px; opacity:.95; font-weight:700;}
+  .hero .big{ font-size:46px; font-weight:900; letter-spacing:-1px; line-height:1.05; text-shadow:0 2px 0 rgba(0,0,0,0.08); font-variant-numeric:tabular-nums;}
+  .hero .cap{ font-size:14px; font-weight:800; opacity:.97; margin-top:6px; font-variant-numeric:tabular-nums;}
+
+  .ranges{ display:flex; gap:6px; margin:0 0 12px; justify-content:space-between;}
+  .rchip{ flex:1; text-align:center; background:#fff; border:2px solid #ffe0c2; border-radius:13px; padding:6px 0; font-size:12px; font-weight:800; color:#c89368;}
+  .rchip.on{ background:linear-gradient(135deg,#ffb07c,#ff9b6a); border-color:#ff9b6a; color:#fff; box-shadow:0 3px 0 #f08a55;}
+
+  /* cute THICK rounded line chart */
+  .chart{ position:relative; background:#fff; border:2px solid #f1e7da; border-radius:20px; padding:14px 8px 10px; box-shadow:0 4px 0 #f4ece1; margin-bottom:14px;}
+  /* 团团 flying a little plane along the price line: climbing happily, nose-diving in panic */
+  .rider{ position:absolute; width:66px; height:48px;}
+  .rider svg{ display:block; overflow:visible;}
+  .rider.up{ top:-2px; right:-4px; transform:rotate(-14deg);}
+  .rider.dn{ bottom:10px; right:-4px; transform:rotate(18deg);}
+
+  .stats{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px;}
+  .stat{ background:#fff; border:2px solid #f1e7da; border-radius:14px; padding:9px 11px; box-shadow:0 3px 0 #f4ece1;}
+  .stat .k{ font-size:10.5px; color:#a8917f; font-weight:800;}
+  .stat .v{ font-size:14px; font-weight:900; color:#5a4a3f; margin-top:2px; font-variant-numeric:tabular-nums;}
+
+  /* ===== search ===== */
+  .searchbar{ background:#fff3e8; border:2px solid #ffe3cd; border-radius:18px; padding:12px 16px; font-size:14px; color:#cbb09b; font-weight:600; margin:2px 0 16px; display:flex; align-items:center; gap:8px;}
+  .reslist{ display:flex; flex-direction:column;}
+  .res{ display:flex; align-items:center; gap:12px; padding:13px 4px; border-bottom:2px solid #f7efe5;}
+  .res:last-child{ border-bottom:none;}
+  .res .ic{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; color:#5a4a3f; background:#fff; border:2px solid #ece2d4;}
+  .res .meta{ flex:1;}
+  .res .nm{ font-size:15px; font-weight:900; color:#5a4a3f;}
+  .res .cd{ font-size:11.5px; color:#bba894; font-weight:700; margin-top:1px;}
+  .res .mkt{ font-size:10px; font-weight:800; color:#c89368; background:#fff2e4; border-radius:8px; padding:2px 7px; margin-right:6px;}
+  .res .add{ width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#8ad6a3,#5cc78f); color:#fff; font-size:18px; font-weight:900; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 0 #4fb87f;}
+  .res .added{ width:30px; height:30px; border-radius:50%; background:#eafaf0; color:#3f9e6b; font-size:15px; display:flex; align-items:center; justify-content:center; border:2px solid #c4ebd1;}
+
+  .ic img{ width:22px; height:22px; object-fit:contain;}
+  /* fallback tint = brand-colored ring + ink, used only when no logo */
+  .ic.g{ border-color:#9bdcb3; color:#2e9e6b;}
+  .ic.o{ border-color:#ffcba0; color:#e08a4a;}
+  .ic.p{ border-color:#d3bcf0; color:#8a6fb0;}
+  .ic.b{ border-color:#a8c8ff; color:#5a82d6;}
+  .ic.r{ border-color:#ffbcab; color:#e0604a;}
+  .ic.k{ border-color:#cfcfcf; color:#3a3a3a;}
+
+  .legend{ max-width:900px; margin:54px auto 0; background:#fff; border-radius:24px; padding:26px 30px; box-shadow:0 6px 22px rgba(150,110,70,0.1); border:2px solid #f4e7d8;}
+  .legend h3{ font-size:17px; margin-bottom:14px; color:#3f7d5c;}
+  .legend ul{ list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:12px 28px;}
+  .legend li{ font-size:14px; line-height:1.55; color:#6a594c; padding-left:24px; position:relative; font-weight:600;}
+  .legend li::before{ content:"🌱"; position:absolute; left:0; font-size:13px;}
+  .legend li b{ color:#3f7d5c;}
+</style>
+</head>
+<body>
+
+  <div class="page-title">团团看盘 <span>· v3 定稿</span></div>
+  <div class="page-sub">团团陪你瞄美股 · 打开就是自选，搜索在右上角 · 绿涨红跌</div>
+
+  <div class="screens">
+
+    <!-- ===== SCREEN 2: WATCHLIST ===== -->
+    <div class="frame-wrap">
+      <div class="frame-label">主页 · <b>自选</b>（打开即是，无 tab 栏）</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="nav">
+          <div class="brand">团团看盘 <span class="heart">🌱</span></div>
+          <div class="gear">🔍</div>
+        </div>
+
+        <div class="body">
+          <div class="index-row">
+            <div class="idx up-bg"><div class="nm">标普500</div><div class="vl">5638</div><div class="ch up">+0.74%</div></div>
+            <div class="idx up-bg"><div class="nm">纳斯达克</div><div class="vl">17854</div><div class="ch up">+1.12%</div></div>
+            <div class="idx dn-bg"><div class="nm">道琼斯</div><div class="vl">41209</div><div class="ch dn">-0.18%</div></div>
+          </div>
+          <div class="sechead">
+            <div class="section-t">今日排位赛 🏁</div>
+            <div class="sorttog"><span class="stchip on">涨跌幅</span><span class="stchip">市值</span></div>
+          </div>
+          <div class="wlist">
+            <div class="scard">
+              <span class="icwrap"><span class="medal">🥇</span><div class="ic"><img src="logos/nvidia.png" alt="NVDA"></div></span>
+              <div class="meta"><div class="nm">NVIDIA</div><div class="cd">英伟达 · 今年 #1</div></div>
+              <svg class="svgspark" viewBox="0 0 50 28"><polyline points="2,24 10,20 18,16 26,17 34,11 42,7 48,3" fill="none" stroke="#2e9e6b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="pr"><div class="p">132.4</div><span class="pill up up-bg">+3.21%</span><div style="font-size:9px; font-weight:800; color:#b6a395; margin-top:1px;">盘前 +0.8%</div></div>
+            </div>
+            <div class="scard">
+              <span class="icwrap"><span class="medal">🥈</span><div class="ic"><img src="logos/apple.png" alt="AAPL"></div></span>
+              <div class="meta"><div class="nm">Apple</div><div class="cd">苹果 · 今年 #5</div></div>
+              <svg class="svgspark" viewBox="0 0 50 28"><polyline points="2,22 10,19 18,20 26,13 34,15 42,7 48,4" fill="none" stroke="#2e9e6b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="pr"><div class="p">228.7</div><span class="pill up up-bg">+1.96%</span></div>
+            </div>
+            <div class="scard">
+              <span class="icwrap"><span class="medal">🥉</span><div class="ic"><img src="logos/meta.png" alt="META"></div></span>
+              <div class="meta"><div class="nm">Meta</div><div class="cd">Meta 平台 · 今年 #2</div></div>
+              <svg class="svgspark" viewBox="0 0 50 28"><polyline points="2,20 10,21 18,15 26,16 34,12 42,13 48,8" fill="none" stroke="#2e9e6b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="pr"><div class="p">642.3</div><span class="pill up up-bg">+1.12%</span></div>
+            </div>
+            <div class="scard">
+              <span class="icwrap"><span class="medal num">4</span><div class="ic"><img src="logos/microsoft.png" alt="MSFT"></div></span>
+              <div class="meta"><div class="nm">Microsoft</div><div class="cd">微软 · 今年 #4</div></div>
+              <svg class="svgspark" viewBox="0 0 50 28"><polyline points="2,16 10,18 18,13 26,14 34,10 42,11 48,7" fill="none" stroke="#2e9e6b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="pr"><div class="p">416.8</div><span class="pill up up-bg">+0.58%</span></div>
+            </div>
+            <div class="scard">
+              <span class="icwrap"><span class="medal num">5</span><div class="ic"><img src="logos/amazon.png" alt="AMZN"></div></span>
+              <div class="meta"><div class="nm">Amazon</div><div class="cd">亚马逊 · 今年 #3</div></div>
+              <svg class="svgspark" viewBox="0 0 50 28"><polyline points="2,12 10,10 18,13 26,11 34,15 42,14 48,17" fill="none" stroke="#e0604a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="pr"><div class="p">186.2</div><span class="pill dn dn-bg">-0.42%</span></div>
+            </div>
+            <div class="scard">
+              <span class="icwrap"><span class="medal num">6</span><div class="ic"><img src="logos/tesla.png" alt="TSLA"></div></span>
+              <div class="meta"><div class="nm">Tesla</div><div class="cd">特斯拉 · 今年 #6</div></div>
+              <svg class="svgspark" viewBox="0 0 50 28"><polyline points="2,5 10,9 18,7 26,14 34,13 42,19 48,23" fill="none" stroke="#e0604a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="pr"><div class="p">214.1</div><span class="pill dn dn-bg">-1.34%</span></div>
+            </div>
+          </div>
+          <div class="section-t" style="text-align:center; margin-top:16px; color:#cbb6a3;">按当日涨幅自动排序 · 左滑删除</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SCREEN 3: DETAIL ===== -->
+    <div class="frame-wrap">
+      <div class="frame-label">点进个股 · <b>详情</b>（胖圆头折线）</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="nav">
+          <div class="brand" style="font-size:18px;">‹ 返回</div>
+          <div class="gear">🔍</div>
+        </div>
+
+        <div class="body">
+          <div class="dhead">
+            <div class="ic"><img src="logos/apple.png" alt="AAPL"></div>
+            <div><div class="nm">Apple</div><div class="cd">苹果公司</div></div>
+            <span class="star">⭐</span>
+          </div>
+
+          <div class="hero up">
+            <div class="label">现价 (USD)</div>
+            <div class="big">228.70</div>
+            <div class="cap">▲ +4.40　+1.96%　今天 <span style="background:rgba(255,255,255,.25); border-radius:9px; padding:1px 7px; font-size:11px;">盘后 +0.32%</span></div>
+          </div>
+
+          <div class="ranges">
+            <span class="rchip on">1日</span>
+            <span class="rchip">1周</span>
+            <span class="rchip">1月</span>
+            <span class="rchip">3月</span>
+            <span class="rchip">今年</span>
+            <span class="rchip">1年</span>
+          </div>
+
+          <div class="chart">
+            <svg width="100%" height="124" viewBox="0 0 280 124" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="fillUp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cc78f" stop-opacity="0.32"/><stop offset="1" stop-color="#5cc78f" stop-opacity="0"/></linearGradient>
+                <linearGradient id="strokeUp" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8ad6a3"/><stop offset="1" stop-color="#2e9e6b"/></linearGradient>
+              </defs>
+              <!-- dotted candy grid, symmetric around the centered 0% line -->
+              <g stroke="#f0e4d4" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0.5 9">
+                <line x1="4" y1="31" x2="276" y2="31"/><line x1="4" y1="93" x2="276" y2="93"/>
+              </g>
+              <!-- sunny sky above -->
+              <g stroke="#ffcf6e" stroke-width="2" stroke-linecap="round"><line x1="22" y1="4" x2="22" y2="8"/><line x1="10" y1="16" x2="14" y2="16"/><line x1="13" y1="7" x2="16" y2="10"/><line x1="31" y1="7" x2="28" y2="10"/></g>
+              <circle cx="22" cy="16" r="6.5" fill="#ffd88a" stroke="#ffc95e" stroke-width="2"/>
+              <g fill="#faf1e3">
+                <ellipse cx="96" cy="20" rx="13" ry="6.5"/><ellipse cx="106" cy="17" rx="9" ry="5.5"/><ellipse cx="87" cy="17.5" rx="7" ry="4.5"/>
+                <ellipse cx="188" cy="44" rx="11" ry="5.5"/><ellipse cx="197" cy="41.5" rx="7.5" ry="4.5"/>
+              </g>
+              <!-- water: exactly the bottom half, below the centered 0% baseline -->
+              <rect x="4" y="63" width="272" height="59" rx="7" fill="#dceffa"/>
+              <path d="M12,70 q4,-2.6 8,0 M38,75 q4,-2.6 8,0 M64,70 q4,-2.6 8,0" stroke="#b5dcf2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+              <text x="220" y="106" font-size="9">🐟</text>
+              <text x="120" y="114" font-size="7">🐠</text>
+              <line x1="4" y1="62" x2="276" y2="62" stroke="#8ecae6" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round"/>
+              <text x="196" y="57" font-size="7.5" font-weight="800" fill="#8bb8d0">0% 昨收</text>
+              <!-- gapped up at the open (extended-hours), so the line starts above the waterline -->
+              <path d="M6,52 C22,58 36,60 48,56 C56,53 58,52 64,50 C84,38 96,46 118,40 C140,33 150,25 172,29 C194,33 206,18 232,16 C252,14 262,11 270,8 L270,62 L6,62 Z" fill="url(#fillUp)"/>
+              <!-- candy hard shadow under the line -->
+              <path d="M6,56 C22,62 36,64 48,60 C56,57 58,56 64,54 C84,42 96,50 118,44 C140,37 150,29 172,33 C194,37 206,22 232,20 C252,18 262,15 270,12" fill="none" stroke="#b9e7cd" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6,52 C22,58 36,60 48,56 C56,53 58,52 64,50 C84,38 96,46 118,40 C140,33 150,25 172,29 C194,33 206,18 232,16 C252,14 262,11 270,8" fill="none" stroke="url(#strokeUp)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <g fill="#fff">
+                <circle cx="64" cy="50" r="4.6" stroke="#7ccfa0" stroke-width="2.8"/>
+                <circle cx="118" cy="40" r="4.6" stroke="#5cc78f" stroke-width="2.8"/>
+                <circle cx="172" cy="29" r="4.6" stroke="#4bbd84" stroke-width="2.8"/>
+                <circle cx="232" cy="16" r="4.6" stroke="#2e9e6b" stroke-width="2.8"/>
+              </g>
+            </svg>
+            <span class="rider up">
+              <svg viewBox="0 0 66 48" width="66" height="48">
+                <!-- joy sparkle ahead -->
+                <text x="56" y="8" font-size="10">✨</text>
+                <!-- contrail puffs behind -->
+                <circle cx="3" cy="34" r="3.2" fill="#eadfd2" opacity=".85"/>
+                <circle cx="10" cy="32" r="2.3" fill="#eadfd2" opacity=".6"/>
+                <!-- tail fin -->
+                <path d="M14,31 L17,19 L24,28 Z" fill="#ffb07c" stroke="#f08a55" stroke-width="1.6" stroke-linejoin="round"/>
+                <!-- fuselage -->
+                <ellipse cx="35" cy="33" rx="22" ry="7.5" fill="#ffb07c" stroke="#f08a55" stroke-width="1.8"/>
+                <!-- wing -->
+                <path d="M32,34 L24,44 Q22,46 25,46 L38,40 Z" fill="#ff9b6a" stroke="#f08a55" stroke-width="1.4" stroke-linejoin="round"/>
+                <!-- nose propeller -->
+                <circle cx="57" cy="33" r="2.4" fill="#8a7766"/>
+                <line x1="57" y1="25" x2="57" y2="41" stroke="#8a7766" stroke-width="2" stroke-linecap="round" opacity=".65"/>
+                <!-- 团团 pilot, happy -->
+                <path d="M32,7 q3,-4 6,-1" stroke="#3f7d5c" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <ellipse cx="33" cy="16" rx="10.5" ry="10" fill="#8ad6a3" stroke="#6cc488" stroke-width="0.5"/>
+                <ellipse cx="28.5" cy="19.5" rx="2.5" ry="1.7" fill="#ff9b8a" opacity="0.6"/><ellipse cx="37.5" cy="19.5" rx="2.5" ry="1.7" fill="#ff9b8a" opacity="0.6"/>
+                <circle cx="29.8" cy="15.5" r="1.8" fill="#3a4a3f"/><circle cx="36.2" cy="15.5" r="1.8" fill="#3a4a3f"/>
+                <path d="M30,18.5 q3,3.5 6,0" stroke="#3a4a3f" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="stats">
+            <div class="stat"><div class="k">今开</div><div class="v">224.5</div></div>
+            <div class="stat"><div class="k">最高</div><div class="v up">229.8</div></div>
+            <div class="stat"><div class="k">最低</div><div class="v dn">223.9</div></div>
+            <div class="stat"><div class="k">昨收</div><div class="v">224.3</div></div>
+            <div class="stat"><div class="k">成交量</div><div class="v">48.2M</div></div>
+            <div class="stat"><div class="k">市值</div><div class="v">3.46T</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SCREEN 4b: DETAIL (DOWN DAY) ===== -->
+    <div class="frame-wrap">
+      <div class="frame-label">同一页 · <b>下跌日</b>（跌破昨收，团团沉水里了🫧）</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="nav">
+          <div class="brand" style="font-size:18px;">‹ 返回</div>
+          <div class="gear">🔍</div>
+        </div>
+
+        <div class="body">
+          <div class="dhead">
+            <div class="ic"><img src="logos/tesla.png" alt="TSLA"></div>
+            <div><div class="nm">Tesla</div><div class="cd">特斯拉</div></div>
+            <span class="star">⭐</span>
+          </div>
+
+          <div class="hero dn-hero">
+            <div class="label">现价 (USD)</div>
+            <div class="big">214.10</div>
+            <div class="cap">▼ -2.90　-1.34%　今天 <span style="background:rgba(255,255,255,.25); border-radius:9px; padding:1px 7px; font-size:11px;">盘前 -0.42%</span></div>
+          </div>
+
+          <div class="ranges">
+            <span class="rchip on">1日</span>
+            <span class="rchip">1周</span>
+            <span class="rchip">1月</span>
+            <span class="rchip">3月</span>
+            <span class="rchip">今年</span>
+            <span class="rchip">1年</span>
+          </div>
+
+          <div class="chart">
+            <svg width="100%" height="124" viewBox="0 0 280 124" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="fillDn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0604a" stop-opacity="0.26"/><stop offset="1" stop-color="#e0604a" stop-opacity="0"/></linearGradient>
+                <linearGradient id="strokeDn" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff9d86"/><stop offset="1" stop-color="#e0604a"/></linearGradient>
+              </defs>
+              <!-- dotted candy grid, symmetric around the centered 0% line -->
+              <g stroke="#f0e4d4" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="0.5 9">
+                <line x1="4" y1="31" x2="276" y2="31"/><line x1="4" y1="93" x2="276" y2="93"/>
+              </g>
+              <!-- rainy sky above -->
+              <g fill="#ece6f2" stroke="#ddd3e8" stroke-width="1.4">
+                <ellipse cx="152" cy="14" rx="14" ry="7"/><ellipse cx="163" cy="11" rx="9" ry="5.5"/><ellipse cx="142" cy="11.5" rx="7" ry="4.5"/>
+              </g>
+              <g stroke="#a8c8ff" stroke-width="2.2" stroke-linecap="round">
+                <line x1="146" y1="25" x2="144" y2="30"/><line x1="155" y1="26" x2="153" y2="31"/><line x1="164" y1="25" x2="162" y2="30"/>
+              </g>
+              <!-- water: exactly the bottom half, below the centered 0% baseline -->
+              <rect x="4" y="63" width="272" height="59" rx="7" fill="#dceffa"/>
+              <path d="M14,70 q4,-2.6 8,0 M40,74 q4,-2.6 8,0 M70,69 q4,-2.6 8,0" stroke="#b5dcf2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+              <text x="30" y="106" font-size="9">🐟</text>
+              <path d="M250,122 q-3,-6 0,-11 q3,-5 0,-10 M260,122 q3,-7 0,-13" stroke="#9ed4b8" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <line x1="4" y1="62" x2="276" y2="62" stroke="#8ecae6" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round"/>
+              <text x="7" y="57" font-size="7.5" font-weight="800" fill="#8bb8d0">0% 昨收</text>
+              <!-- gapped down at the open (extended-hours): starts underwater, pokes out once for air, sinks again -->
+              <path d="M6,76 C20,70 32,58 48,56 C60,55 68,62 80,68 C96,76 108,70 124,78 C144,88 154,96 176,92 C196,88 208,104 234,108 C254,111 262,113 270,115" fill="none" stroke="#f6c4b8" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6,72 C20,66 32,54 48,52 C60,51 68,58 80,64 C96,72 108,66 124,74 C144,84 154,92 176,88 C196,84 208,100 234,104 C254,107 262,109 270,111" fill="none" stroke="url(#strokeDn)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <g fill="#fff">
+                <circle cx="48" cy="52" r="4.6" stroke="#f0876e" stroke-width="2.8"/>
+                <circle cx="124" cy="74" r="4.6" stroke="#e9745b" stroke-width="2.8"/>
+                <circle cx="176" cy="88" r="4.6" stroke="#e46850" stroke-width="2.8"/>
+                <circle cx="234" cy="104" r="4.6" stroke="#e0604a" stroke-width="2.8"/>
+              </g>
+            </svg>
+            <span class="rider dn">
+              <svg viewBox="0 0 66 48" width="66" height="48">
+                <!-- suffocating bubbles rising from the mouth -->
+                <g fill="#eaf6ff" stroke="#9fcbe8" stroke-width="1.3">
+                  <circle cx="44" cy="8" r="2.8"/><circle cx="49" cy="3" r="1.9"/><circle cx="40" cy="2" r="1.3"/>
+                </g>
+                <!-- bubble trail behind the sinking plane -->
+                <g fill="#eaf6ff" stroke="#9fcbe8" stroke-width="1.2">
+                  <circle cx="4" cy="24" r="2.6"/><circle cx="10" cy="28" r="1.7"/>
+                </g>
+                <!-- tail fin -->
+                <path d="M14,31 L17,19 L24,28 Z" fill="#ff9d86" stroke="#cf5440" stroke-width="1.6" stroke-linejoin="round"/>
+                <!-- fuselage -->
+                <ellipse cx="35" cy="33" rx="22" ry="7.5" fill="#ff9d86" stroke="#cf5440" stroke-width="1.8"/>
+                <!-- wing -->
+                <path d="M32,34 L24,44 Q22,46 25,46 L38,40 Z" fill="#e0604a" stroke="#cf5440" stroke-width="1.4" stroke-linejoin="round"/>
+                <!-- nose propeller -->
+                <circle cx="57" cy="33" r="2.4" fill="#8a7766"/>
+                <line x1="57" y1="25" x2="57" y2="41" stroke="#8a7766" stroke-width="2" stroke-linecap="round" opacity=".65"/>
+                <!-- arms up in panic -->
+                <line x1="34" y1="13" x2="41" y2="5" stroke="#5cc78f" stroke-width="3" stroke-linecap="round"/>
+                <line x1="32" y1="13" x2="25" y2="6" stroke="#5cc78f" stroke-width="3" stroke-linecap="round"/>
+                <!-- 团团 pilot, cute panic: same round face, dot eyes + cheeks, tiny "wah" mouth, soft worried brows, wind-bent sprout -->
+                <path d="M32,8 q-1,-6 -6,-6" stroke="#3f7d5c" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <ellipse cx="33" cy="16" rx="10.5" ry="10" fill="#8ad6a3" stroke="#6cc488" stroke-width="0.5"/>
+                <path d="M27.2,12 q1.6,-1.2 3.2,-0.2" stroke="#3a4a3f" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                <path d="M38.8,12 q-1.6,-1.2 -3.2,-0.2" stroke="#3a4a3f" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                <circle cx="29.8" cy="15.8" r="2" fill="#3a4a3f"/><circle cx="36.2" cy="15.8" r="2" fill="#3a4a3f"/>
+                <circle cx="30.4" cy="15.2" r="0.7" fill="#fff"/><circle cx="36.8" cy="15.2" r="0.7" fill="#fff"/>
+                <ellipse cx="28" cy="19.8" rx="2.5" ry="1.7" fill="#ff9b8a" opacity="0.6"/><ellipse cx="38" cy="19.8" rx="2.5" ry="1.7" fill="#ff9b8a" opacity="0.6"/>
+                <ellipse cx="33" cy="21" rx="2" ry="2.6" fill="#3a4a3f"/>
+                <ellipse cx="33" cy="22.2" rx="1.2" ry="1" fill="#e88a7a"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="stats">
+            <div class="stat"><div class="k">今开</div><div class="v">217.0</div></div>
+            <div class="stat"><div class="k">最高</div><div class="v up">218.2</div></div>
+            <div class="stat"><div class="k">最低</div><div class="v dn">212.8</div></div>
+            <div class="stat"><div class="k">昨收</div><div class="v">217.0</div></div>
+            <div class="stat"><div class="k">成交量</div><div class="v">61.5M</div></div>
+            <div class="stat"><div class="k">市值</div><div class="v">682B</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== SCREEN 4: SEARCH ===== -->
+    <div class="frame-wrap">
+      <div class="frame-label">右上角 🔍 · <b>搜索</b>（推入的新页）</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="nav">
+          <div class="brand" style="font-size:18px;">‹ 搜股票</div>
+        </div>
+
+        <div class="body">
+          <div class="searchbar">🔍 输入代码或名称，如 AAPL 或「苹果」</div>
+
+          <div class="section-t">搜索「AMD」</div>
+          <div class="reslist">
+            <div class="res">
+              <div class="ic"><img src="logos/amd.png" alt="AMD"></div>
+              <div class="meta"><div class="nm">AMD</div><div class="cd">超威半导体</div></div>
+              <span class="mkt">纳斯达克</span>
+              <div class="add">＋</div>
+            </div>
+            <div class="res">
+              <div class="ic"><img src="logos/amazon.png" alt="AMZN"></div>
+              <div class="meta"><div class="nm">Amazon</div><div class="cd">亚马逊</div></div>
+              <span class="mkt">纳斯达克</span>
+              <div class="added">✓</div>
+            </div>
+            <div class="res">
+              <div class="ic"><img src="logos/google.png" alt="GOOGL"></div>
+              <div class="meta"><div class="nm">Alphabet</div><div class="cd">谷歌 A</div></div>
+              <span class="mkt">纳斯达克</span>
+              <div class="add">＋</div>
+            </div>
+          </div>
+
+          <div class="section-t" style="margin-top:18px;">热门</div>
+          <div class="reslist">
+            <div class="res">
+              <div class="ic"><img src="logos/meta.png" alt="META"></div>
+              <div class="meta"><div class="nm">Meta</div><div class="cd">Meta 平台</div></div>
+              <span class="mkt">纳斯达克</span>
+              <div class="add">＋</div>
+            </div>
+            <div class="res">
+              <div class="ic o">SPY</div>
+              <div class="meta"><div class="nm">标普500 ETF</div><div class="cd">SPDR S&amp;P 500</div></div>
+              <span class="mkt">NYSE</span>
+              <div class="add">＋</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    <h3>v3 定稿要点 🌱</h3>
+    <ul>
+      <li><b>没有 tab 栏</b>：打开就是自选列表（顶部三大指数），右上角只有一个搜索🔍，点某一行进详情。团团在走势图里开飞机陪你。</li>
+      <li>详情走势图换成<b>胖圆头折线</b>：粗描边、圆节点、糖果硬投影。图表是一片小天空：晴天有太阳☀️，跌了有雨云🌧。</li>
+      <li><b>0% 基准线（昨收）恒在正中 = 水面</b>：上半是天、下半是水。因为有盘前盘后，开盘可能直接高开在天上、也可能低开在水里；在天上团团开飞机✨，沉水里就吐泡泡🫧快窒息了——涨跌一眼共情。</li>
+      <li>个股图标优先用<b>真实公司 logo</b>（白色圆头像位，从数据源拉取）；拿不到才回退成<b>品牌色描边 + 代号</b>的小圆牌。</li>
+      <li>美股<b>绿涨红跌</b>，涨=团团的抹茶绿，越涨越顺眼。</li>
+      <li>团团心情跟大盘走：涨了冒星星📈，跌了蔫蔫的——把红绿数字变成有温度的陪伴。</li>
+      <li>时间档<b>跟随系统语言整套切换</b>，绝不混排：中文=1日/1周/1月/3月/今年/1年；English=1D/1W/1M/3M/YTD/1Y。</li>
+      <li><b>每天排位赛 🏁</b>：自选默认按当日涨幅排序，前三名挂 🥇🥈🥉；每行还标着「今年 #N」——今年以来涨幅在这份列表里的总名次。排序可一键切「涨跌幅 / 市值」，奖牌永远颁给当日涨幅前三。</li>
+      <li><b>时段标注</b>：涨跌幅永远写清楚属于哪个时段——盘中就是「今天」，盘外补一枚小标签「盘前 (pre)」/「盘后 (night)」，绝不让人误读。</li>
+      <li>始终<b>只看价</b>：不开户、不交易、不荐股。</li>
+    </ul>
+  </div>
+
+</body>
+</html>
