@@ -1,26 +1,26 @@
 {
-  "@@locale": "en",
-  "appTitle": "TuanTuan Stocks",
+  "@@locale": "zh",
+  "appTitle": "团团看盘",
   "@appTitle": {
     "description": "Application title."
   },
-  "watchlistTitle": "Watchlist",
+  "watchlistTitle": "自选股",
   "@watchlistTitle": {
     "description": "Title for the root watchlist placeholder screen."
   },
-  "watchlistPlaceholder": "Watchlist placeholder",
+  "watchlistPlaceholder": "自选股占位页",
   "@watchlistPlaceholder": {
     "description": "Centered placeholder label on the root watchlist screen."
   },
-  "openDetailButton": "Open stock detail",
+  "openDetailButton": "打开股票详情",
   "@openDetailButton": {
     "description": "Button label that pushes the stock detail route."
   },
-  "openSearchButton": "Open search",
+  "openSearchButton": "打开搜索",
   "@openSearchButton": {
     "description": "Button label that pushes the search route."
   },
-  "detailTitle": "{symbol} detail",
+  "detailTitle": "{symbol} 详情",
   "@detailTitle": {
     "description": "Title for the stock detail placeholder screen.",
     "placeholders": {
@@ -29,7 +29,7 @@
       }
     }
   },
-  "detailPlaceholder": "Stock detail placeholder for {symbol}",
+  "detailPlaceholder": "{symbol} 股票详情占位页",
   "@detailPlaceholder": {
     "description": "Centered placeholder label on the stock detail screen.",
     "placeholders": {
@@ -38,47 +38,47 @@
       }
     }
   },
-  "searchTitle": "Search",
+  "searchTitle": "搜索",
   "@searchTitle": {
     "description": "Title for the search placeholder screen."
   },
-  "searchPlaceholder": "Search placeholder",
+  "searchPlaceholder": "搜索占位页",
   "@searchPlaceholder": {
     "description": "Centered placeholder label on the search screen."
   },
-  "backButton": "Back",
+  "backButton": "返回",
   "@backButton": {
     "description": "Button label that pops a pushed route."
   },
-  "rangeDay": "1D",
+  "rangeDay": "1日",
   "@rangeDay": {
     "description": "One-day chart range chip label."
   },
-  "rangeWeek": "1W",
+  "rangeWeek": "1周",
   "@rangeWeek": {
     "description": "One-week chart range chip label."
   },
-  "rangeMonth": "1M",
+  "rangeMonth": "1月",
   "@rangeMonth": {
     "description": "One-month chart range chip label."
   },
-  "rangeQuarter": "3M",
+  "rangeQuarter": "3月",
   "@rangeQuarter": {
     "description": "Three-month chart range chip label."
   },
-  "rangeYtd": "YTD",
+  "rangeYtd": "今年",
   "@rangeYtd": {
     "description": "Year-to-date chart range chip label."
   },
-  "rangeYear": "1Y",
+  "rangeYear": "1年",
   "@rangeYear": {
     "description": "One-year chart range chip label."
   },
-  "preMarketSessionLabel": "Pre",
+  "preMarketSessionLabel": "盘前",
   "@preMarketSessionLabel": {
     "description": "Pre-market session tag label."
   },
-  "postMarketSessionLabel": "Night",
+  "postMarketSessionLabel": "盘后",
   "@postMarketSessionLabel": {
     "description": "Post-market session tag label."
   }
