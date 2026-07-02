@@ -121,6 +121,7 @@ void main() {
   test('widgets do not introduce direct text literals', () {
     const checkedPaths = [
       'lib/app/tuantuan_stock_app.dart',
+      'lib/features/chart/plane_rider.dart',
       'lib/features/watchlist/watchlist_screen.dart',
       'lib/features/detail/stock_detail_screen.dart',
       'lib/features/search/search_screen.dart',
