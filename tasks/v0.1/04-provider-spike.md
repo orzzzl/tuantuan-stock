@@ -1,7 +1,7 @@
 # 04 — Provider spike: validate the market-data source
 
-- **Status:** READY
-- **Owner:** —
+- **Status:** IN PROGRESS
+- **Owner:** Claude
 - **Blocked by:** — (no app code; curl / throwaway scripts only)
 - **Allowed new deps:** none (nothing lands in `lib/`)
 

@@ -21,9 +21,10 @@ require that, stop and leave a note in the PR instead of guessing.
 5. Open a PR. The title MUST start with an author tag — `[codex]` if Codex wrote it,
    `[claude]` if Claude wrote it. In the description, link the task file and fill the
    PR checklist.
-6. **Every PR must be reviewed before merge — no exceptions, no self-merge.** Codex PRs
-   are reviewed by Claude; Claude's own PRs are reviewed by the owner. Address review
-   comments on the same branch; merge only after an explicit approval.
+6. **Every PR must be reviewed before merge — no exceptions, no self-merge.** The two
+   agents cross-review: Codex PRs are reviewed by Claude, Claude PRs are reviewed by
+   Codex. The owner can always override or add review. Address review comments on the
+   same branch; merge only after an explicit approval.
 
 ## Hard rules (do not violate)
 
