@@ -1,5 +1,5 @@
-import 'package:tuantuan_stock/domain/models/candle.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
+import 'package:tuantuan_stock/domain/models/chart_series.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 
 /// Read-only price data. Implementations throw [DataFailure] subtypes on
@@ -12,6 +12,6 @@ abstract interface class QuoteRepository {
   /// the watchlist-refresh path. Unknown symbols are absent from the map.
   Future<Map<String, Quote>> quotes(List<String> symbols);
 
-  /// Chart bars for [symbol] over [range], oldest first.
-  Future<List<Candle>> candles(String symbol, ChartRange range);
+  /// Chart bars plus the range's 0% baseline for [symbol] over [range].
+  Future<ChartSeries> chart(String symbol, ChartRange range);
 }
