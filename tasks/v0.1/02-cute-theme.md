@@ -1,8 +1,8 @@
 # 02 — Cute theme foundation
 
-- **Status:** BLOCKED (needs 01)
-- **Owner:** —
-- **Blocked by:** 01
+- **Status:** IN PROGRESS
+- **Owner:** Codex
+- **Blocked by:** —
 - **Allowed new deps:** google_fonts
 
 ## Goal

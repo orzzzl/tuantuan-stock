@@ -10,7 +10,7 @@ whole project. See [`../AGENTS.md`](../AGENTS.md) for the working agreement and
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
 | 01 | [Flutter scaffold (single-page shell)](v0.1/01-flutter-scaffold.md) | DONE (Codex, PR #2) | — |
-| 02 | [Cute theme foundation](v0.1/02-cute-theme.md) | READY | — |
+| 02 | [Cute theme foundation](v0.1/02-cute-theme.md) | IN PROGRESS (Codex) | — |
 | 03 | [Domain models + repository seams](v0.1/03-domain-seams.md) | DONE (Claude, PR #5) | — |
 | 04 | [Provider spike: validate the data source](v0.1/04-provider-spike.md) | DONE (Claude, PR #1) | — |
 | 05 | [Market data: quotes / search / profile](v0.1/05-market-quotes-search.md) | DONE (Claude, PR #7) | 03, 04 |

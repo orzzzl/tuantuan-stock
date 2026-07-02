@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tuantuan_stock/app/app_router.dart';
+import 'package:tuantuan_stock/app/candy_card.dart';
 import 'package:tuantuan_stock/l10n/generated/app_localizations.dart';
 
 class WatchlistScreen extends StatelessWidget {
@@ -16,23 +17,26 @@ class WatchlistScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(localizations.watchlistTitle)),
       body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(localizations.watchlistPlaceholder),
-            const SizedBox(height: 16),
-            FilledButton(
-              key: detailButtonKey,
-              onPressed: () => context.push(stockPath(sampleStockSymbol)),
-              child: Text(localizations.openDetailButton),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              key: searchButtonKey,
-              onPressed: () => context.push('/search'),
-              child: Text(localizations.openSearchButton),
-            ),
-          ],
+        child: CandyCard(
+          margin: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(localizations.watchlistPlaceholder),
+              const SizedBox(height: 16),
+              FilledButton(
+                key: detailButtonKey,
+                onPressed: () => context.push(stockPath(sampleStockSymbol)),
+                child: Text(localizations.openDetailButton),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                key: searchButtonKey,
+                onPressed: () => context.push('/search'),
+                child: Text(localizations.openSearchButton),
+              ),
+            ],
+          ),
         ),
       ),
     );
