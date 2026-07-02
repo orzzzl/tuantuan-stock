@@ -21,8 +21,8 @@ document is the source of truth for behavior.
    - Top bar: brand `团团看盘 🌱` left; **one** button top-right: search 🔍.
      No settings button, no notification button anywhere.
    - Index strip: three chips — 标普500 / 纳斯达克 / 道琼斯 (value + day %, tinted
-     up/down). Free providers rarely expose real index quotes; use ETF proxies
-     (SPY / QQQ / DIA) scaled, or the provider's index endpoint if available.
+     up/down), fed by real index quotes (^GSPC / ^IXIC / ^DJI — verified in the task-04
+     spike; no ETF proxies needed).
    - **The daily race list** (see below).
 2. **Stock detail** — pushed by tapping a row. Back arrow top-left, search 🔍 top-right.
 3. **Search** — pushed by the 🔍 button. `‹ 搜股票` back; results with ＋/✓ add state;
@@ -57,8 +57,8 @@ Every displayed change % states its session — never let a number be misread:
 ## Company logos
 
 - Rows, detail header, and search results show the **real company logo** in a white round
-  avatar (cream ring). Logos come from the market-data provider (e.g. Finnhub profile
-  `logo`) and are cached locally.
+  avatar (cream ring). Logos: Yahoo `quoteSummary` `assetProfile.website` → favicon
+  service (`google.com/s2/favicons?domain=<domain>&sz=128`), cached locally.
 - **Fallback** when no logo is available: the same round avatar with a brand-tinted ring
   and the ticker code as text (see SPY in the mockup).
 
@@ -122,12 +122,18 @@ Every displayed change % states its session — never let a number be misread:
 - `SearchRepository` — symbol/name search → matches.
 - `WatchlistRepository` — local-first CRUD of saved symbols.
 - Concrete provider code lives only in `lib/data`; swapping providers touches nothing else.
-  Provider: a free US market-data API. Finnhub free tier is the candidate for
-  quote/profile(logo)/search, but **free access to `/stock/candle` is unverified** (see
-  finnhubio/Finnhub-API#546) — task 04 (provider spike) must validate candles/YTD/session
-  availability and pick the final plan (possibly mixed providers) before the data tasks
-  start. Key via `--dart-define=MARKET_API_KEY`. Quotes may be delayed — fine for a
-  "瞄一眼" app.
+  Provider (decided by the task-04 spike, `provider-report.md`; **owner accepted the ToS
+  trade-off 2026-07-01**): **Yahoo Finance's unofficial API, keyless** —
+  - v8 `chart`: intraday incl. pre/post bars; daily candles per range;
+    `chartPreviousClose` = the per-range baseline (incl. YTD) — the waterline for free.
+  - v7 `quote` (batched, one call per watchlist refresh) + v10 `quoteSummary`
+    (profile → market cap + website → favicon logo), both behind a small cookie+crumb
+    helper (cache, refresh on 401).
+  - v1 `search` for symbol lookup; real index quotes via `^GSPC`/`^IXIC`/`^DJI`.
+  No API key, no `--dart-define`. It is unsanctioned use of an unofficial API — accepted
+  for this personal look-only app; the seams keep a provider swap data-layer-only if
+  Yahoo ever breaks. Risks, fallbacks, and session/null semantics: `provider-report.md`.
+  Quotes may be delayed — fine for a "瞄一眼" app.
 
 ## Tech
 
