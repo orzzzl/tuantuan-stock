@@ -1,6 +1,6 @@
 # 04 — Provider spike: validate the market-data source
 
-- **Status:** IN PROGRESS
+- **Status:** DONE (PR #1; owner accepted the Yahoo recommendation incl. the ToS trade-off, 2026-07-01)
 - **Owner:** Claude
 - **Blocked by:** — (no app code; curl / throwaway scripts only)
 - **Allowed new deps:** none (nothing lands in `lib/`)
