@@ -122,6 +122,7 @@ void main() {
     const checkedPaths = [
       'lib/app/tuantuan_stock_app.dart',
       'lib/features/chart/plane_rider.dart',
+      'lib/features/chart/sky_chart.dart',
       'lib/features/watchlist/watchlist_screen.dart',
       'lib/features/detail/stock_detail_screen.dart',
       'lib/features/search/search_screen.dart',
