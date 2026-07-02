@@ -1,7 +1,7 @@
 # 14 — Search screen
 
-- **Status:** READY
-- **Owner:** —
+- **Status:** IN PROGRESS
+- **Owner:** Claude
 - **Blocked by:** 02 (theme), 05 (search repo), 07 (watchlist store), 08 (ARB strings)
 - **Allowed new deps:** —
 
