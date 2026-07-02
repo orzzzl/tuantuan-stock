@@ -9,7 +9,7 @@ whole project. See [`../AGENTS.md`](../AGENTS.md) for the working agreement and
 
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
-| 01 | [Flutter scaffold (single-page shell)](v0.1/01-flutter-scaffold.md) | READY | — |
+| 01 | [Flutter scaffold (single-page shell)](v0.1/01-flutter-scaffold.md) | IN PROGRESS (Codex) | — |
 | 02 | [Cute theme foundation](v0.1/02-cute-theme.md) | BLOCKED | 01 |
 | 03 | [Domain models + repository seams](v0.1/03-domain-seams.md) | BLOCKED | 01 |
 | 04 | [Provider spike: validate the data source](v0.1/04-provider-spike.md) | READY | — |

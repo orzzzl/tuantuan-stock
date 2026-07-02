@@ -1,7 +1,7 @@
 # 01 — Flutter scaffold (single-page shell)
 
-- **Status:** READY
-- **Owner:** —
+- **Status:** IN PROGRESS
+- **Owner:** Codex
 - **Blocked by:** —
 - **Allowed new deps:** flutter_riverpod, go_router; dev: custom_lint, riverpod_lint, flutter_lints
 
