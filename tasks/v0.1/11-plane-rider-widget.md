@@ -1,7 +1,7 @@
 # 11 — Plane-rider mascot widget
 
-- **Status:** BLOCKED (needs 02)
-- **Owner:** —
+- **Status:** DONE (PR #11)
+- **Owner:** Codex
 - **Blocked by:** 02
 - **Allowed new deps:** — (CustomPaint/widgets only)
 

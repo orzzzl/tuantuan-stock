@@ -1,7 +1,7 @@
 # 10 — Sky/water chart widget
 
-- **Status:** BLOCKED (needs 02, 03)
-- **Owner:** —
+- **Status:** DONE (PR #10)
+- **Owner:** Codex
 - **Blocked by:** 02 (theme), 03 (input types are domain `Candle`/`ChartRange`)
 - **Allowed new deps:** — (CustomPaint only; no chart package)
 

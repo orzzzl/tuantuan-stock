@@ -81,5 +81,9 @@
   "postMarketSessionLabel": "盘后",
   "@postMarketSessionLabel": {
     "description": "Post-market session tag label."
+  },
+  "skyChartBaselineLabel": "0% 昨收",
+  "@skyChartBaselineLabel": {
+    "description": "Waterline label for the sky/water chart baseline."
   }
 }
