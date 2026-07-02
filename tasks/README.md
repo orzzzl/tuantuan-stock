@@ -14,12 +14,12 @@ whole project. See [`../AGENTS.md`](../AGENTS.md) for the working agreement and
 | 03 | [Domain models + repository seams](v0.1/03-domain-seams.md) | DONE (Claude, PR #5) | — |
 | 04 | [Provider spike: validate the data source](v0.1/04-provider-spike.md) | DONE (Claude, PR #1) | — |
 | 05 | [Market data: quotes / search / profile](v0.1/05-market-quotes-search.md) | DONE (Claude, PR #7) | 03, 04 |
-| 06 | [Market data: candles / YTD / session](v0.1/06-market-candles-ytd.md) | READY | 05 |
+| 06 | [Market data: candles / YTD / session](v0.1/06-market-candles-ytd.md) | IN PROGRESS (Claude) | 05 |
 | 07 | [Watchlist local persistence](v0.1/07-watchlist-persistence.md) | READY | 03 |
 | 08 | [i18n (zh + en) — do early](v0.1/08-i18n.md) | DONE (Codex, PR #6) | — |
 | 09 | [CI: format + analyze + test — do early](v0.1/09-ci.md) | DONE (Codex, PR #4) | — |
-| 10 | [Sky/water chart widget](v0.1/10-sky-chart-widget.md) | READY | 02, 03 |
-| 11 | [Plane-rider mascot widget](v0.1/11-plane-rider-widget.md) | READY | 02 |
+| 10 | [Sky/water chart widget](v0.1/10-sky-chart-widget.md) | DONE (Codex, PR #10) | 02, 03 |
+| 11 | [Plane-rider mascot widget](v0.1/11-plane-rider-widget.md) | DONE (Codex, PR #11) | 02 |
 | 12 | [Watchlist screen (daily race)](v0.1/12-watchlist-screen.md) | BLOCKED | 02, 05, 06, 07, 08, 10 |
 | 13 | [Stock detail screen](v0.1/13-detail-screen.md) | BLOCKED | 05, 06, 07, 08, 10, 11 |
 | 14 | [Search screen](v0.1/14-search-screen.md) | BLOCKED | 02, 05, 07, 08 |
