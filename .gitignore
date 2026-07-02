@@ -13,7 +13,3 @@ lib/l10n/generated/
 
 # Secrets — the market-data API key is passed via --dart-define, never committed
 *.env
-
-# Local multi-agent coordination runtime
-.agents/inbox/
-.agents/claims/
