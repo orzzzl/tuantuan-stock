@@ -172,7 +172,10 @@ base class _GatedFirstReadPreferences extends InMemorySharedPreferencesAsync {
   var _reads = 0;
 
   @override
-  Future<String?> getString(String key, SharedPreferencesOptions options) async {
+  Future<String?> getString(
+    String key,
+    SharedPreferencesOptions options,
+  ) async {
     final value = await super.getString(key, options);
     if (_reads++ == 0) {
       await firstRead.future;
