@@ -21,6 +21,9 @@ class PrefsWatchlistRepository implements WatchlistRepository {
   /// Chains mutations so concurrent add/remove cannot lose an update.
   Future<void> _writes = Future.value();
 
+  /// The single initial disk read, shared by every concurrent [_load].
+  Future<List<String>>? _firstRead;
+
   @override
   Stream<List<String>> watch() {
     return Stream.multi((controller) async {
@@ -53,7 +56,13 @@ class PrefsWatchlistRepository implements WatchlistRepository {
   }
 
   Future<List<String>> _load() async {
-    final loaded = _symbols ??= await _read();
+    var loaded = _symbols;
+    if (loaded == null) {
+      final read = await (_firstRead ??= _read());
+      // A mutation may have filled _symbols while the read was in flight;
+      // that in-memory state is newer than the disk snapshot, so it wins.
+      loaded = _symbols ??= read;
+    }
     return List.unmodifiable(loaded);
   }
 

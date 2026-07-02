@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
@@ -128,6 +130,28 @@ void main() {
     );
   });
 
+  test('a mutation during the initial disk read is not lost', () async {
+    // Regression (PR #14 review): watch()'s initial read used to assign
+    // _symbols unconditionally after its await, so an add() that completed
+    // while the read was in flight got overwritten by the stale disk value.
+    final platform = _GatedFirstReadPreferences();
+    SharedPreferencesAsyncPlatform.instance = platform;
+    final repo = repository();
+
+    final emitted = <List<String>>[];
+    final sub = repo.watch().listen(emitted.add);
+    await pumpEventQueue(); // watch is now parked inside the gated read
+    final adding = repo.add('AAPL');
+    await pumpEventQueue();
+    platform.firstRead.complete();
+    await adding;
+    await pumpEventQueue();
+
+    expect(await repo.symbols(), ['AAPL']);
+    expect(emitted.last, ['AAPL']);
+    await sub.cancel();
+  });
+
   test('the snapshot cannot be mutated by callers', () async {
     final repo = repository();
     await repo.add('AAPL');
@@ -136,4 +160,23 @@ void main() {
 
     expect(() => snapshot.add('HACK'), throwsUnsupportedError);
   });
+}
+
+/// In-memory store whose FIRST getString snapshots the stored value at call
+/// time but withholds delivery until [firstRead] completes — like a platform
+/// channel whose disk read is issued immediately but answers late.
+base class _GatedFirstReadPreferences extends InMemorySharedPreferencesAsync {
+  _GatedFirstReadPreferences() : super.empty();
+
+  final firstRead = Completer<void>();
+  var _reads = 0;
+
+  @override
+  Future<String?> getString(String key, SharedPreferencesOptions options) async {
+    final value = await super.getString(key, options);
+    if (_reads++ == 0) {
+      await firstRead.future;
+    }
+    return value;
+  }
 }
