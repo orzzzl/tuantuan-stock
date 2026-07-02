@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tuantuan_stock/app/app_router.dart';
@@ -13,6 +14,8 @@ void main() {
 
     expect(find.byType(WatchlistScreen), findsOneWidget);
     expect(find.text('Watchlist placeholder'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(TabBar), findsNothing);
 
     await tester.tap(find.byKey(WatchlistScreen.detailButtonKey));
     await tester.pumpAndSettle();
@@ -22,6 +25,8 @@ void main() {
       find.text('Stock detail placeholder for $sampleStockSymbol'),
       findsOneWidget,
     );
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(TabBar), findsNothing);
 
     await tester.tap(find.byKey(StockDetailScreen.backButtonKey));
     await tester.pumpAndSettle();
@@ -33,6 +38,8 @@ void main() {
 
     expect(find.byType(SearchScreen), findsOneWidget);
     expect(find.text('Search placeholder'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(TabBar), findsNothing);
 
     await tester.tap(find.byKey(SearchScreen.backButtonKey));
     await tester.pumpAndSettle();
