@@ -1,41 +1,40 @@
 # Multi-Agent Collaboration Protocol
 
-This directory lets Codex and Claude coordinate in the same repository without using chat as the only handoff channel. GitHub pull requests remain the source of truth for code review and merge state; `.agents/` is for routing, ownership, and lightweight handoffs.
+This file defines the local handoff protocol for Codex and Claude in this repository.
+
+GitHub remains the source of truth for PR review, comments, checks, and merge state. `tasks/README.md` remains the project task board. The `.agents/` runtime mailbox is only a same-machine notification channel, not project history.
 
 ## Startup Checklist
 
 Each agent should read these files before starting work:
 
-1. `.agents/README.md`
-2. `.agents/BOARD.md`
-3. Its own inbox:
-   - Codex reads `.agents/inbox/codex/`
-   - Claude reads `.agents/inbox/claude/`
-4. Repository rules such as `AGENTS.md`, `README.md`, and relevant task specs.
+1. `AGENTS.md`
+2. `tasks/README.md`
+3. `.agents/README.md`
+4. Its own local inbox, if present:
+   - Codex reads `.agents/inbox/codex/new/`
+   - Claude reads `.agents/inbox/claude/new/`
 
-## Status Values
+Create local runtime directories when needed:
 
-General task and message statuses:
+```sh
+mkdir -p .agents/inbox/codex/{new,wip,done} \
+  .agents/inbox/claude/{new,wip,done} \
+  .agents/claims
+```
 
-- `open`: not handled yet
-- `claimed`: accepted and being worked on
-- `blocked`: waiting on another agent, the user, or an external condition
-- `answered`: reply posted, waiting for confirmation or follow-up
-- `done`: completed
-- `cancelled`: no longer needed
+The runtime directories are ignored by git:
 
-GitHub PR statuses:
+```text
+.agents/inbox/
+.agents/claims/
+```
 
-- `pr_opened`: PR has been created
-- `review_requested`: another agent has been asked to review
-- `changes_requested`: reviewer requested changes on the PR
-- `comments_posted`: reviewer left PR comments
-- `approved`: reviewer approved the PR
-- `merged`: PR has been merged
+Do not commit mailbox messages, claims, or runtime handoff files. They are ephemeral coordination on one machine.
 
-## Message Format
+## Mailbox Flow
 
-Use one Markdown file per message. Put it in the recipient's inbox.
+Use one Markdown file per message. Put it in the recipient's local `new/` inbox.
 
 Suggested filename:
 
@@ -43,21 +42,14 @@ Suggested filename:
 YYYYMMDD-HHMM-from-to-short-topic.md
 ```
 
-Template:
+Minimum message template:
 
 ```markdown
 ---
-id: msg-YYYYMMDD-HHMM-short-topic
 from: Codex
 to: Claude
 task: task-short-name
-status: open
-priority: normal
-created: YYYY-MM-DDTHH:MM:SS-07:00
-branch:
-pr:
-files:
-  - path/to/file
+pr: https://github.com/owner/repo/pull/123
 ---
 
 Context:
@@ -69,18 +61,21 @@ Completed:
 Notes:
 ```
 
-## Claiming Work
+Message state is represented by directory moves:
 
-Before taking ownership of a task:
+- `new/`: not handled yet
+- `wip/`: claimed and being handled
+- `done/`: handled or no longer needed
 
-1. Update the message or `.agents/BOARD.md` row to `claimed`.
-2. Create a claim file in `.agents/claims/`.
+When an agent starts handling a message, it moves the file from `new/` to `wip/`. When finished, it moves the file to `done/`. Directory moves are used instead of frontmatter edits so status changes are atomic and easy to inspect with `ls`.
 
-Suggested claim filename:
+## Claims
+
+Before editing shared files, check `.agents/claims/` for active ownership. If a task needs a temporary lock, create a local claim file:
 
 ```text
-task-short-name.codex.claim
-task-short-name.claude.claim
+.agents/claims/task-short-name.codex.claim
+.agents/claims/task-short-name.claude.claim
 ```
 
 Claim template:
@@ -89,7 +84,6 @@ Claim template:
 ---
 task: task-short-name
 owner: Codex
-status: claimed
 created: YYYY-MM-DDTHH:MM:SS-07:00
 ---
 
@@ -100,66 +94,33 @@ Files:
 - Files expected to change
 ```
 
-## Collaboration Rules
+Remove or move the claim when the work is handed off or complete.
 
-1. Do not overwrite another agent's conclusion directly. If you disagree, write a new message with the reasoning.
-2. Before editing shared files, check `.agents/claims/` for active ownership.
-3. Update `.agents/BOARD.md` after each meaningful milestone.
-4. If blocked, set the status to `blocked` and state exactly what is needed.
-5. End every work session with a handoff: what changed, what did not change, validation results, and the next suggested owner.
+## GitHub PR Notification Choreography
 
-## GitHub PR Workflow
-
-When Codex and Claude collaborate in a GitHub repository, code review and merge decisions happen on GitHub. Use `.agents/` to notify the other agent that GitHub state has changed.
+Follow `AGENTS.md` for branch names, task scope, PR titles, review rules, and merge rules. This protocol only adds mailbox notifications around GitHub events.
 
 Recommended flow:
 
-1. The author agent branches from the latest default branch or the task branch required by the repository.
-2. The author agent implements the scoped change, commits it, pushes the branch, and opens a PR.
-3. The author agent updates `.agents/BOARD.md` to `pr_opened` or `review_requested`, including the branch and PR URL.
-4. The author agent writes a review-request message to the reviewer inbox. The message must include the PR URL, branch, commit, validation results, and files needing special attention.
-5. The reviewer agent reviews the PR on GitHub. Review comments must be posted on the PR, not only in `.agents/`.
-6. After posting PR comments, the reviewer agent writes a message to the author inbox with `comments_posted` or `changes_requested` and the PR URL.
-7. The author agent addresses PR comments on the same branch, replies on GitHub where useful, pushes follow-up commits, and notifies the reviewer through inbox.
-8. When the reviewer believes the PR is ready, the reviewer approves it on GitHub and updates `.agents/BOARD.md` to `approved`.
-9. If all merge gates pass, the reviewer may merge the PR and update `.agents/BOARD.md` to `merged`.
+1. The author agent implements the scoped task, pushes the branch, and opens a PR according to `AGENTS.md`.
+2. The author agent writes a review-request message to the reviewer inbox. Include the PR URL, branch, commit, validation results, and files needing special attention.
+3. The reviewer agent reviews on GitHub. Review comments and verdicts belong on the PR.
+4. After commenting on GitHub, the reviewer agent writes a local inbox message to the author with the PR URL and a short result: `changes requested`, `non-blocking comments`, or `ready`.
+5. The author agent addresses PR comments on the same branch, replies on GitHub where useful, pushes follow-up commits, and notifies the reviewer through inbox.
+6. After merge, the agent that observed or performed the merge writes a local completion message with the PR URL, final commit, and check result.
 
-## PR Approval And Merge Gates
+Because both agents may operate through the same GitHub account on this machine, do not treat a formal GitHub approval as required when it is technically unavailable. Use the PR comment verdict required by `AGENTS.md` and the owner override rules in that file.
 
-The reviewer agent may approve and merge only when all of these are true:
-
-1. The PR was authored by the other agent. Do not self-approve or self-merge unless the user explicitly overrides the rule.
-2. There are no unresolved blocking comments or requested changes on GitHub.
-3. Required CI/checks have passed, or repository rules explicitly allow merging without CI.
-4. The PR branch has no conflict with the target branch.
-5. `.agents/BOARD.md` has no `blocked` row for the same task.
-6. The user has not requested review-only behavior.
-7. The merge method follows repository convention: merge commit, squash merge, or rebase merge.
-8. Repository-specific rules in `AGENTS.md` and task specs are satisfied.
-
-After merging, the merge owner must:
-
-1. Update `.agents/BOARD.md` to `merged`.
-2. Write a completion message to the author inbox.
-3. Record the PR URL, merge commit or final commit, and CI result in the handoff section.
-
-## PR Message Templates
+## Message Templates
 
 Review request:
 
 ```markdown
 ---
-id: msg-YYYYMMDD-HHMM-review-request
 from: Codex
 to: Claude
 task: task-short-name
-status: review_requested
-priority: normal
-created: YYYY-MM-DDTHH:MM:SS-07:00
-branch: feature/task-short-name
 pr: https://github.com/owner/repo/pull/123
-files:
-  - path/to/file
 ---
 
 Review request:
@@ -175,23 +136,16 @@ Comments posted:
 
 ```markdown
 ---
-id: msg-YYYYMMDD-HHMM-pr-comments
 from: Claude
 to: Codex
 task: task-short-name
-status: comments_posted
-priority: normal
-created: YYYY-MM-DDTHH:MM:SS-07:00
-branch: feature/task-short-name
 pr: https://github.com/owner/repo/pull/123
-files:
-  - path/to/file
 ---
 
 I left PR review comments:
 
 - PR:
-- Result: changes requested / non-blocking comments / approved
+- Result: changes requested / non-blocking comments / ready
 - Author next step:
 ```
 
@@ -199,36 +153,36 @@ Merged:
 
 ```markdown
 ---
-id: msg-YYYYMMDD-HHMM-pr-merged
 from: Claude
 to: Codex
 task: task-short-name
-status: merged
-priority: normal
-created: YYYY-MM-DDTHH:MM:SS-07:00
-branch: feature/task-short-name
 pr: https://github.com/owner/repo/pull/123
-files:
-  - path/to/file
 ---
 
-PR approved and merged:
+PR merged:
 
 - PR:
-- Merge commit:
+- Final commit:
 - Checks:
 - Cleanup:
 ```
 
-## Checkpoints
+## Trigger Mechanism
 
-Agents should check this directory at these moments:
+While a session is active, each agent should watch its own `new/` inbox:
+
+- Claude can use its harness monitor or a file watcher on `.agents/inbox/claude/new/`.
+- Codex can use a local watch loop around the relevant runner for `.agents/inbox/codex/new/`.
+
+Checkpoint reads are still required as a fallback:
 
 - before starting work
 - before editing shared files
 - after opening a PR
 - after posting PR comments
-- after approving or merging a PR
+- after pushing follow-up commits
 - after a failed validation run or blocker
 - after finishing a milestone
 - before ending the session
+
+Between active sessions, the user should only need to start the relevant agent. The user should not need to relay message contents.
