@@ -57,8 +57,8 @@ Every displayed change % states its session — never let a number be misread:
 ## Company logos
 
 - Rows, detail header, and search results show the **real company logo** in a white round
-  avatar (cream ring). Logos come from the market-data provider (e.g. Finnhub profile
-  `logo`) and are cached locally.
+  avatar (cream ring). Logos: Yahoo `quoteSummary` `assetProfile.website` → favicon
+  service (`google.com/s2/favicons?domain=<domain>&sz=128`), cached locally.
 - **Fallback** when no logo is available: the same round avatar with a brand-tinted ring
   and the ticker code as text (see SPY in the mockup).
 
