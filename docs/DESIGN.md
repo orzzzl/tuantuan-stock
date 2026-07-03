@@ -41,9 +41,10 @@ document is the source of truth for behavior.
 - **Medals**: 🥇🥈🥉 badges pinned to the **top-left corner of the logo avatar** of today's
   top-3 gainers. Ranks 4+ get a small muted number badge. Medals always belong to the
   day-change race regardless of the active sort.
-- **Sort toggle** in the section header (`今日排位赛 🏁` + chips right-aligned):
-  `涨跌幅` (default) / `市值` / `今年` (今年 added v3.1). Switching re-orders rows;
-  medals stay with their stocks. **The row's numbers follow the active sort** (v3.1):
+- **Sort toggle** (a right-aligned chip row, no section title — with 市值/今年 sorts
+  the list isn't only today's race, so the `今日排位赛 🏁` header was dropped in v3.1):
+  `涨跌幅` (default) / `市值` / `今年`. Switching re-orders rows; medals stay with
+  their stocks. **The row's numbers follow the active sort** (v3.1):
   under `市值` the headline figure is the compact market cap instead of the price;
   under `今年` the pill shows the YTD change % instead of today's (unresolved YTD →
   muted `—`). Unknown values sink to the bottom of their sort.

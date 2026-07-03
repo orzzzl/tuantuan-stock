@@ -20,10 +20,6 @@
   "@indexDowLabel": {
     "description": "Dow Jones chip label in the index strip."
   },
-  "raceHeaderTitle": "Today's race 🏁",
-  "@raceHeaderTitle": {
-    "description": "Section header above the daily race list."
-  },
   "sortByDayChangeLabel": "Change",
   "@sortByDayChangeLabel": {
     "description": "Sort chip that orders rows by today's change percent."

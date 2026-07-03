@@ -198,7 +198,7 @@ void main() {
     expect(find.text(localizations.emptyWatchlistTitle), findsOneWidget);
     expect(find.text(localizations.emptyWatchlistHint), findsOneWidget);
     expect(find.byKey(WatchlistScreen.emptySearchButtonKey), findsOneWidget);
-    expect(find.text(localizations.raceHeaderTitle), findsNothing);
+    expect(find.byKey(WatchlistScreen.sortByChangeKey), findsNothing);
   });
 
   testWidgets('swipe-left removes a stock and undo restores it', (

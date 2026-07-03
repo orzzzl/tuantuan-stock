@@ -270,19 +270,11 @@ class _RaceHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
 
+    // No section title: with 市值/今年 sorts the list isn't only today's
+    // race, so the chips speak for themselves.
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Expanded(
-          child: Text(
-            localizations.raceHeaderTitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: CuteColors.text,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
         _SortChip(
           key: WatchlistScreen.sortByChangeKey,
           label: localizations.sortByDayChangeLabel,
