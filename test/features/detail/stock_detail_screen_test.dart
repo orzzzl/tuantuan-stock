@@ -167,10 +167,8 @@ void main() {
 
     expect(quotes.chartCalls, contains((_symbol, ChartRange.ytd)));
     expect(skyChart(tester).baseline, 80);
-    expect(
-      skyChart(tester).baselineLabel,
-      localizations.skyChartBaselinePeriodStartLabel,
-    );
+    // Non-1D ranges hide the waterline label — their baseline isn't 昨收.
+    expect(skyChart(tester).baselineLabel, isEmpty);
     // Robinhood mode: hero now shows price (102) vs the YTD baseline (80).
     expect(
       find.text('▲ +22.00 +27.5% ${localizations.rangeYtd}'),

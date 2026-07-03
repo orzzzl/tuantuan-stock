@@ -130,25 +130,51 @@ void main() {
     expect(unrankedTexts.any((text) => text.contains('#')), isFalse);
   });
 
-  testWidgets('market-cap sort reorders rows but medals stay put', (
+  testWidgets(
+    'market-cap sort reorders rows, headlines market caps, medals stay put',
+    (tester) async {
+      await pumpWatchlist(tester);
+
+      await tester.tap(find.byKey(WatchlistScreen.sortByMarketCapKey));
+      await tester.pumpAndSettle();
+
+      expect(rowY(tester, 'DDDD'), lessThan(rowY(tester, 'BBB')));
+      expect(rowY(tester, 'BBB'), lessThan(rowY(tester, 'CCC')));
+      expect(rowY(tester, 'CCC'), lessThan(rowY(tester, 'AAA')));
+
+      expect(inRow('AAA', '🥇'), findsOneWidget);
+      expect(inRow('DDDD', '4'), findsOneWidget);
+
+      // The headline figure is now the compact market cap, not the price.
+      expect(inRow('DDDD', '400B'), findsOneWidget);
+      expect(inRow('AAA', '100B'), findsOneWidget);
+
+      await tester.tap(find.byKey(WatchlistScreen.sortByChangeKey));
+      await tester.pumpAndSettle();
+
+      expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'BBB')));
+      expect(inRow('AAA', '🥇'), findsOneWidget);
+      expect(inRow('AAA', '100B'), findsNothing);
+    },
+  );
+
+  testWidgets('YTD sort reorders rows and pills show the YTD move', (
     tester,
   ) async {
     await pumpWatchlist(tester);
 
-    await tester.tap(find.byKey(WatchlistScreen.sortByMarketCapKey));
+    await tester.tap(find.byKey(WatchlistScreen.sortByYtdKey));
     await tester.pumpAndSettle();
 
-    expect(rowY(tester, 'DDDD'), lessThan(rowY(tester, 'BBB')));
-    expect(rowY(tester, 'BBB'), lessThan(rowY(tester, 'CCC')));
-    expect(rowY(tester, 'CCC'), lessThan(rowY(tester, 'AAA')));
+    // BBB (+30) > AAA (+10) > CCC (-5); DDDD's YTD is unresolved → last.
+    expect(rowY(tester, 'BBB'), lessThan(rowY(tester, 'AAA')));
+    expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'CCC')));
+    expect(rowY(tester, 'CCC'), lessThan(rowY(tester, 'DDDD')));
 
-    expect(inRow('AAA', '🥇'), findsOneWidget);
-    expect(inRow('DDDD', '4'), findsOneWidget);
-
-    await tester.tap(find.byKey(WatchlistScreen.sortByChangeKey));
-    await tester.pumpAndSettle();
-
-    expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'BBB')));
+    expect(inRow('BBB', '▲ +30.0%'), findsOneWidget);
+    expect(inRow('CCC', '▼ -5.0%'), findsOneWidget);
+    expect(inRow('DDDD', '—'), findsOneWidget);
+    // Medals still belong to the day race.
     expect(inRow('AAA', '🥇'), findsOneWidget);
   });
 

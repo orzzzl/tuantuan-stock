@@ -19,8 +19,10 @@ class WatchlistScreen extends ConsumerStatefulWidget {
   static const searchButtonKey = Key('watchlist.searchButton');
   static const sortByChangeKey = Key('watchlist.sort.dayChange');
   static const sortByMarketCapKey = Key('watchlist.sort.marketCap');
+  static const sortByYtdKey = Key('watchlist.sort.ytd');
   static const emptySearchButtonKey = Key('watchlist.emptySearchButton');
   static Key rowKey(String symbol) => Key('watchlist.row.$symbol');
+  static Key headlineKey(String symbol) => Key('watchlist.headline.$symbol');
   static Key medalKey(String symbol) => Key('watchlist.medal.$symbol');
   static Key sessionTagKey(String symbol) => Key('watchlist.session.$symbol');
 
@@ -136,7 +138,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
         data: (raceBoard) => [
           for (final entry in raceBoard.entries)
             if (!_dismissed.contains(entry.symbol))
-              _RaceRow(entry: entry, onRemove: _remove),
+              _RaceRow(entry: entry, sort: sort, onRemove: _remove),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: Text(
@@ -294,6 +296,13 @@ class _RaceHeader extends StatelessWidget {
           selected: sort == WatchlistSort.marketCap,
           onTap: () => onChanged(WatchlistSort.marketCap),
         ),
+        const SizedBox(width: 6),
+        _SortChip(
+          key: WatchlistScreen.sortByYtdKey,
+          label: localizations.sortByYtdLabel,
+          selected: sort == WatchlistSort.ytd,
+          onTap: () => onChanged(WatchlistSort.ytd),
+        ),
       ],
     );
   }
@@ -340,9 +349,14 @@ class _SortChip extends StatelessWidget {
 }
 
 class _RaceRow extends ConsumerWidget {
-  const _RaceRow({required this.entry, required this.onRemove});
+  const _RaceRow({
+    required this.entry,
+    required this.sort,
+    required this.onRemove,
+  });
 
   final RaceEntry entry;
+  final WatchlistSort sort;
   final void Function(String symbol) onRemove;
 
   @override
@@ -416,8 +430,18 @@ class _RaceRow extends ConsumerWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    // The headline figure follows the active sort: the
+                    // market-cap race shows market caps, the others price.
                     Text(
-                      localizations.formatPrice(quote.price),
+                      sort == WatchlistSort.marketCap
+                          ? switch (quote.marketCap) {
+                              null => '—',
+                              final cap => localizations.formatCompactNumber(
+                                cap,
+                              ),
+                            }
+                          : localizations.formatPrice(quote.price),
+                      key: WatchlistScreen.headlineKey(entry.symbol),
                       style: textTheme.titleSmall?.copyWith(
                         color: CuteColors.text,
                         fontWeight: FontWeight.w900,
@@ -425,7 +449,12 @@ class _RaceRow extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    _ChangePill(dayChangePct: quote.dayChangePct),
+                    // Likewise the pill: the YTD race shows the YTD move.
+                    _ChangePill(
+                      changePct: sort == WatchlistSort.ytd
+                          ? quote.ytdChangePct
+                          : quote.dayChangePct,
+                    ),
                     if (_extendedTag(localizations, quote) case final tag?)
                       Padding(
                         padding: const EdgeInsets.only(top: 3),
@@ -489,28 +518,41 @@ class _RowSpark extends ConsumerWidget {
 }
 
 class _ChangePill extends StatelessWidget {
-  const _ChangePill({required this.dayChangePct});
+  const _ChangePill({required this.changePct});
 
-  final double dayChangePct;
+  /// Percent shown in the pill; null (YTD not resolved yet) renders a muted
+  /// placeholder instead of a direction.
+  final double? changePct;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final up = dayChangePct >= 0;
+    final changePct = this.changePct;
+    final up = (changePct ?? 0) >= 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: up ? CuteColors.upBackground : CuteColors.downBackground,
+        color: changePct == null
+            ? CuteColors.cream
+            : up
+            ? CuteColors.upBackground
+            : CuteColors.downBackground,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        [
-          up ? '▲' : '▼',
-          localizations.formatSignedPercent(dayChangePct / 100),
-        ].join(' '),
+        changePct == null
+            ? '—'
+            : [
+                up ? '▲' : '▼',
+                localizations.formatSignedPercent(changePct / 100),
+              ].join(' '),
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: up ? CuteColors.up : CuteColors.down,
+          color: changePct == null
+              ? CuteColors.textMuted
+              : up
+              ? CuteColors.up
+              : CuteColors.down,
           fontWeight: FontWeight.w900,
         ),
       ),

@@ -1,8 +1,10 @@
 # 团团看盘 (TuanTuan Stocks) — Design (v3.1, LOCKED)
 
 > v3.1 (2026-07-02, owner): the detail hero's change line now follows the selected
-> range (Robinhood mode) instead of always showing today; the waterline label reads
-> 期初 on non-1日 ranges. Everything else unchanged from v3.
+> range (Robinhood mode) instead of always showing today; the waterline label shows
+> only on 1日 (other ranges' baselines aren't 昨收, and spelling it out is noise);
+> ranges gain 5年/全部 (chips wrap onto two rows); the watchlist sort toggle gains
+> 今年 and the row's numbers follow the active sort. Everything else unchanged from v3.
 
 A cute US-stock **price viewer**. Look only — never trade. It carries over the visual
 language and the mascot 团团 from the sister project `nudge`.
@@ -38,8 +40,12 @@ document is the source of truth for behavior.
 - **Medals**: 🥇🥈🥉 badges pinned to the **top-left corner of the logo avatar** of today's
   top-3 gainers. Ranks 4+ get a small muted number badge. Medals always belong to the
   day-change race regardless of the active sort.
-- **Sort toggle** in the section header (`今日排位赛 🏁` + two chips right-aligned):
-  `涨跌幅` (default) / `市值`. Switching re-orders rows; medals stay with their stocks.
+- **Sort toggle** in the section header (`今日排位赛 🏁` + chips right-aligned):
+  `涨跌幅` (default) / `市值` / `今年` (今年 added v3.1). Switching re-orders rows;
+  medals stay with their stocks. **The row's numbers follow the active sort** (v3.1):
+  under `市值` the headline figure is the compact market cap instead of the price;
+  under `今年` the pill shows the YTD change % instead of today's (unresolved YTD →
+  muted `—`). Unknown values sink to the bottom of their sort.
 - **YTD rank**: each row's subtitle shows `<中文名> · 今年 #N` — the stock's
   **year-to-date gain rank within this watchlist** (integer, 1 = best). Computed live:
   YTD % = current price vs last year's closing price; rank among watchlist members.
@@ -89,9 +95,10 @@ Every displayed change % states its session — never let a number be misread:
   baseline is **昨收** (prev close); for longer ranges it is the **closing price at the
   period start** (今年 = last year's final close).
 - Above the baseline is **sky**, below is **water** (light blue fill up to the baseline;
-  the baseline itself is a dashed light-blue waterline with a tiny label placed where it
-  won't collide with the line — `0% 昨收` on 1日, `0% 期初` on every other range, since
-  their baseline is the period-start close, not yesterday's).
+  the baseline itself is a dashed light-blue waterline). On 1日 a tiny `0% 昨收` label
+  sits on the waterline where it won't collide with the line; other ranges show **no
+  label** (their baseline is the period-start close, and spelling that out is noise —
+  v3.1).
 - Because of extended-hours trading the line's first point can start **above or below**
   the waterline (gap up / gap down) — never assume it starts at 0%.
 - The price line: **thick rounded stroke** (gradient along its direction color), a candy

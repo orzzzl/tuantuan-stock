@@ -27,9 +27,9 @@ class SkyChart extends StatelessWidget {
   final double height;
   final SkyChartAnchorBuilder? anchorBuilder;
 
-  /// Waterline label; null falls back to the day-chart `0% 昨收` wording.
-  /// Longer ranges pass a period-start label instead — their baseline is not
-  /// yesterday's close.
+  /// Waterline label; null falls back to the day-chart `0% 昨收` wording,
+  /// empty hides the label entirely (longer ranges — their baseline is not
+  /// yesterday's close, and spelling that out is noise).
   final String? baselineLabel;
 
   @override
@@ -387,6 +387,7 @@ class SkyChartPainter extends CustomPainter {
   }
 
   void _drawBaselineLabel(Canvas canvas, Size size, SkyChartGeometry geometry) {
+    if (baselineLabel.isEmpty) return;
     final textPainter = TextPainter(
       text: TextSpan(
         text: baselineLabel,

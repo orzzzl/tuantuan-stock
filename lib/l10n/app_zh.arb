@@ -32,6 +32,10 @@
   "@sortByMarketCapLabel": {
     "description": "Sort chip that orders rows by market capitalization."
   },
+  "sortByYtdLabel": "今年",
+  "@sortByYtdLabel": {
+    "description": "Sort chip that orders rows by year-to-date change percent."
+  },
   "ytdRankLabel": "今年 #{rank}",
   "@ytdRankLabel": {
     "description": "Year-to-date gain rank within the watchlist, shown in a row subtitle.",
@@ -218,10 +222,6 @@
   "skyChartBaselineLabel": "0% 昨收",
   "@skyChartBaselineLabel": {
     "description": "Waterline label for the sky/water chart baseline."
-  },
-  "skyChartBaselinePeriodStartLabel": "0% 期初",
-  "@skyChartBaselinePeriodStartLabel": {
-    "description": "Waterline label when the range baseline is the period-start close (every range except 1D)."
   },
   "currentPriceLabel": "现价 (USD)",
   "@currentPriceLabel": {
