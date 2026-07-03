@@ -255,6 +255,14 @@
   "@statMarketCapLabel": {
     "description": "Stats grid: market cap."
   },
+  "statPeLabel": "市盈率",
+  "@statPeLabel": {
+    "description": "Stats grid: trailing twelve-month price/earnings ratio."
+  },
+  "statForwardPeLabel": "预期市盈率",
+  "@statForwardPeLabel": {
+    "description": "Stats grid: forward price/earnings ratio."
+  },
   "chartEmptyLabel": "暂无行情数据",
   "@chartEmptyLabel": {
     "description": "Chart card when the range has no candles."

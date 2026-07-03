@@ -195,7 +195,12 @@ void main() {
   ) async {
     await pumpDetail(
       tester,
-      quote: _quote(volume: 48200000, marketCap: 3.46e12),
+      quote: _quote(
+        volume: 48200000,
+        marketCap: 3.46e12,
+        trailingPe: 36.63,
+        forwardPe: 31.05,
+      ),
     );
 
     // The two-row chip strip pushes the grid below the test viewport.
@@ -205,6 +210,22 @@ void main() {
     expect(find.text(localizations.statVolumeLabel), findsOneWidget);
     expect(find.text('48.2M'), findsOneWidget);
     expect(find.text('3.46T'), findsOneWidget);
+    expect(find.text(localizations.statPeLabel), findsOneWidget);
+    expect(find.text('36.63'), findsOneWidget);
+    expect(find.text(localizations.statForwardPeLabel), findsOneWidget);
+    expect(find.text('31.05'), findsOneWidget);
+  });
+
+  testWidgets('PE cells fall back to a dash when earnings are missing', (
+    tester,
+  ) async {
+    await pumpDetail(tester, quote: _quote(trailingPe: null, forwardPe: null));
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pump();
+
+    expect(find.text(localizations.statPeLabel), findsOneWidget);
+    expect(find.text('—'), findsNWidgets(2));
   });
 }
 
@@ -230,6 +251,8 @@ Quote _quote({
   double dayChangePct = 2,
   int volume = 1000,
   double? marketCap = 1e12,
+  double? trailingPe,
+  double? forwardPe,
   MarketSession session = MarketSession.regular,
   double? extChangePct,
 }) {
@@ -243,6 +266,8 @@ Quote _quote({
     prevClose: 100,
     volume: volume,
     marketCap: marketCap,
+    trailingPe: trailingPe,
+    forwardPe: forwardPe,
     ytdChangePct: 5,
     asOf: DateTime.utc(2026, 7, 2, 20),
     session: session,

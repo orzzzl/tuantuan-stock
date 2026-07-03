@@ -20,6 +20,8 @@ const _aaplQuoteJson = <String, Object?>{
   'regularMarketPreviousClose': 289.36,
   'regularMarketVolume': 51234567,
   'marketCap': 4323663937536,
+  'trailingPE': 36.63,
+  'forwardPE': 31.05,
   'regularMarketTime': 1782936000,
   'marketState': 'POST',
   'postMarketChangePercent': 0.088,
@@ -199,6 +201,8 @@ void main() {
       expect(aapl.prevClose, 289.36);
       expect(aapl.volume, 51234567);
       expect(aapl.marketCap, 4323663937536.0);
+      expect(aapl.trailingPe, 36.63);
+      expect(aapl.forwardPe, 31.05);
       expect(aapl.asOf, DateTime.utc(2026, 7, 1, 20));
       expect(
         aapl.ytdChangePct,

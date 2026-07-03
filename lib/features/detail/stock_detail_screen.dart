@@ -524,17 +524,37 @@ class _StatsGrid extends StatelessWidget {
         },
         CuteColors.text,
       ),
+      (
+        localizations.statPeLabel,
+        switch (quote.trailingPe) {
+          null => '—',
+          final pe => localizations.formatPrice(pe),
+        },
+        CuteColors.text,
+      ),
+      (
+        localizations.statForwardPeLabel,
+        switch (quote.forwardPe) {
+          null => '—',
+          final pe => localizations.formatPrice(pe),
+        },
+        CuteColors.text,
+      ),
     ];
 
     return Column(
       children: [
-        for (var row = 0; row < 2; row++) ...[
+        for (var row = 0; row < (cells.length / 3).ceil(); row++) ...[
           if (row > 0) const SizedBox(height: 8),
           Row(
             children: [
               for (var column = 0; column < 3; column++) ...[
                 if (column > 0) const SizedBox(width: 8),
-                Expanded(child: _StatCell(cell: cells[row * 3 + column])),
+                Expanded(
+                  child: row * 3 + column < cells.length
+                      ? _StatCell(cell: cells[row * 3 + column])
+                      : const SizedBox.shrink(),
+                ),
               ],
             ],
           ),

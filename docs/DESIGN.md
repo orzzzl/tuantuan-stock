@@ -87,7 +87,9 @@ Every displayed change % states its session — never let a number be misread:
   `1日 1周 1月 3月 今年 1年 5年 全部` / en `1D 1W 1M 3M YTD 1Y 5Y All` (5年/全部 added
   v3.1). Eight chips don't fit a phone-width row — they wrap onto a second row; never
   hide chips behind a horizontal scroll.
-- **Stats grid** (3×2): 今开 / 最高 / 最低 / 昨收 / 成交量 / 市值.
+- **Stats grid** (3-per-row): 今开 / 最高 / 最低 / 昨收 / 成交量 / 市值 / 市盈率 /
+  预期市盈率 (P/E pair added v3.1; `—` when there is no meaningful multiple —
+  indices, ETFs, loss-makers).
 
 ### The sky/water chart 🌊 (the signature widget)
 

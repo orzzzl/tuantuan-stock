@@ -255,6 +255,14 @@
   "@statMarketCapLabel": {
     "description": "Stats grid: market cap."
   },
+  "statPeLabel": "P/E",
+  "@statPeLabel": {
+    "description": "Stats grid: trailing twelve-month price/earnings ratio."
+  },
+  "statForwardPeLabel": "Fwd P/E",
+  "@statForwardPeLabel": {
+    "description": "Stats grid: forward price/earnings ratio."
+  },
   "chartEmptyLabel": "No chart data yet",
   "@chartEmptyLabel": {
     "description": "Chart card when the range has no candles."

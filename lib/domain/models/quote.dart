@@ -25,6 +25,8 @@ class Quote {
     required this.prevClose,
     required this.volume,
     this.marketCap,
+    this.trailingPe,
+    this.forwardPe,
     this.ytdChangePct,
     required this.asOf,
     required this.session,
@@ -51,6 +53,13 @@ class Quote {
 
   /// Market capitalization in USD; null for indices, which have none.
   final double? marketCap;
+
+  /// Trailing twelve-month P/E; null for indices, ETFs, and loss-making
+  /// companies (no meaningful earnings multiple).
+  final double? trailingPe;
+
+  /// Forward P/E from consensus estimates; null when there is none.
+  final double? forwardPe;
 
   /// Percent change since the first trading day of the year; drives the
   /// YTD `#N` rank. Null when the YTD fetch has not resolved (it comes from
@@ -79,6 +88,8 @@ class Quote {
       other.prevClose == prevClose &&
       other.volume == volume &&
       other.marketCap == marketCap &&
+      other.trailingPe == trailingPe &&
+      other.forwardPe == forwardPe &&
       other.ytdChangePct == ytdChangePct &&
       other.asOf == asOf &&
       other.session == session &&
@@ -95,6 +106,8 @@ class Quote {
     prevClose,
     volume,
     marketCap,
+    trailingPe,
+    forwardPe,
     ytdChangePct,
     asOf,
     session,

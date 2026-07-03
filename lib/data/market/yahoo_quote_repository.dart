@@ -157,6 +157,8 @@ class YahooQuoteRepository implements QuoteRepository {
         prevClose: _double(json, 'regularMarketPreviousClose'),
         volume: (json['regularMarketVolume'] as num?)?.toInt() ?? 0,
         marketCap: (json['marketCap'] as num?)?.toDouble(),
+        trailingPe: (json['trailingPE'] as num?)?.toDouble(),
+        forwardPe: (json['forwardPE'] as num?)?.toDouble(),
         ytdChangePct: ytdBaseline == null || ytdBaseline == 0
             ? null
             : (price - ytdBaseline) / ytdBaseline * 100,
