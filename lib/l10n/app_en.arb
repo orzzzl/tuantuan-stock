@@ -78,24 +78,6 @@
   "@undoRemoveButtonLabel": {
     "description": "Snackbar action that restores a removed stock."
   },
-  "detailTitle": "{symbol} detail",
-  "@detailTitle": {
-    "description": "Title for the stock detail placeholder screen.",
-    "placeholders": {
-      "symbol": {
-        "type": "String"
-      }
-    }
-  },
-  "detailPlaceholder": "Stock detail placeholder for {symbol}",
-  "@detailPlaceholder": {
-    "description": "Centered placeholder label on the stock detail screen.",
-    "placeholders": {
-      "symbol": {
-        "type": "String"
-      }
-    }
-  },
   "searchTitle": "Find stocks",
   "@searchTitle": {
     "description": "Back-affordance title on the pushed search screen."
@@ -228,5 +210,57 @@
   "skyChartBaselineLabel": "0% prev close",
   "@skyChartBaselineLabel": {
     "description": "Waterline label for the sky/water chart baseline."
+  },
+  "currentPriceLabel": "Price (USD)",
+  "@currentPriceLabel": {
+    "description": "Label above the huge price in the detail hero."
+  },
+  "todayLabel": "Today",
+  "@todayLabel": {
+    "description": "Suffix on the hero day-change line."
+  },
+  "statOpenLabel": "Open",
+  "@statOpenLabel": {
+    "description": "Stats grid: today's open."
+  },
+  "statHighLabel": "High",
+  "@statHighLabel": {
+    "description": "Stats grid: today's high."
+  },
+  "statLowLabel": "Low",
+  "@statLowLabel": {
+    "description": "Stats grid: today's low."
+  },
+  "statPrevCloseLabel": "Prev close",
+  "@statPrevCloseLabel": {
+    "description": "Stats grid: previous close."
+  },
+  "statVolumeLabel": "Volume",
+  "@statVolumeLabel": {
+    "description": "Stats grid: volume."
+  },
+  "statMarketCapLabel": "Mkt cap",
+  "@statMarketCapLabel": {
+    "description": "Stats grid: market cap."
+  },
+  "chartEmptyLabel": "No chart data yet",
+  "@chartEmptyLabel": {
+    "description": "Chart card when the range has no candles."
+  },
+  "chartErrorLabel": "Chart failed to load",
+  "@chartErrorLabel": {
+    "description": "Chart card when the candle fetch fails."
+  },
+  "detailErrorLabel": "Quote failed to load",
+  "@detailErrorLabel": {
+    "description": "Detail screen when the quote fetch fails."
+  },
+  "addToWatchlistTooltip": "Add to watchlist",
+  "@addToWatchlistTooltip": {
+    "description": "Tooltip on the star when the stock is not watched."
+  },
+  "removeFromWatchlistTooltip": "Remove from watchlist",
+  "@removeFromWatchlistTooltip": {
+    "description": "Tooltip on the star when the stock is watched."
   }
 }

@@ -74,7 +74,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(StockDetailScreen), findsOneWidget);
-    expect(find.text(localizations.detailPlaceholder(_symbol)), findsOneWidget);
+    expect(find.byKey(StockDetailScreen.heroKey), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.byType(TabBar), findsNothing);
 
