@@ -9,6 +9,8 @@ extension AppLocalizationSets on AppLocalizations {
     rangeQuarter,
     rangeYtd,
     rangeYear,
+    rangeYear5,
+    rangeAll,
   ];
 
   List<String> get extendedSessionLabels => [
@@ -20,16 +22,17 @@ extension AppLocalizationSets on AppLocalizations {
     return NumberFormat.compact(locale: localeName).format(value);
   }
 
-  /// Formats a fractional value, so `0.0173` renders as `1.7%`.
-  String formatPercent(num value, {int decimalDigits = 1}) {
+  /// Formats a fractional value, so `0.0173` renders as `1.73%` (two
+  /// decimals everywhere, like every brokerage app — owner call 2026-07-02).
+  String formatPercent(num value, {int decimalDigits = 2}) {
     return NumberFormat.decimalPercentPattern(
       locale: localeName,
       decimalDigits: decimalDigits,
     ).format(value);
   }
 
-  /// [formatPercent] with an explicit sign, so `0.0173` renders as `+1.7%`.
-  String formatSignedPercent(num value, {int decimalDigits = 1}) {
+  /// [formatPercent] with an explicit sign, so `0.0173` renders as `+1.73%`.
+  String formatSignedPercent(num value, {int decimalDigits = 2}) {
     final formatted = formatPercent(value, decimalDigits: decimalDigits);
     return value >= 0 ? '+$formatted' : formatted;
   }

@@ -20,10 +20,6 @@
   "@indexDowLabel": {
     "description": "Dow Jones chip label in the index strip."
   },
-  "raceHeaderTitle": "Today's race 🏁",
-  "@raceHeaderTitle": {
-    "description": "Section header above the daily race list."
-  },
   "sortByDayChangeLabel": "Change",
   "@sortByDayChangeLabel": {
     "description": "Sort chip that orders rows by today's change percent."
@@ -31,6 +27,10 @@
   "sortByMarketCapLabel": "Mkt cap",
   "@sortByMarketCapLabel": {
     "description": "Sort chip that orders rows by market capitalization."
+  },
+  "sortByYtdLabel": "YTD",
+  "@sortByYtdLabel": {
+    "description": "Sort chip that orders rows by year-to-date change percent."
   },
   "ytdRankLabel": "YTD #{rank}",
   "@ytdRankLabel": {
@@ -199,6 +199,14 @@
   "@rangeYear": {
     "description": "One-year chart range chip label."
   },
+  "rangeYear5": "5Y",
+  "@rangeYear5": {
+    "description": "Five-year chart range chip label."
+  },
+  "rangeAll": "All",
+  "@rangeAll": {
+    "description": "All-time chart range chip label."
+  },
   "preMarketSessionLabel": "Pre",
   "@preMarketSessionLabel": {
     "description": "Pre-market session tag label."
@@ -206,10 +214,6 @@
   "postMarketSessionLabel": "Night",
   "@postMarketSessionLabel": {
     "description": "Post-market session tag label."
-  },
-  "skyChartBaselineLabel": "0% prev close",
-  "@skyChartBaselineLabel": {
-    "description": "Waterline label for the sky/water chart baseline."
   },
   "currentPriceLabel": "Price (USD)",
   "@currentPriceLabel": {
@@ -242,6 +246,14 @@
   "statMarketCapLabel": "Mkt cap",
   "@statMarketCapLabel": {
     "description": "Stats grid: market cap."
+  },
+  "statPeLabel": "P/E",
+  "@statPeLabel": {
+    "description": "Stats grid: trailing twelve-month price/earnings ratio."
+  },
+  "statForwardPeLabel": "Fwd P/E",
+  "@statForwardPeLabel": {
+    "description": "Stats grid: forward price/earnings ratio."
   },
   "chartEmptyLabel": "No chart data yet",
   "@chartEmptyLabel": {

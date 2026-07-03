@@ -20,6 +20,8 @@ const _aaplQuoteJson = <String, Object?>{
   'regularMarketPreviousClose': 289.36,
   'regularMarketVolume': 51234567,
   'marketCap': 4323663937536,
+  'trailingPE': 36.63,
+  'forwardPE': 31.05,
   'regularMarketTime': 1782936000,
   'marketState': 'POST',
   'postMarketChangePercent': 0.088,
@@ -199,6 +201,8 @@ void main() {
       expect(aapl.prevClose, 289.36);
       expect(aapl.volume, 51234567);
       expect(aapl.marketCap, 4323663937536.0);
+      expect(aapl.trailingPe, 36.63);
+      expect(aapl.forwardPe, 31.05);
       expect(aapl.asOf, DateTime.utc(2026, 7, 1, 20));
       expect(
         aapl.ytdChangePct,
@@ -247,6 +251,8 @@ void main() {
           ChartRange.quarter: ('3mo', '1d'),
           ChartRange.ytd: ('ytd', '1d'),
           ChartRange.year: ('1y', '1d'),
+          ChartRange.year5: ('5y', '1wk'),
+          ChartRange.all: ('max', '1mo'),
         };
         const baselineByYahooRange = <String, double>{
           '1d': 289.36,
@@ -255,6 +261,8 @@ void main() {
           '3mo': 250.9,
           'ytd': 271.86,
           '1y': 240.5,
+          '5y': 130.2,
+          'max': 0.51,
         };
         final yahoo = _FakeYahoo(
           chartBaselines: {

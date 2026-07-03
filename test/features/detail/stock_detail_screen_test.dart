@@ -109,7 +109,7 @@ void main() {
       find.textContaining(localizations.postMarketSessionLabel),
       findsOneWidget,
     );
-    expect(find.textContaining('-1.5%'), findsOneWidget);
+    expect(find.textContaining('-1.50%'), findsOneWidget);
   });
 
   testWidgets('underwater: rider drowns below the baseline', (tester) async {
@@ -141,7 +141,7 @@ void main() {
     expect(riderState(tester), PlaneRiderState.climbing);
   });
 
-  testWidgets('range switch reloads and re-baselines the chart', (
+  testWidgets('range switch reloads, re-baselines, and re-labels everything', (
     tester,
   ) async {
     final (quotes, _) = await pumpDetail(
@@ -153,6 +153,11 @@ void main() {
     );
 
     expect(skyChart(tester).baseline, 100);
+    // 1D hero: the official day change (quote fixture: +2.00 / +2.00%).
+    expect(
+      find.text('▲ +2.00 +2.00% ${localizations.todayLabel}'),
+      findsOneWidget,
+    );
 
     await tester.tap(
       find.byKey(StockDetailScreen.rangeChipKey(ChartRange.ytd)),
@@ -161,6 +166,11 @@ void main() {
 
     expect(quotes.chartCalls, contains((_symbol, ChartRange.ytd)));
     expect(skyChart(tester).baseline, 80);
+    // Robinhood mode: hero now shows price (102) vs the YTD baseline (80).
+    expect(
+      find.text('▲ +22.00 +27.50% ${localizations.rangeYtd}'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('star toggles watchlist membership', (tester) async {
@@ -182,12 +192,37 @@ void main() {
   ) async {
     await pumpDetail(
       tester,
-      quote: _quote(volume: 48200000, marketCap: 3.46e12),
+      quote: _quote(
+        volume: 48200000,
+        marketCap: 3.46e12,
+        trailingPe: 36.63,
+        forwardPe: 31.05,
+      ),
     );
+
+    // The two-row chip strip pushes the grid below the test viewport.
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pump();
 
     expect(find.text(localizations.statVolumeLabel), findsOneWidget);
     expect(find.text('48.2M'), findsOneWidget);
     expect(find.text('3.46T'), findsOneWidget);
+    expect(find.text(localizations.statPeLabel), findsOneWidget);
+    expect(find.text('36.63'), findsOneWidget);
+    expect(find.text(localizations.statForwardPeLabel), findsOneWidget);
+    expect(find.text('31.05'), findsOneWidget);
+  });
+
+  testWidgets('PE cells fall back to a dash when earnings are missing', (
+    tester,
+  ) async {
+    await pumpDetail(tester, quote: _quote(trailingPe: null, forwardPe: null));
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pump();
+
+    expect(find.text(localizations.statPeLabel), findsOneWidget);
+    expect(find.text('—'), findsNWidgets(2));
   });
 }
 
@@ -213,6 +248,8 @@ Quote _quote({
   double dayChangePct = 2,
   int volume = 1000,
   double? marketCap = 1e12,
+  double? trailingPe,
+  double? forwardPe,
   MarketSession session = MarketSession.regular,
   double? extChangePct,
 }) {
@@ -226,6 +263,8 @@ Quote _quote({
     prevClose: 100,
     volume: volume,
     marketCap: marketCap,
+    trailingPe: trailingPe,
+    forwardPe: forwardPe,
     ytdChangePct: 5,
     asOf: DateTime.utc(2026, 7, 2, 20),
     session: session,

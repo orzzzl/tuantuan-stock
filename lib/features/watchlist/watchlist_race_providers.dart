@@ -10,7 +10,7 @@ import 'package:tuantuan_stock/domain/models/stock.dart';
 
 /// Which column orders the race list. Medals always follow the day-change
 /// race regardless of the active sort.
-enum WatchlistSort { dayChange, marketCap }
+enum WatchlistSort { dayChange, marketCap, ytd }
 
 final watchlistSortProvider = StateProvider<WatchlistSort>(
   (ref) => WatchlistSort.dayChange,
@@ -124,14 +124,15 @@ class RaceBoard {
 
     final displayOrder = switch (sort) {
       WatchlistSort.dayChange => dayOrder,
-      WatchlistSort.marketCap => _stableSortedBy(quoted, (a, b) {
-        final capA = quotes[a]!.marketCap;
-        final capB = quotes[b]!.marketCap;
-        if (capA == null && capB == null) return 0;
-        if (capA == null) return 1; // Unknown caps sink to the bottom.
-        if (capB == null) return -1;
-        return capB.compareTo(capA);
-      }),
+      WatchlistSort.marketCap => _stableSortedBy(
+        quoted,
+        (a, b) => _descNullsLast(quotes[a]!.marketCap, quotes[b]!.marketCap),
+      ),
+      WatchlistSort.ytd => _stableSortedBy(
+        quoted,
+        (a, b) =>
+            _descNullsLast(quotes[a]!.ytdChangePct, quotes[b]!.ytdChangePct),
+      ),
     };
 
     return RaceBoard([
@@ -145,6 +146,14 @@ class RaceBoard {
         ),
     ]);
   }
+}
+
+/// Descending compare where unknown values sink to the bottom.
+int _descNullsLast(double? a, double? b) {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;
+  if (b == null) return -1;
+  return b.compareTo(a);
 }
 
 /// `List.sort` is unstable; sorting (value, index) pairs keeps tied symbols

@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:tuantuan_stock/app/cute_palette.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
-import 'package:tuantuan_stock/l10n/generated/app_localizations.dart';
 
 enum ChartDirection { up, down, flat }
 
@@ -28,12 +27,6 @@ class SkyChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
-      color: CuteColors.waterLabel,
-      fontWeight: FontWeight.w900,
-    );
-
     return SizedBox(
       height: height,
       width: double.infinity,
@@ -58,9 +51,6 @@ class SkyChart extends StatelessWidget {
                     candles: candles,
                     baseline: baseline,
                     direction: direction,
-                    baselineLabel: localizations.skyChartBaselineLabel,
-                    baselineLabelStyle: labelStyle,
-                    textDirection: Directionality.of(context),
                   ),
                 ),
               ),
@@ -185,17 +175,11 @@ class SkyChartPainter extends CustomPainter {
     required this.candles,
     required this.baseline,
     required this.direction,
-    required this.baselineLabel,
-    required this.textDirection,
-    this.baselineLabelStyle,
   });
 
   final List<Candle> candles;
   final double baseline;
   final ChartDirection direction;
-  final String baselineLabel;
-  final TextDirection textDirection;
-  final TextStyle? baselineLabelStyle;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -222,7 +206,6 @@ class SkyChartPainter extends CustomPainter {
       _drawNodes(canvas, geometry.points);
     }
 
-    _drawBaselineLabel(canvas, size, geometry);
     canvas.restore();
   }
 
@@ -230,10 +213,7 @@ class SkyChartPainter extends CustomPainter {
   bool shouldRepaint(SkyChartPainter oldDelegate) {
     return oldDelegate.candles != candles ||
         oldDelegate.baseline != baseline ||
-        oldDelegate.direction != direction ||
-        oldDelegate.baselineLabel != baselineLabel ||
-        oldDelegate.baselineLabelStyle != baselineLabelStyle ||
-        oldDelegate.textDirection != textDirection;
+        oldDelegate.direction != direction;
   }
 
   void _drawBackdrop(Canvas canvas, Size size, double baselineY) {
@@ -377,67 +357,6 @@ class SkyChartPainter extends CustomPainter {
         ..drawCircle(point, 6, fill)
         ..drawCircle(point, 6, stroke);
     }
-  }
-
-  void _drawBaselineLabel(Canvas canvas, Size size, SkyChartGeometry geometry) {
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: baselineLabel,
-        style:
-            baselineLabelStyle ??
-            const TextStyle(
-              color: CuteColors.waterLabel,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-            ),
-      ),
-      textDirection: textDirection,
-    )..layout();
-
-    final padding = const EdgeInsets.symmetric(horizontal: 7, vertical: 3);
-    final placeBelow =
-        geometry.points.isEmpty ||
-        geometry.tipAnchor.dy <= geometry.baselineY ||
-        direction != ChartDirection.down;
-    final x = math.max(
-      SkyChartGeometry.chartPadding.left,
-      size.width -
-          SkyChartGeometry.chartPadding.right -
-          textPainter.width -
-          padding.horizontal,
-    );
-    final rawY = placeBelow
-        ? geometry.baselineY + 8
-        : geometry.baselineY - textPainter.height - padding.vertical - 8;
-    final y = rawY.clamp(
-      SkyChartGeometry.chartPadding.top,
-      size.height -
-          SkyChartGeometry.chartPadding.bottom -
-          textPainter.height -
-          padding.vertical,
-    );
-    final labelRect = Rect.fromLTWH(
-      x,
-      y.toDouble(),
-      textPainter.width + padding.horizontal,
-      textPainter.height + padding.vertical,
-    );
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(labelRect, const Radius.circular(9)),
-      Paint()..color = CuteColors.surface,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(labelRect, const Radius.circular(9)),
-      Paint()
-        ..color = CuteColors.waterRipple
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-    textPainter.paint(
-      canvas,
-      Offset(labelRect.left + padding.left, labelRect.top + padding.top),
-    );
   }
 
   LinearGradient _lineGradient() {

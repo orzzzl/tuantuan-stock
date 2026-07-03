@@ -107,8 +107,8 @@ void main() {
     await pumpApp(tester, locale: const Locale('zh'));
 
     expect(find.text(zh.brandTitle), findsOneWidget);
-    expect(find.text(zh.raceHeaderTitle), findsOneWidget);
-    expect(find.text(en.raceHeaderTitle), findsNothing);
+    expect(find.text(zh.sortByDayChangeLabel), findsOneWidget);
+    expect(find.text(en.sortByDayChangeLabel), findsNothing);
 
     final zhContext = tester.element(find.byType(WatchlistScreen));
     final zhLocalizations = AppLocalizations.of(zhContext);
@@ -118,8 +118,8 @@ void main() {
     await pumpApp(tester, locale: const Locale('en'));
 
     expect(find.text(en.brandTitle), findsOneWidget);
-    expect(find.text(en.raceHeaderTitle), findsOneWidget);
-    expect(find.text(zh.raceHeaderTitle), findsNothing);
+    expect(find.text(en.sortByDayChangeLabel), findsOneWidget);
+    expect(find.text(zh.sortByDayChangeLabel), findsNothing);
 
     final enContext = tester.element(find.byType(WatchlistScreen));
     final enLocalizations = AppLocalizations.of(enContext);

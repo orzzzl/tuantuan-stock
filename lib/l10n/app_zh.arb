@@ -20,10 +20,6 @@
   "@indexDowLabel": {
     "description": "Dow Jones chip label in the index strip."
   },
-  "raceHeaderTitle": "今日排位赛 🏁",
-  "@raceHeaderTitle": {
-    "description": "Section header above the daily race list."
-  },
   "sortByDayChangeLabel": "涨跌幅",
   "@sortByDayChangeLabel": {
     "description": "Sort chip that orders rows by today's change percent."
@@ -31,6 +27,10 @@
   "sortByMarketCapLabel": "市值",
   "@sortByMarketCapLabel": {
     "description": "Sort chip that orders rows by market capitalization."
+  },
+  "sortByYtdLabel": "今年",
+  "@sortByYtdLabel": {
+    "description": "Sort chip that orders rows by year-to-date change percent."
   },
   "ytdRankLabel": "今年 #{rank}",
   "@ytdRankLabel": {
@@ -199,6 +199,14 @@
   "@rangeYear": {
     "description": "One-year chart range chip label."
   },
+  "rangeYear5": "5年",
+  "@rangeYear5": {
+    "description": "Five-year chart range chip label."
+  },
+  "rangeAll": "全部",
+  "@rangeAll": {
+    "description": "All-time chart range chip label."
+  },
   "preMarketSessionLabel": "盘前",
   "@preMarketSessionLabel": {
     "description": "Pre-market session tag label."
@@ -206,10 +214,6 @@
   "postMarketSessionLabel": "盘后",
   "@postMarketSessionLabel": {
     "description": "Post-market session tag label."
-  },
-  "skyChartBaselineLabel": "0% 昨收",
-  "@skyChartBaselineLabel": {
-    "description": "Waterline label for the sky/water chart baseline."
   },
   "currentPriceLabel": "现价 (USD)",
   "@currentPriceLabel": {
@@ -242,6 +246,14 @@
   "statMarketCapLabel": "市值",
   "@statMarketCapLabel": {
     "description": "Stats grid: market cap."
+  },
+  "statPeLabel": "市盈率",
+  "@statPeLabel": {
+    "description": "Stats grid: trailing twelve-month price/earnings ratio."
+  },
+  "statForwardPeLabel": "预期市盈率",
+  "@statForwardPeLabel": {
+    "description": "Stats grid: forward price/earnings ratio."
   },
   "chartEmptyLabel": "暂无行情数据",
   "@chartEmptyLabel": {

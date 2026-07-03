@@ -62,6 +62,8 @@ class YahooQuoteRepository implements QuoteRepository {
       ChartRange.quarter => ('3mo', '1d'),
       ChartRange.ytd => ('ytd', '1d'),
       ChartRange.year => ('1y', '1d'),
+      ChartRange.year5 => ('5y', '1wk'),
+      ChartRange.all => ('max', '1mo'),
     };
     final json = await _client.getJson(
       Uri.https('query1.finance.yahoo.com', '/v8/finance/chart/$symbol', {
@@ -155,6 +157,8 @@ class YahooQuoteRepository implements QuoteRepository {
         prevClose: _double(json, 'regularMarketPreviousClose'),
         volume: (json['regularMarketVolume'] as num?)?.toInt() ?? 0,
         marketCap: (json['marketCap'] as num?)?.toDouble(),
+        trailingPe: (json['trailingPE'] as num?)?.toDouble(),
+        forwardPe: (json['forwardPE'] as num?)?.toDouble(),
         ytdChangePct: ytdBaseline == null || ytdBaseline == 0
             ? null
             : (price - ytdBaseline) / ytdBaseline * 100,

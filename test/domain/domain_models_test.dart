@@ -95,7 +95,7 @@ void main() {
   });
 
   group('ChartRange', () {
-    test('covers day through year including ytd', () {
+    test('covers day through all-time including ytd', () {
       expect(ChartRange.values, [
         ChartRange.day,
         ChartRange.week,
@@ -103,6 +103,8 @@ void main() {
         ChartRange.quarter,
         ChartRange.ytd,
         ChartRange.year,
+        ChartRange.year5,
+        ChartRange.all,
       ]);
     });
   });

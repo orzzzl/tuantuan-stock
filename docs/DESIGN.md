@@ -1,4 +1,11 @@
-# 团团看盘 (TuanTuan Stocks) — Design (v3, LOCKED)
+# 团团看盘 (TuanTuan Stocks) — Design (v3.1, LOCKED)
+
+> v3.1 (2026-07-02, owner): the detail hero's change line now follows the selected
+> range (Robinhood mode) instead of always showing today; the waterline text label is
+> gone on every range (noise); ranges gain 5年/全部 (chips wrap onto two rows); the
+> watchlist sort toggle gains 今年 and the row's numbers follow the active sort; the
+> stats grid gains 市盈率/预期市盈率; percents show two decimals. Everything else
+> unchanged from v3.
 
 A cute US-stock **price viewer**. Look only — never trade. It carries over the visual
 language and the mascot 团团 from the sister project `nudge`.
@@ -34,8 +41,13 @@ document is the source of truth for behavior.
 - **Medals**: 🥇🥈🥉 badges pinned to the **top-left corner of the logo avatar** of today's
   top-3 gainers. Ranks 4+ get a small muted number badge. Medals always belong to the
   day-change race regardless of the active sort.
-- **Sort toggle** in the section header (`今日排位赛 🏁` + two chips right-aligned):
-  `涨跌幅` (default) / `市值`. Switching re-orders rows; medals stay with their stocks.
+- **Sort toggle** (a right-aligned chip row, no section title — with 市值/今年 sorts
+  the list isn't only today's race, so the `今日排位赛 🏁` header was dropped in v3.1):
+  `涨跌幅` (default) / `市值` / `今年`. Switching re-orders rows; medals stay with
+  their stocks. **The row's numbers follow the active sort** (v3.1):
+  under `市值` the headline figure is the compact market cap instead of the price;
+  under `今年` the pill shows the YTD change % instead of today's (unresolved YTD →
+  muted `—`). Unknown values sink to the bottom of their sort.
 - **YTD rank**: each row's subtitle shows `<中文名> · 今年 #N` — the stock's
   **year-to-date gain rank within this watchlist** (integer, 1 = best). Computed live:
   YTD % = current price vs last year's closing price; rank among watchlist members.
@@ -67,10 +79,19 @@ Every displayed change % states its session — never let a number be misread:
 - Header: logo avatar, `Name` + `中文名` subtitle (no exchange suffix — it's noise),
   ⭐ watch state.
 - **Price hero**: gradient candy card — matcha gradient when up, coral-red gradient when
-  down — with `现价 (USD)`, a huge tabular price, and `▲/▼ +Δ +Δ% 今天`.
-- **Range chips**, one language set, never mixed (see i18n): zh `1日 1周 1月 3月 今年 1年`
-  / en `1D 1W 1M 3M YTD 1Y`.
-- **Stats grid** (3×2): 今开 / 最高 / 最低 / 昨收 / 成交量 / 市值.
+  down — with `现价 (USD)`, a huge tabular price, and a change line that **follows the
+  selected range** (Robinhood mode, v3.1): `1日` shows the official day change
+  (`▲/▼ +Δ +Δ% 今天`); longer ranges show current price vs the range baseline with the
+  range's own label (e.g. `▲ +38.20 +12.0% 今年`). Gradient and arrow follow the
+  displayed change. While a range's candles are still loading, fall back to the day
+  change rather than showing nothing.
+- **Range chips**, one language set, never mixed (see i18n): zh
+  `1日 1周 1月 3月 今年 1年 5年 全部` / en `1D 1W 1M 3M YTD 1Y 5Y All` (5年/全部 added
+  v3.1). Eight chips don't fit a phone-width row — they wrap onto a second row; never
+  hide chips behind a horizontal scroll.
+- **Stats grid** (3-per-row): 今开 / 最高 / 最低 / 昨收 / 成交量 / 市值 / 市盈率 /
+  预期市盈率 (P/E pair added v3.1; `—` when there is no meaningful multiple —
+  indices, ETFs, loss-makers).
 
 ### The sky/water chart 🌊 (the signature widget)
 
@@ -78,8 +99,8 @@ Every displayed change % states its session — never let a number be misread:
   baseline is **昨收** (prev close); for longer ranges it is the **closing price at the
   period start** (今年 = last year's final close).
 - Above the baseline is **sky**, below is **water** (light blue fill up to the baseline;
-  the baseline itself is a dashed light-blue waterline with a tiny `0% 昨收` label placed
-  where it won't collide with the line).
+  the baseline itself is a dashed light-blue waterline, **no text label** on any range —
+  v3.1 removed the `0% 昨收` bubble as noise; the waterline itself says it all).
 - Because of extended-hours trading the line's first point can start **above or below**
   the waterline (gap up / gap down) — never assume it starts at 0%.
 - The price line: **thick rounded stroke** (gradient along its direction color), a candy
