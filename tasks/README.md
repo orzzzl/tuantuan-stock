@@ -22,7 +22,7 @@ whole project. See [`../AGENTS.md`](../AGENTS.md) for the working agreement and
 | 11 | [Plane-rider mascot widget](v0.1/11-plane-rider-widget.md) | DONE (Codex, PR #11) | 02 |
 | 12 | [Watchlist screen (daily race)](v0.1/12-watchlist-screen.md) | IN PROGRESS (Claude) | 02, 05, 06, 07, 08, 10 |
 | 13 | [Stock detail screen](v0.1/13-detail-screen.md) | IN PROGRESS (Claude) | 05, 06, 07, 08, 10, 11 |
-| 14 | [Search screen](v0.1/14-search-screen.md) | IN PROGRESS (Claude) | 02, 05, 07, 08 |
+| 14 | [Search screen](v0.1/14-search-screen.md) | DONE (Claude, PR #15) | 02, 05, 07, 08 |
 | 15 | [App icon](v0.1/15-app-icon.md) | DONE (Codex, PR #12) | — |
 
 ## Order of attack
