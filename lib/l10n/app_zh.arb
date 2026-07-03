@@ -4,21 +4,79 @@
   "@appTitle": {
     "description": "Application title."
   },
-  "watchlistTitle": "自选股",
-  "@watchlistTitle": {
-    "description": "Title for the root watchlist placeholder screen."
+  "brandTitle": "团团看盘 🌱",
+  "@brandTitle": {
+    "description": "Brand title in the watchlist top bar."
   },
-  "watchlistPlaceholder": "自选股占位页",
-  "@watchlistPlaceholder": {
-    "description": "Centered placeholder label on the root watchlist screen."
+  "indexSp500Label": "标普500",
+  "@indexSp500Label": {
+    "description": "S&P 500 chip label in the index strip."
   },
-  "openDetailButton": "打开股票详情",
-  "@openDetailButton": {
-    "description": "Button label that pushes the stock detail route."
+  "indexNasdaqLabel": "纳斯达克",
+  "@indexNasdaqLabel": {
+    "description": "Nasdaq Composite chip label in the index strip."
   },
-  "openSearchButton": "打开搜索",
-  "@openSearchButton": {
-    "description": "Button label that pushes the search route."
+  "indexDowLabel": "道琼斯",
+  "@indexDowLabel": {
+    "description": "Dow Jones chip label in the index strip."
+  },
+  "raceHeaderTitle": "今日排位赛 🏁",
+  "@raceHeaderTitle": {
+    "description": "Section header above the daily race list."
+  },
+  "sortByDayChangeLabel": "涨跌幅",
+  "@sortByDayChangeLabel": {
+    "description": "Sort chip that orders rows by today's change percent."
+  },
+  "sortByMarketCapLabel": "市值",
+  "@sortByMarketCapLabel": {
+    "description": "Sort chip that orders rows by market capitalization."
+  },
+  "ytdRankLabel": "今年 #{rank}",
+  "@ytdRankLabel": {
+    "description": "Year-to-date gain rank within the watchlist, shown in a row subtitle.",
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "watchlistFooterHint": "按当日涨幅自动排序 · 左滑删除",
+  "@watchlistFooterHint": {
+    "description": "Hint line under the race list."
+  },
+  "emptyWatchlistEmoji": "🔍",
+  "@emptyWatchlistEmoji": {
+    "description": "Decorative emoji at the top of the empty-watchlist card."
+  },
+  "emptyWatchlistTitle": "还没有自选股",
+  "@emptyWatchlistTitle": {
+    "description": "Title of the empty-watchlist nudge card."
+  },
+  "emptyWatchlistHint": "点右上角 🔍，把想看的股票加进来吧",
+  "@emptyWatchlistHint": {
+    "description": "Body of the empty-watchlist nudge card."
+  },
+  "emptySearchButtonLabel": "去搜索",
+  "@emptySearchButtonLabel": {
+    "description": "Button on the empty-watchlist card that opens search."
+  },
+  "watchlistErrorLabel": "行情加载失败，下拉重试",
+  "@watchlistErrorLabel": {
+    "description": "Shown when the watchlist quote refresh fails."
+  },
+  "removedSnackLabel": "已移除 {symbol}",
+  "@removedSnackLabel": {
+    "description": "Snackbar after swiping a stock off the watchlist.",
+    "placeholders": {
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
+  "undoRemoveButtonLabel": "撤销",
+  "@undoRemoveButtonLabel": {
+    "description": "Snackbar action that restores a removed stock."
   },
   "detailTitle": "{symbol} 详情",
   "@detailTitle": {
