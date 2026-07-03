@@ -171,8 +171,8 @@ void main() {
     expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'CCC')));
     expect(rowY(tester, 'CCC'), lessThan(rowY(tester, 'DDDD')));
 
-    expect(inRow('BBB', '▲ +30.0%'), findsOneWidget);
-    expect(inRow('CCC', '▼ -5.0%'), findsOneWidget);
+    expect(inRow('BBB', '▲ +30.00%'), findsOneWidget);
+    expect(inRow('CCC', '▼ -5.00%'), findsOneWidget);
     expect(inRow('DDDD', '—'), findsOneWidget);
     // Medals still belong to the day race.
     expect(inRow('AAA', '🥇'), findsOneWidget);
@@ -187,7 +187,7 @@ void main() {
       find.byKey(WatchlistScreen.sessionTagKey('BBB')),
     );
     expect(tag.data, contains(localizations.postMarketSessionLabel));
-    expect(tag.data, contains('-1.2%'));
+    expect(tag.data, contains('-1.20%'));
     expect(find.byKey(WatchlistScreen.sessionTagKey('AAA')), findsNothing);
     expect(find.byKey(WatchlistScreen.sessionTagKey('CCC')), findsNothing);
   });

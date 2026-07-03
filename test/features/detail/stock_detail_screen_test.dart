@@ -109,7 +109,7 @@ void main() {
       find.textContaining(localizations.postMarketSessionLabel),
       findsOneWidget,
     );
-    expect(find.textContaining('-1.5%'), findsOneWidget);
+    expect(find.textContaining('-1.50%'), findsOneWidget);
   });
 
   testWidgets('underwater: rider drowns below the baseline', (tester) async {
@@ -154,9 +154,9 @@ void main() {
 
     expect(skyChart(tester).baseline, 100);
     expect(skyChart(tester).baselineLabel, isNull);
-    // 1D hero: the official day change (quote fixture: +2.00 / +2.0%).
+    // 1D hero: the official day change (quote fixture: +2.00 / +2.00%).
     expect(
-      find.text('▲ +2.00 +2.0% ${localizations.todayLabel}'),
+      find.text('▲ +2.00 +2.00% ${localizations.todayLabel}'),
       findsOneWidget,
     );
 
@@ -171,7 +171,7 @@ void main() {
     expect(skyChart(tester).baselineLabel, isEmpty);
     // Robinhood mode: hero now shows price (102) vs the YTD baseline (80).
     expect(
-      find.text('▲ +22.00 +27.5% ${localizations.rangeYtd}'),
+      find.text('▲ +22.00 +27.50% ${localizations.rangeYtd}'),
       findsOneWidget,
     );
   });
