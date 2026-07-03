@@ -64,8 +64,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(SearchScreen), findsOneWidget);
-    expect(find.byType(CandyCard), findsOneWidget);
-    expect(find.text(localizations.searchPlaceholder), findsOneWidget);
+    expect(find.byKey(SearchScreen.searchFieldKey), findsOneWidget);
+    expect(find.text(localizations.searchTrendingTitle), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.byType(TabBar), findsNothing);
 

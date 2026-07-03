@@ -38,13 +38,98 @@
       }
     }
   },
-  "searchTitle": "Search",
+  "searchTitle": "Find stocks",
   "@searchTitle": {
-    "description": "Title for the search placeholder screen."
+    "description": "Back-affordance title on the pushed search screen."
   },
-  "searchPlaceholder": "Search placeholder",
-  "@searchPlaceholder": {
-    "description": "Centered placeholder label on the search screen."
+  "searchHint": "Symbol or name, e.g. AAPL or \"Apple\"",
+  "@searchHint": {
+    "description": "Hint text inside the search input field."
+  },
+  "searchResultsTitle": "Results for \"{query}\"",
+  "@searchResultsTitle": {
+    "description": "Section title above search results for the current query.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTrendingTitle": "Trending",
+  "@searchTrendingTitle": {
+    "description": "Section title above the curated list shown for an empty query."
+  },
+  "searchLoadingLabel": "TuanTuan is looking…",
+  "@searchLoadingLabel": {
+    "description": "Status text while a search request is in flight."
+  },
+  "searchNoResultsLabel": "Nothing found — try another word?",
+  "@searchNoResultsLabel": {
+    "description": "Status text when a search returns no matches."
+  },
+  "searchErrorLabel": "The network dozed off — try again in a bit",
+  "@searchErrorLabel": {
+    "description": "Status text when a search request fails."
+  },
+  "searchAddButtonLabel": "Add to watchlist",
+  "@searchAddButtonLabel": {
+    "description": "Semantic label for the button that adds a result to the watchlist."
+  },
+  "searchRemoveButtonLabel": "In watchlist — tap to remove",
+  "@searchRemoveButtonLabel": {
+    "description": "Semantic label for the button that removes a result from the watchlist."
+  },
+  "exchangeTagNasdaq": "Nasdaq",
+  "@exchangeTagNasdaq": {
+    "description": "Mini exchange tag for Nasdaq-listed results."
+  },
+  "exchangeTagNyse": "NYSE",
+  "@exchangeTagNyse": {
+    "description": "Mini exchange tag for NYSE-family listings."
+  },
+  "exchangeTagCboe": "Cboe",
+  "@exchangeTagCboe": {
+    "description": "Mini exchange tag for Cboe BZX listings."
+  },
+  "trendingMetaName": "Meta",
+  "@trendingMetaName": {
+    "description": "Display name for META in the trending list."
+  },
+  "trendingMetaSubtitle": "Meta Platforms",
+  "@trendingMetaSubtitle": {
+    "description": "Subtitle for META in the trending list."
+  },
+  "trendingSpyName": "S&P 500 ETF",
+  "@trendingSpyName": {
+    "description": "Display name for SPY in the trending list."
+  },
+  "trendingSpySubtitle": "SPDR S&P 500",
+  "@trendingSpySubtitle": {
+    "description": "Subtitle for SPY in the trending list."
+  },
+  "trendingAaplName": "Apple",
+  "@trendingAaplName": {
+    "description": "Display name for AAPL in the trending list."
+  },
+  "trendingAaplSubtitle": "Apple Inc.",
+  "@trendingAaplSubtitle": {
+    "description": "Subtitle for AAPL in the trending list."
+  },
+  "trendingNvdaName": "NVIDIA",
+  "@trendingNvdaName": {
+    "description": "Display name for NVDA in the trending list."
+  },
+  "trendingNvdaSubtitle": "NVIDIA Corp.",
+  "@trendingNvdaSubtitle": {
+    "description": "Subtitle for NVDA in the trending list."
+  },
+  "trendingTslaName": "Tesla",
+  "@trendingTslaName": {
+    "description": "Display name for TSLA in the trending list."
+  },
+  "trendingTslaSubtitle": "Tesla Inc.",
+  "@trendingTslaSubtitle": {
+    "description": "Subtitle for TSLA in the trending list."
   },
   "backButton": "Back",
   "@backButton": {
