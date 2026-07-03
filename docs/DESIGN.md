@@ -1,4 +1,8 @@
-# 团团看盘 (TuanTuan Stocks) — Design (v3, LOCKED)
+# 团团看盘 (TuanTuan Stocks) — Design (v3.1, LOCKED)
+
+> v3.1 (2026-07-02, owner): the detail hero's change line now follows the selected
+> range (Robinhood mode) instead of always showing today; the waterline label reads
+> 期初 on non-1日 ranges. Everything else unchanged from v3.
 
 A cute US-stock **price viewer**. Look only — never trade. It carries over the visual
 language and the mascot 团团 from the sister project `nudge`.
@@ -67,7 +71,12 @@ Every displayed change % states its session — never let a number be misread:
 - Header: logo avatar, `Name` + `中文名` subtitle (no exchange suffix — it's noise),
   ⭐ watch state.
 - **Price hero**: gradient candy card — matcha gradient when up, coral-red gradient when
-  down — with `现价 (USD)`, a huge tabular price, and `▲/▼ +Δ +Δ% 今天`.
+  down — with `现价 (USD)`, a huge tabular price, and a change line that **follows the
+  selected range** (Robinhood mode, v3.1): `1日` shows the official day change
+  (`▲/▼ +Δ +Δ% 今天`); longer ranges show current price vs the range baseline with the
+  range's own label (e.g. `▲ +38.20 +12.0% 今年`). Gradient and arrow follow the
+  displayed change. While a range's candles are still loading, fall back to the day
+  change rather than showing nothing.
 - **Range chips**, one language set, never mixed (see i18n): zh `1日 1周 1月 3月 今年 1年`
   / en `1D 1W 1M 3M YTD 1Y`.
 - **Stats grid** (3×2): 今开 / 最高 / 最低 / 昨收 / 成交量 / 市值.
@@ -78,8 +87,9 @@ Every displayed change % states its session — never let a number be misread:
   baseline is **昨收** (prev close); for longer ranges it is the **closing price at the
   period start** (今年 = last year's final close).
 - Above the baseline is **sky**, below is **water** (light blue fill up to the baseline;
-  the baseline itself is a dashed light-blue waterline with a tiny `0% 昨收` label placed
-  where it won't collide with the line).
+  the baseline itself is a dashed light-blue waterline with a tiny label placed where it
+  won't collide with the line — `0% 昨收` on 1日, `0% 期初` on every other range, since
+  their baseline is the period-start close, not yesterday's).
 - Because of extended-hours trading the line's first point can start **above or below**
   the waterline (gap up / gap down) — never assume it starts at 0%.
 - The price line: **thick rounded stroke** (gradient along its direction color), a candy

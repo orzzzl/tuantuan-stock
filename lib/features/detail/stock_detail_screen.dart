@@ -6,6 +6,7 @@ import 'package:tuantuan_stock/app/cute_palette.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
+import 'package:tuantuan_stock/domain/models/chart_series.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
 import 'package:tuantuan_stock/features/chart/plane_rider.dart';
@@ -104,7 +105,13 @@ class _StockDetailScreenState extends ConsumerState<StockDetailScreen> {
         data: (quote) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
-            _PriceHero(quote: quote),
+            _PriceHero(
+              quote: quote,
+              range: _range,
+              series: ref
+                  .watch(detailChartProvider((symbol: _symbol, range: _range)))
+                  .valueOrNull,
+            ),
             const SizedBox(height: 14),
             _RangeChips(
               selected: _range,
@@ -220,20 +227,36 @@ class _LogoAvatar extends StatelessWidget {
 }
 
 class _PriceHero extends StatelessWidget {
-  const _PriceHero({required this.quote});
+  const _PriceHero({required this.quote, required this.range, this.series});
 
   final Quote quote;
+  final ChartRange range;
+
+  /// The selected range's series; null while it loads (the hero then falls
+  /// back to today's change rather than showing nothing).
+  final ChartSeries? series;
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final up = quote.dayChangePct >= 0;
+    // Robinhood mode (owner, 2026-07-02): the change line follows the
+    // selected range — 1日 shows the official day change, longer ranges show
+    // price vs the range baseline with the range's own label.
+    final baseline = range == ChartRange.day ? null : series?.baseline;
+    final (change, changePct, periodLabel) = baseline == null || baseline == 0
+        ? (quote.dayChange, quote.dayChangePct, localizations.todayLabel)
+        : (
+            quote.price - baseline,
+            (quote.price - baseline) / baseline * 100,
+            localizations.chartRangeLabels[range.index],
+          );
+    final up = changePct >= 0;
     final changeLine = [
       up ? '▲' : '▼',
-      (up ? '+' : '-') + localizations.formatPrice(quote.dayChange.abs()),
-      localizations.formatSignedPercent(quote.dayChangePct / 100),
-      localizations.todayLabel,
+      (up ? '+' : '-') + localizations.formatPrice(change.abs()),
+      localizations.formatSignedPercent(changePct / 100),
+      periodLabel,
     ].join(' ');
     final extendedTag = _extendedTag(localizations, quote);
 
@@ -443,6 +466,9 @@ class _ChartCard extends ConsumerWidget {
               baseline: series.baseline,
               direction: up ? ChartDirection.up : ChartDirection.down,
               height: 224,
+              baselineLabel: range == ChartRange.day
+                  ? null
+                  : localizations.skyChartBaselinePeriodStartLabel,
               anchorBuilder: (context, tipAnchor) => Positioned(
                 left: tipAnchor.dx - 28,
                 top: tipAnchor.dy - 40,

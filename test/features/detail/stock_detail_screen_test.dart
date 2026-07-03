@@ -141,7 +141,7 @@ void main() {
     expect(riderState(tester), PlaneRiderState.climbing);
   });
 
-  testWidgets('range switch reloads and re-baselines the chart', (
+  testWidgets('range switch reloads, re-baselines, and re-labels everything', (
     tester,
   ) async {
     final (quotes, _) = await pumpDetail(
@@ -153,6 +153,12 @@ void main() {
     );
 
     expect(skyChart(tester).baseline, 100);
+    expect(skyChart(tester).baselineLabel, isNull);
+    // 1D hero: the official day change (quote fixture: +2.00 / +2.0%).
+    expect(
+      find.text('▲ +2.00 +2.0% ${localizations.todayLabel}'),
+      findsOneWidget,
+    );
 
     await tester.tap(
       find.byKey(StockDetailScreen.rangeChipKey(ChartRange.ytd)),
@@ -161,6 +167,15 @@ void main() {
 
     expect(quotes.chartCalls, contains((_symbol, ChartRange.ytd)));
     expect(skyChart(tester).baseline, 80);
+    expect(
+      skyChart(tester).baselineLabel,
+      localizations.skyChartBaselinePeriodStartLabel,
+    );
+    // Robinhood mode: hero now shows price (102) vs the YTD baseline (80).
+    expect(
+      find.text('▲ +22.00 +27.5% ${localizations.rangeYtd}'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('star toggles watchlist membership', (tester) async {

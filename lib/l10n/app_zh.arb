@@ -211,6 +211,10 @@
   "@skyChartBaselineLabel": {
     "description": "Waterline label for the sky/water chart baseline."
   },
+  "skyChartBaselinePeriodStartLabel": "0% 期初",
+  "@skyChartBaselinePeriodStartLabel": {
+    "description": "Waterline label when the range baseline is the period-start close (every range except 1D)."
+  },
   "currentPriceLabel": "现价 (USD)",
   "@currentPriceLabel": {
     "description": "Label above the huge price in the detail hero."

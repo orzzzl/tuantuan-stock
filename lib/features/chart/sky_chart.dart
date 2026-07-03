@@ -18,6 +18,7 @@ class SkyChart extends StatelessWidget {
     required this.direction,
     this.height = 220,
     this.anchorBuilder,
+    this.baselineLabel,
   });
 
   final List<Candle> candles;
@@ -25,6 +26,11 @@ class SkyChart extends StatelessWidget {
   final ChartDirection direction;
   final double height;
   final SkyChartAnchorBuilder? anchorBuilder;
+
+  /// Waterline label; null falls back to the day-chart `0% 昨收` wording.
+  /// Longer ranges pass a period-start label instead — their baseline is not
+  /// yesterday's close.
+  final String? baselineLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +64,8 @@ class SkyChart extends StatelessWidget {
                     candles: candles,
                     baseline: baseline,
                     direction: direction,
-                    baselineLabel: localizations.skyChartBaselineLabel,
+                    baselineLabel:
+                        baselineLabel ?? localizations.skyChartBaselineLabel,
                     baselineLabelStyle: labelStyle,
                     textDirection: Directionality.of(context),
                   ),
