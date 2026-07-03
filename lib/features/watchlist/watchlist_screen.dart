@@ -270,8 +270,8 @@ class _RaceHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
 
-    // No section title: with 市值/今年 sorts the list isn't only today's
-    // race, so the chips speak for themselves.
+    // No section title: with the market-cap/YTD sorts the list isn't only
+    // today's race, so the chips speak for themselves.
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
