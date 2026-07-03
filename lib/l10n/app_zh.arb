@@ -219,10 +219,6 @@
   "@postMarketSessionLabel": {
     "description": "Post-market session tag label."
   },
-  "skyChartBaselineLabel": "0% 昨收",
-  "@skyChartBaselineLabel": {
-    "description": "Waterline label for the sky/water chart baseline."
-  },
   "currentPriceLabel": "现价 (USD)",
   "@currentPriceLabel": {
     "description": "Label above the huge price in the detail hero."

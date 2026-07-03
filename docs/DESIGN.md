@@ -1,10 +1,11 @@
 # 团团看盘 (TuanTuan Stocks) — Design (v3.1, LOCKED)
 
 > v3.1 (2026-07-02, owner): the detail hero's change line now follows the selected
-> range (Robinhood mode) instead of always showing today; the waterline label shows
-> only on 1日 (other ranges' baselines aren't 昨收, and spelling it out is noise);
-> ranges gain 5年/全部 (chips wrap onto two rows); the watchlist sort toggle gains
-> 今年 and the row's numbers follow the active sort. Everything else unchanged from v3.
+> range (Robinhood mode) instead of always showing today; the waterline text label is
+> gone on every range (noise); ranges gain 5年/全部 (chips wrap onto two rows); the
+> watchlist sort toggle gains 今年 and the row's numbers follow the active sort; the
+> stats grid gains 市盈率/预期市盈率; percents show two decimals. Everything else
+> unchanged from v3.
 
 A cute US-stock **price viewer**. Look only — never trade. It carries over the visual
 language and the mascot 团团 from the sister project `nudge`.
@@ -97,10 +98,8 @@ Every displayed change % states its session — never let a number be misread:
   baseline is **昨收** (prev close); for longer ranges it is the **closing price at the
   period start** (今年 = last year's final close).
 - Above the baseline is **sky**, below is **water** (light blue fill up to the baseline;
-  the baseline itself is a dashed light-blue waterline). On 1日 a tiny `0% 昨收` label
-  sits on the waterline where it won't collide with the line; other ranges show **no
-  label** (their baseline is the period-start close, and spelling that out is noise —
-  v3.1).
+  the baseline itself is a dashed light-blue waterline, **no text label** on any range —
+  v3.1 removed the `0% 昨收` bubble as noise; the waterline itself says it all).
 - Because of extended-hours trading the line's first point can start **above or below**
   the waterline (gap up / gap down) — never assume it starts at 0%.
 - The price line: **thick rounded stroke** (gradient along its direction color), a candy

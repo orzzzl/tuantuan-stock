@@ -465,7 +465,6 @@ class _ChartCard extends ConsumerWidget {
               baseline: series.baseline,
               direction: up ? ChartDirection.up : ChartDirection.down,
               height: 224,
-              baselineLabel: range == ChartRange.day ? null : '',
               anchorBuilder: (context, tipAnchor) => Positioned(
                 left: tipAnchor.dx - 28,
                 top: tipAnchor.dy - 40,

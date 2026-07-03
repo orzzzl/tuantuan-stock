@@ -153,7 +153,6 @@ void main() {
     );
 
     expect(skyChart(tester).baseline, 100);
-    expect(skyChart(tester).baselineLabel, isNull);
     // 1D hero: the official day change (quote fixture: +2.00 / +2.00%).
     expect(
       find.text('▲ +2.00 +2.00% ${localizations.todayLabel}'),
@@ -167,8 +166,6 @@ void main() {
 
     expect(quotes.chartCalls, contains((_symbol, ChartRange.ytd)));
     expect(skyChart(tester).baseline, 80);
-    // Non-1D ranges hide the waterline label — their baseline isn't 昨收.
-    expect(skyChart(tester).baselineLabel, isEmpty);
     // Robinhood mode: hero now shows price (102) vs the YTD baseline (80).
     expect(
       find.text('▲ +22.00 +27.50% ${localizations.rangeYtd}'),

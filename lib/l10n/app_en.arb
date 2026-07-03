@@ -219,10 +219,6 @@
   "@postMarketSessionLabel": {
     "description": "Post-market session tag label."
   },
-  "skyChartBaselineLabel": "0% prev close",
-  "@skyChartBaselineLabel": {
-    "description": "Waterline label for the sky/water chart baseline."
-  },
   "currentPriceLabel": "Price (USD)",
   "@currentPriceLabel": {
     "description": "Label above the huge price in the detail hero."
