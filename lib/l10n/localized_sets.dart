@@ -9,6 +9,8 @@ extension AppLocalizationSets on AppLocalizations {
     rangeQuarter,
     rangeYtd,
     rangeYear,
+    rangeYear5,
+    rangeAll,
   ];
 
   List<String> get extendedSessionLabels => [

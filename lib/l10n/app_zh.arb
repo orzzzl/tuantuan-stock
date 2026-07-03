@@ -199,6 +199,14 @@
   "@rangeYear": {
     "description": "One-year chart range chip label."
   },
+  "rangeYear5": "5年",
+  "@rangeYear5": {
+    "description": "Five-year chart range chip label."
+  },
+  "rangeAll": "全部",
+  "@rangeAll": {
+    "description": "All-time chart range chip label."
+  },
   "preMarketSessionLabel": "盘前",
   "@preMarketSessionLabel": {
     "description": "Pre-market session tag label."

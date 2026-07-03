@@ -77,8 +77,10 @@ Every displayed change % states its session — never let a number be misread:
   range's own label (e.g. `▲ +38.20 +12.0% 今年`). Gradient and arrow follow the
   displayed change. While a range's candles are still loading, fall back to the day
   change rather than showing nothing.
-- **Range chips**, one language set, never mixed (see i18n): zh `1日 1周 1月 3月 今年 1年`
-  / en `1D 1W 1M 3M YTD 1Y`.
+- **Range chips**, one language set, never mixed (see i18n): zh
+  `1日 1周 1月 3月 今年 1年 5年 全部` / en `1D 1W 1M 3M YTD 1Y 5Y All` (5年/全部 added
+  v3.1). Eight chips don't fit a phone-width row — they wrap onto a second row; never
+  hide chips behind a horizontal scroll.
 - **Stats grid** (3×2): 今开 / 最高 / 最低 / 昨收 / 成交量 / 市值.
 
 ### The sky/water chart 🌊 (the signature widget)

@@ -200,6 +200,10 @@ void main() {
       quote: _quote(volume: 48200000, marketCap: 3.46e12),
     );
 
+    // The two-row chip strip pushes the grid below the test viewport.
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pump();
+
     expect(find.text(localizations.statVolumeLabel), findsOneWidget);
     expect(find.text('48.2M'), findsOneWidget);
     expect(find.text('3.46T'), findsOneWidget);

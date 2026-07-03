@@ -199,6 +199,14 @@
   "@rangeYear": {
     "description": "One-year chart range chip label."
   },
+  "rangeYear5": "5Y",
+  "@rangeYear5": {
+    "description": "Five-year chart range chip label."
+  },
+  "rangeAll": "All",
+  "@rangeAll": {
+    "description": "All-time chart range chip label."
+  },
   "preMarketSessionLabel": "Pre",
   "@preMarketSessionLabel": {
     "description": "Pre-market session tag label."

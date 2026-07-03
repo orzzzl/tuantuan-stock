@@ -360,19 +360,19 @@ class _RangeChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final labels = AppLocalizations.of(context).chartRangeLabels;
 
-    return Row(
+    // Eight ranges don't fit one phone-width row; wrap onto a second one so
+    // every chip stays visible.
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
       children: [
-        for (final (i, range) in ChartRange.values.indexed) ...[
-          if (i > 0) const SizedBox(width: 6),
-          Expanded(
-            child: _RangeChip(
-              key: StockDetailScreen.rangeChipKey(range),
-              label: labels[i],
-              selected: range == selected,
-              onTap: () => onSelected(range),
-            ),
+        for (final (i, range) in ChartRange.values.indexed)
+          _RangeChip(
+            key: StockDetailScreen.rangeChipKey(range),
+            label: labels[i],
+            selected: range == selected,
+            onTap: () => onSelected(range),
           ),
-        ],
       ],
     );
   }
@@ -396,8 +396,7 @@ class _RangeChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           gradient: selected ? CuteColors.peachGradient : null,
           color: selected ? null : CuteColors.surface,

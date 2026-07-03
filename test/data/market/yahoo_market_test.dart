@@ -247,6 +247,8 @@ void main() {
           ChartRange.quarter: ('3mo', '1d'),
           ChartRange.ytd: ('ytd', '1d'),
           ChartRange.year: ('1y', '1d'),
+          ChartRange.year5: ('5y', '1wk'),
+          ChartRange.all: ('max', '1mo'),
         };
         const baselineByYahooRange = <String, double>{
           '1d': 289.36,
@@ -255,6 +257,8 @@ void main() {
           '3mo': 250.9,
           'ytd': 271.86,
           '1y': 240.5,
+          '5y': 130.2,
+          'max': 0.51,
         };
         final yahoo = _FakeYahoo(
           chartBaselines: {

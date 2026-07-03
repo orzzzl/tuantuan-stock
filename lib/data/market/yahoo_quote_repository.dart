@@ -62,6 +62,8 @@ class YahooQuoteRepository implements QuoteRepository {
       ChartRange.quarter => ('3mo', '1d'),
       ChartRange.ytd => ('ytd', '1d'),
       ChartRange.year => ('1y', '1d'),
+      ChartRange.year5 => ('5y', '1wk'),
+      ChartRange.all => ('max', '1mo'),
     };
     final json = await _client.getJson(
       Uri.https('query1.finance.yahoo.com', '/v8/finance/chart/$symbol', {
