@@ -38,13 +38,98 @@
       }
     }
   },
-  "searchTitle": "搜索",
+  "searchTitle": "搜股票",
   "@searchTitle": {
-    "description": "Title for the search placeholder screen."
+    "description": "Back-affordance title on the pushed search screen."
   },
-  "searchPlaceholder": "搜索占位页",
-  "@searchPlaceholder": {
-    "description": "Centered placeholder label on the search screen."
+  "searchHint": "输入代码或名称，如 AAPL 或「苹果」",
+  "@searchHint": {
+    "description": "Hint text inside the search input field."
+  },
+  "searchResultsTitle": "搜索「{query}」",
+  "@searchResultsTitle": {
+    "description": "Section title above search results for the current query.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchTrendingTitle": "热门",
+  "@searchTrendingTitle": {
+    "description": "Section title above the curated list shown for an empty query."
+  },
+  "searchLoadingLabel": "团团找找看…",
+  "@searchLoadingLabel": {
+    "description": "Status text while a search request is in flight."
+  },
+  "searchNoResultsLabel": "没找到这只，换个词试试？",
+  "@searchNoResultsLabel": {
+    "description": "Status text when a search returns no matches."
+  },
+  "searchErrorLabel": "网络打了个盹，稍后再试试",
+  "@searchErrorLabel": {
+    "description": "Status text when a search request fails."
+  },
+  "searchAddButtonLabel": "加入自选",
+  "@searchAddButtonLabel": {
+    "description": "Semantic label for the button that adds a result to the watchlist."
+  },
+  "searchRemoveButtonLabel": "已在自选，点击移除",
+  "@searchRemoveButtonLabel": {
+    "description": "Semantic label for the button that removes a result from the watchlist."
+  },
+  "exchangeTagNasdaq": "纳斯达克",
+  "@exchangeTagNasdaq": {
+    "description": "Mini exchange tag for Nasdaq-listed results."
+  },
+  "exchangeTagNyse": "NYSE",
+  "@exchangeTagNyse": {
+    "description": "Mini exchange tag for NYSE-family listings."
+  },
+  "exchangeTagCboe": "Cboe",
+  "@exchangeTagCboe": {
+    "description": "Mini exchange tag for Cboe BZX listings."
+  },
+  "trendingMetaName": "Meta",
+  "@trendingMetaName": {
+    "description": "Display name for META in the trending list."
+  },
+  "trendingMetaSubtitle": "Meta 平台",
+  "@trendingMetaSubtitle": {
+    "description": "Subtitle for META in the trending list."
+  },
+  "trendingSpyName": "标普500 ETF",
+  "@trendingSpyName": {
+    "description": "Display name for SPY in the trending list."
+  },
+  "trendingSpySubtitle": "SPDR S&P 500",
+  "@trendingSpySubtitle": {
+    "description": "Subtitle for SPY in the trending list."
+  },
+  "trendingAaplName": "Apple",
+  "@trendingAaplName": {
+    "description": "Display name for AAPL in the trending list."
+  },
+  "trendingAaplSubtitle": "苹果公司",
+  "@trendingAaplSubtitle": {
+    "description": "Subtitle for AAPL in the trending list."
+  },
+  "trendingNvdaName": "NVIDIA",
+  "@trendingNvdaName": {
+    "description": "Display name for NVDA in the trending list."
+  },
+  "trendingNvdaSubtitle": "英伟达",
+  "@trendingNvdaSubtitle": {
+    "description": "Subtitle for NVDA in the trending list."
+  },
+  "trendingTslaName": "Tesla",
+  "@trendingTslaName": {
+    "description": "Display name for TSLA in the trending list."
+  },
+  "trendingTslaSubtitle": "特斯拉",
+  "@trendingTslaSubtitle": {
+    "description": "Subtitle for TSLA in the trending list."
   },
   "backButton": "返回",
   "@backButton": {
