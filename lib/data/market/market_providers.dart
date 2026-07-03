@@ -4,8 +4,10 @@ import 'package:tuantuan_stock/data/market/yahoo_client.dart';
 import 'package:tuantuan_stock/data/market/yahoo_company_profiles.dart';
 import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
 import 'package:tuantuan_stock/data/market/yahoo_search_repository.dart';
+import 'package:tuantuan_stock/data/market/yahoo_stock_repository.dart';
 import 'package:tuantuan_stock/domain/repositories/quote_repository.dart';
 import 'package:tuantuan_stock/domain/repositories/search_repository.dart';
+import 'package:tuantuan_stock/domain/repositories/stock_repository.dart';
 
 final _httpClientProvider = Provider<http.Client>((ref) {
   final client = http.Client();
@@ -27,6 +29,13 @@ final quoteRepositoryProvider = Provider<QuoteRepository>(
 
 final searchRepositoryProvider = Provider<SearchRepository>(
   (ref) => YahooSearchRepository(
+    ref.watch(_yahooClientProvider),
+    ref.watch(_companyProfilesProvider),
+  ),
+);
+
+final stockRepositoryProvider = Provider<StockRepository>(
+  (ref) => YahooStockRepository(
     ref.watch(_yahooClientProvider),
     ref.watch(_companyProfilesProvider),
   ),

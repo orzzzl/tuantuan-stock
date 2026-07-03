@@ -4,21 +4,79 @@
   "@appTitle": {
     "description": "Application title."
   },
-  "watchlistTitle": "Watchlist",
-  "@watchlistTitle": {
-    "description": "Title for the root watchlist placeholder screen."
+  "brandTitle": "TuanTuan Stocks 🌱",
+  "@brandTitle": {
+    "description": "Brand title in the watchlist top bar."
   },
-  "watchlistPlaceholder": "Watchlist placeholder",
-  "@watchlistPlaceholder": {
-    "description": "Centered placeholder label on the root watchlist screen."
+  "indexSp500Label": "S&P 500",
+  "@indexSp500Label": {
+    "description": "S&P 500 chip label in the index strip."
   },
-  "openDetailButton": "Open stock detail",
-  "@openDetailButton": {
-    "description": "Button label that pushes the stock detail route."
+  "indexNasdaqLabel": "Nasdaq",
+  "@indexNasdaqLabel": {
+    "description": "Nasdaq Composite chip label in the index strip."
   },
-  "openSearchButton": "Open search",
-  "@openSearchButton": {
-    "description": "Button label that pushes the search route."
+  "indexDowLabel": "Dow",
+  "@indexDowLabel": {
+    "description": "Dow Jones chip label in the index strip."
+  },
+  "raceHeaderTitle": "Today's race 🏁",
+  "@raceHeaderTitle": {
+    "description": "Section header above the daily race list."
+  },
+  "sortByDayChangeLabel": "Change",
+  "@sortByDayChangeLabel": {
+    "description": "Sort chip that orders rows by today's change percent."
+  },
+  "sortByMarketCapLabel": "Mkt cap",
+  "@sortByMarketCapLabel": {
+    "description": "Sort chip that orders rows by market capitalization."
+  },
+  "ytdRankLabel": "YTD #{rank}",
+  "@ytdRankLabel": {
+    "description": "Year-to-date gain rank within the watchlist, shown in a row subtitle.",
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "watchlistFooterHint": "Auto-sorted by today's change · swipe left to remove",
+  "@watchlistFooterHint": {
+    "description": "Hint line under the race list."
+  },
+  "emptyWatchlistEmoji": "🔍",
+  "@emptyWatchlistEmoji": {
+    "description": "Decorative emoji at the top of the empty-watchlist card."
+  },
+  "emptyWatchlistTitle": "No stocks yet",
+  "@emptyWatchlistTitle": {
+    "description": "Title of the empty-watchlist nudge card."
+  },
+  "emptyWatchlistHint": "Tap 🔍 to add the stocks you want to watch",
+  "@emptyWatchlistHint": {
+    "description": "Body of the empty-watchlist nudge card."
+  },
+  "emptySearchButtonLabel": "Search stocks",
+  "@emptySearchButtonLabel": {
+    "description": "Button on the empty-watchlist card that opens search."
+  },
+  "watchlistErrorLabel": "Quotes failed to load — pull to retry",
+  "@watchlistErrorLabel": {
+    "description": "Shown when the watchlist quote refresh fails."
+  },
+  "removedSnackLabel": "Removed {symbol}",
+  "@removedSnackLabel": {
+    "description": "Snackbar after swiping a stock off the watchlist.",
+    "placeholders": {
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
+  "undoRemoveButtonLabel": "Undo",
+  "@undoRemoveButtonLabel": {
+    "description": "Snackbar action that restores a removed stock."
   },
   "detailTitle": "{symbol} detail",
   "@detailTitle": {

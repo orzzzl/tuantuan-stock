@@ -27,4 +27,19 @@ extension AppLocalizationSets on AppLocalizations {
       decimalDigits: decimalDigits,
     ).format(value);
   }
+
+  /// [formatPercent] with an explicit sign, so `0.0173` renders as `+1.7%`.
+  String formatSignedPercent(num value, {int decimalDigits = 1}) {
+    final formatted = formatPercent(value, decimalDigits: decimalDigits);
+    return value >= 0 ? '+$formatted' : formatted;
+  }
+
+  /// Grouped two-decimal price/index formatting, so `5432.1` renders as
+  /// `5,432.10`.
+  String formatPrice(num value) {
+    return NumberFormat.decimalPatternDigits(
+      locale: localeName,
+      decimalDigits: 2,
+    ).format(value);
+  }
 }
