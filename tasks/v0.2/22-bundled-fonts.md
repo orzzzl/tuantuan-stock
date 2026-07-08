@@ -1,6 +1,6 @@
 # 22 — Bundle fonts: no runtime font fetching
 
-- **Status:** READY
+- **Status:** DONE (PR #21)
 - **Owner:** —
 - **Blocked by:** —
 - **Allowed new deps:** none (google_fonts stays; fonts move into assets)

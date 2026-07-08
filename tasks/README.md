@@ -52,7 +52,7 @@ fallback), and the first paint must be fast regardless of provider.
 | 19 | [Progressive first paint](v0.2/19-progressive-first-paint.md) | DONE (Codex, PR #19) | — |
 | 20 | [Persistent market cache](v0.2/20-persistent-market-cache.md) | READY | 19 |
 | 21 | [China-safe logos](v0.2/21-china-safe-logos.md) | BLOCKED | 16, 17 |
-| 22 | [Bundled fonts](v0.2/22-bundled-fonts.md) | READY | — |
+| 22 | [Bundled fonts](v0.2/22-bundled-fonts.md) | DONE (Codex, PR #21) | — |
 | 23 | [Yahoo removal + on-device verification](v0.2/23-yahoo-removal.md) | BLOCKED | 17, 18, 20, 21 |
 
 ## Order of attack (v0.2)
