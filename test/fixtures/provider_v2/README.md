@@ -23,6 +23,9 @@ See `docs/provider-report-v2.md` for the field maps and analysis.
 | `tencent_quote_indices.gbk.txt` | Tencent index quotes DJI, IXIC, INX | `curl 'https://qt.gtimg.cn/q=usDJI,usIXIC,usINX'` |
 | `tencent_index_probe.gbk.txt` | S&P symbol probe (`usSPX`/`usGSPC` → `pv_none_match`) | `curl 'https://qt.gtimg.cn/q=usDJI,usIXIC,usINX,usSPX,us.INX,us.SPX,usGSPC'` |
 | `sina_int_indices.gbk.txt` | Sina `int_` indices — **stale, do-not-use evidence** | `curl -H 'Referer: ...' 'https://hq.sinajs.cn/list=int_dji,int_nasdaq,int_sp500'` |
+| `tencent_kline_day1_premarket.json` | PRE-market (2026-07-08 04:12 EDT) kline w/ `USB_open_盘前交易` token | `curl 'https://web.ifzq.gtimg.cn/appstock/app/usfqkline/get?param=usAAPL.OQ,day,,,1,qfq'` |
+| `tencent_quote_aapl_premarket.gbk.txt` | PRE-market Tencent quote — no ext price (fields 3/30 stay at last close) | `curl 'https://qt.gtimg.cn/q=usAAPL'` |
+| `sina_quote_aapl_premarket.gbk.txt` | PRE-market Sina quote — live ext price, field 24 = sample minute | `curl -H 'Referer: ...' 'https://hq.sinajs.cn/list=gb_aapl'` |
 
 This retires the v0.1 note (PR #13) about synthetic candle fixtures: chart mapping
 tests can now run against these live captures.

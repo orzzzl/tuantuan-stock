@@ -189,17 +189,32 @@ Two independent signals, no device-clock guessing:
 
 1. **Tencent market-state feed**: `data.*.qt.market[0]` on any kline response, e.g.
    `2026-07-08 13:16:28|...|US_close_未开盘|...` (Beijing-stamped). Parse the `US_`
-   token: observed `close` so far; the pre/regular/post values will be recorded during
-   the §2.2 live probe (a `param=usAAPL.OQ,day,,,1,qfq` call is ~1 KB, cheap to poll).
+   token — but see the pre-market finding below (a `param=usAAPL.OQ,day,,,1,qfq` call
+   is ~1 KB, cheap to poll).
 2. **Sina timestamps** (fields 24/25): if the extended timestamp is morning
    (before 09:30 ET) → `pre`; 16:00–20:00 ET → `post`; else `closed`/`regular` per
    field 25 vs field 3 freshness.
 
-Recommendation for 17: primary = Tencent `US_` token (single source, covers BRK.B),
-mapping `open→regular`, pre-token→`pre`, post-token→`post`, `close→closed`; exact
-token spellings confirmed in the live probe. Sina 24/25 then only picks *which* ext
-figure the chip shows, mirroring the v0.1 Yahoo PREPRE rule (a stale post figure must
-not render as a live pre chip).
+**Pre-market probe (2026-07-08 04:12 EDT; fixtures `*_premarket.*`):**
+
+- The `US_` token does **not** flip for pre-market — it reads `US_close_未开盘` both
+  when fully closed and during pre. The pre state lives in a separate token:
+  `USB_close_未开盘` (closed) → `USB_open_盘前交易` (pre). Working hypothesis:
+  `USB_` = US **b**efore-hours, `USA_` = US **a**fter-hours (`USA_` was still
+  `close_未开盘` at 04:12; to be confirmed in the post-market check).
+- Tencent's quote host carries **no pre-market price**: field 3 / field 30 stay at the
+  last regular close (310.66 / `2026-07-07 16:00:01`). Only bid/ask (field 9 = 311.40)
+  move. Ext-hours prices must come from Sina.
+- Sina `gb_` pre-market ext quote is **live to the minute**: field 21 = 311.1988 with
+  field 24 = `Jul 08 04:12AM EDT` — the very minute of the sample. Field 25 stays at
+  the last regular close time (`Jul 07 04:00PM EDT`).
+
+Recommendation for 17 (updated): session = Tencent tokens, reading `US_` **and**
+`USB_`/`USA_`: `US_open→regular`, `USB_open→pre`, `USA_open→post`, all-close→`closed`
+(regular/post spellings to be confirmed in the §2.2 live probe). Sina 24/25 then only
+picks *which* ext figure the chip shows — and supplies the ext price itself, since
+Tencent has none — mirroring the v0.1 Yahoo PREPRE rule (a stale post figure must not
+render as a live pre chip).
 
 ## 7. Batch size & rate limits — no serialization needed
 
