@@ -1,0 +1,1 @@
+var suggestvalue="苹果,41,aapl,aapl,苹果,,苹果,99,1,ESG,,;每日2倍做多苹果ETF,41,aapx,aapx,每日2倍做多苹果ETF,,每日2倍做多苹果ETF,99,1,,,";
