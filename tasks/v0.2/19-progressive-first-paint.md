@@ -1,6 +1,6 @@
 # 19 — Progressive first paint: list renders on the quote batch alone
 
-- **Status:** READY
+- **Status:** DONE (PR #19)
 - **Owner:** —
 - **Blocked by:** — (provider-agnostic; works against the current Yahoo layer and the
   future CN layer identically)
