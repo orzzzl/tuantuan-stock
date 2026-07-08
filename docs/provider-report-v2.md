@@ -1,14 +1,16 @@
 # Provider spike report v2 (task 16) — Tencent + Sina as the primary source
 
-Date: 2026-07-08 05:15–05:25 UTC (2026-07-07 22:15 PDT, US market **closed**; last
-regular session ended 2026-07-07 16:00 EDT). Probes run with plain `curl` from the US;
-raw payloads are committed under `test/fixtures/provider_v2/` (GBK preserved as bytes).
-No `lib/` code was written for this task.
+Date: initial probes 2026-07-08 05:15–05:25 UTC (US market closed); pre-market,
+regular-hours, and post-market probes 2026-07-08 04:12 / 10:04–14:25 / 16:15 EDT.
+Probes run with plain `curl` from the US; raw payloads are committed under
+`test/fixtures/provider_v2/` (GBK preserved as bytes). No `lib/` code was written for
+this task.
 
-> **Status: freshness-during-market-hours probe PENDING.** Everything else is answered
-> below. The remaining measurement (§2) needs the US regular session (09:30–16:00 EDT)
-> and will be appended to this report before owner sign-off. All closed-market evidence
-> so far points to real-time or near-real-time quotes.
+> **Status: COMPLETE — ready for owner sign-off.** The market-hours freshness probe
+> ran 2026-07-08 during the US regular session (§2.2): **both Tencent and Sina US
+> quotes are real-time** (median price-track lag 0 s vs a live Yahoo reference; no
+> 15-min delay anywhere). Session-token derivation was verified across all three
+> states live: pre (04:12 EDT), regular (10:05 EDT), post (16:15 EDT) — see §6.
 
 ## 1. TL;DR — per-feature pinning (recommendation)
 
@@ -20,7 +22,7 @@ failover, no serialized request queue (§7: neither host throttled us).
 | Batch quotes (price, OHLC, prev close, volume, mcap, PE, 52wk, currency) | **Tencent** | `qt.gtimg.cn/q=usAAPL,...` | GO |
 | Identity (en name, zh name, exchange, kline symbol) | **Tencent** | same call, fields 46 / 1 / 2 | GO |
 | Extended-hours chip (盘前/盘后 price + %) | **Sina** | `hq.sinajs.cn/list=gb_aapl,...` fields 21–25 | GO, gap: no BRK.B (§5) |
-| Session state (`MarketSession`) | **Tencent** market-state feed + Sina EDT timestamps | §6 | GO, enum values to confirm live |
+| Session state (`MarketSession`) | **Tencent** market-state feed + Sina EDT timestamps | §6 | GO — all tokens confirmed live (pre/regular/post) |
 | Day chart 1D/5D (5-min bars) | **Sina** | `US_MinKService.getMinK?symbol=aapl&type=5` | GO, regular session only (§8) |
 | 1M/3M/YTD/1Y charts + YTD baseline | **Tencent** | `usfqkline/get?param=usAAPL.OQ,day,,,320,qfq` | GO |
 | 5Y chart | **Tencent** | same, `week` | GO |
@@ -55,15 +57,46 @@ Sina batch), vs Yahoo's `8 + 3N`.
   different (likely real-time) class. We never read prices from the kline's embedded
   quote, but the marker semantics get verified live.
 
-### 2.2 Market-hours measurement plan (pending)
+### 2.2 Market-hours measurement — RESULT: both hosts real-time (2026-07-08)
 
-During 09:30–16:00 EDT, sample every ~30 s for ≥10 min: `qt.gtimg.cn` AAPL/SPY,
-`hq.sinajs.cn` same symbols, Yahoo `v8/finance/chart` meta as the live reference.
-Record per sample: reference price, each provider's price and timestamp field, and the
-lag until a movement at the reference appears at the provider. Also capture: the
-market-state string during pre/regular/post (§6), whether Sina's 5-min bar for the
-current interval appears promptly (§8), and the `"200"`/`"delay"` marker semantics.
-Acceptance: median observed lag and worst observed lag per endpoint, printed here.
+Method: 33 sample rounds at ~30 s spacing across three regular-session windows
+(10:04–10:07, 12:08–12:09, 14:11–14:25 EDT), each round fetching AAPL + SPY
+back-to-back from Yahoo `v8/finance/chart` meta (live reference), `qt.gtimg.cn`
+(Tencent quote), and `hq.sinajs.cn` `gb_` (Sina quote). Per provider we measured
+(a) same-sample absolute price deviation vs the reference, and (b) **price-track
+lag**: the smallest k ≥ 0 such that the provider's price matches the reference price
+from k samples (30 s each) earlier, tolerance $0.06 AAPL / $0.12 SPY.
+
+| Metric (n=33 rounds) | AAPL Tencent | AAPL Sina | SPY Tencent | SPY Sina |
+|---|---|---|---|---|
+| price-track lag, median | **0 s** | **0 s** | **0 s** | **0 s** |
+| price-track lag, max (matched) | 60 s | 60 s | 60 s | 30 s |
+| samples unmatched in 4-min window* | 6 | 2 | 1 | 0 |
+| \|price − ref\|, median | $0.040 | $0.015 | $0.050 | $0.006 |
+| \|price − ref\|, max | $0.199 | $0.116 | $0.490 | $0.135 |
+
+\* All unmatched samples cluster at the volatile 10:04–10:07 post-open window or at
+look-back boundaries (first samples of a window can't look back); worst deviation was
+$0.49 on a $744 SPY = 0.066% — tick-level quote-vs-trade noise, not staleness. A
+15-min-delayed feed would trail by ~30 samples; both hosts track the live reference
+within one sample.
+
+Supporting observations from the same session:
+
+- Tencent field 30 (last-trade time) ran median 11–12 s (max 22 s) behind wall clock —
+  trade-print latency only; its *price* was current (see track lag). Yahoo's own
+  `regularMarketTime` ran median ~1 s behind wall clock.
+- Marker semantics (closing §2.1's open question): `qt.gtimg.cn` field 0 read `200`
+  on every sample all session; the kline's *embedded* quote marker read `real` both
+  in-session (10:05 EDT fixture) and just after the close (16:15 EDT fixture) — the
+  `delay` value appeared only in the overnight probe. Informational only; we never
+  read prices from the embedded quote.
+- Sina's 5-min bar feed includes the **current in-progress interval** (bar end-stamped
+  `10:05:00` was already present when captured at 10:05:11) — the 1D chart's right
+  edge is live (fixture `sina_min5_regular.jsonp.txt`).
+
+**Verdict: the freshness ship-blocker is cleared.** Tencent and Sina US quotes are
+real-time during regular hours. Ext-hours prices come from Sina only (§6).
 
 ## 3. Endpoint catalog
 
@@ -89,7 +122,7 @@ Verified against Sina and Yahoo values for AAPL/MSFT/BRK.B:
 
 | idx | value (AAPL) | meaning |
 |-----|--------------|---------|
-| 0 | `200` | quote-class marker (`delay` on the kline's embedded copy; semantics verified live in §2.2) |
+| 0 | `200` | quote-class marker (kline's embedded copy reads `real` in-session, `delay` overnight; §2.2) |
 | 1 | `苹果` | zh name → `Stock.zhName` ✓ |
 | 2 | `AAPL.OQ` | full code with exchange suffix → kline symbol + `Stock.exchange` ✓ |
 | 3 | `310.66` | last price → `Quote.price` ✓ (= Yahoo to the cent) |
@@ -199,9 +232,20 @@ Two independent signals, no device-clock guessing:
 
 - The `US_` token does **not** flip for pre-market — it reads `US_close_未开盘` both
   when fully closed and during pre. The pre state lives in a separate token:
-  `USB_close_未开盘` (closed) → `USB_open_盘前交易` (pre). Working hypothesis:
-  `USB_` = US **b**efore-hours, `USA_` = US **a**fter-hours (`USA_` was still
-  `close_未开盘` at 04:12; to be confirmed in the post-market check).
+  `USB_close_未开盘` (closed) → `USB_open_盘前交易` (pre). `USB_` = US before-hours,
+  `USA_` = US after-hours — **confirmed live across all three sessions** (regular
+  10:05 EDT and post 16:15 EDT probes, fixtures `*_regular.*` / `*_postmarket.*`):
+
+  | Wall clock (EDT) | `US_` | `USB_` | `USA_` |
+  |---|---|---|---|
+  | 04:12 (pre) | `US_close_未开盘` | `USB_open_盘前交易` | `USA_close_未开盘` |
+  | 10:05 (regular) | `US_open_交易中` | `USB_close_已收盘` | `USA_close_未开盘` |
+  | 16:15 (post) | `US_close_已收盘` | `USB_close_已收盘` | `USA_open_盘后交易` |
+
+- Tencent's quote host has **no post-market price either** (16:15 EDT probe: fields
+  3/30 frozen at the 16:00:01 close) — symmetric with the pre-market finding below;
+  ext-hours prices are Sina-only in both directions. Sina's post-market ext quote was
+  again live to the minute (field 21 = 313.39, field 24 = `Jul 08 04:15PM EDT`).
 - Tencent's quote host carries **no pre-market price**: field 3 / field 30 stay at the
   last regular close (310.66 / `2026-07-07 16:00:01`). Only bid/ask (field 9 = 311.40)
   move. Ext-hours prices must come from Sina.
@@ -209,9 +253,9 @@ Two independent signals, no device-clock guessing:
   field 24 = `Jul 08 04:12AM EDT` — the very minute of the sample. Field 25 stays at
   the last regular close time (`Jul 07 04:00PM EDT`).
 
-Recommendation for 17 (updated): session = Tencent tokens, reading `US_` **and**
+Recommendation for 17 (final): session = Tencent tokens, reading `US_` **and**
 `USB_`/`USA_`: `US_open→regular`, `USB_open→pre`, `USA_open→post`, all-close→`closed`
-(regular/post spellings to be confirmed in the §2.2 live probe). Sina 24/25 then only
+(all six spellings now captured in fixtures — see table above). Sina 24/25 then only
 picks *which* ext figure the chip shows — and supplies the ext price itself, since
 Tencent has none — mirroring the v0.1 Yahoo PREPRE rule (a stale post figure must not
 render as a live pre chip).
@@ -279,7 +323,8 @@ is already shipped. Task 21 then = curate the pack + a lookup table; no new deps
 
 ## 12. Open risks for the owner to accept at sign-off
 
-1. **Freshness numbers pending** (§2.2) — the only gate left open by this spike.
+1. ~~Freshness numbers pending~~ — **resolved** (§2.2): both hosts real-time during
+   regular hours; no delayed-quote risk.
 2. Unofficial, undocumented endpoints (same class of risk as Yahoo v0.1): no SLA, no
    ToS blessing for third-party apps; format can change silently. Mitigation stays the
    same — fixtures + mapping tests fail loudly, provider swap is contained in
