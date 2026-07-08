@@ -45,4 +45,8 @@ extension AppLocalizationSets on AppLocalizations {
       decimalDigits: 2,
     ).format(value);
   }
+
+  String formatShortDateTime(DateTime value) {
+    return DateFormat.yMd(localeName).add_Hm().format(value.toLocal());
+  }
 }

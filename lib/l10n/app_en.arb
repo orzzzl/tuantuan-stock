@@ -65,6 +65,15 @@
   "@watchlistErrorLabel": {
     "description": "Shown when the watchlist quote refresh fails."
   },
+  "watchlistStaleAsOfLabel": "As of {time}",
+  "@watchlistStaleAsOfLabel": {
+    "description": "Shown above a watchlist rendered from cached quote data.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "removedSnackLabel": "Removed {symbol}",
   "@removedSnackLabel": {
     "description": "Snackbar after swiping a stock off the watchlist.",

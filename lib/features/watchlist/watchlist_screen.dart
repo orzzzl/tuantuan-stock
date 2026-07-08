@@ -114,6 +114,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
   List<Widget> _raceSlivers(AppLocalizations localizations) {
     final sort = ref.watch(watchlistSortProvider);
     final board = ref.watch(raceBoardProvider);
+    final quoteBatch = ref.watch(watchlistQuotesProvider).valueOrNull;
 
     return [
       _RaceHeader(
@@ -121,6 +122,10 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
         onChanged: (next) =>
             ref.read(watchlistSortProvider.notifier).state = next,
       ),
+      if (quoteBatch?.isStale ?? false) ...[
+        const SizedBox(height: 8),
+        _StaleQuoteCue(fetchedAt: quoteBatch!.fetchedAt),
+      ],
       const SizedBox(height: 10),
       ...board.when(
         loading: () => const [_RaceSkeletonList()],
@@ -154,6 +159,36 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
         ],
       ),
     ];
+  }
+}
+
+class _StaleQuoteCue extends StatelessWidget {
+  const _StaleQuoteCue({required this.fetchedAt});
+
+  final DateTime fetchedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: CuteColors.cream,
+        border: Border.all(color: CuteColors.borderSoft, width: 2),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        localizations.watchlistStaleAsOfLabel(
+          localizations.formatShortDateTime(fetchedAt),
+        ),
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: CuteColors.textMuted,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
   }
 }
 
@@ -260,7 +295,7 @@ class _IndexStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final quotes = ref.watch(indexStripQuotesProvider).valueOrNull;
+    final quotes = ref.watch(indexStripQuotesProvider).valueOrNull?.quotes;
     final labels = {
       '^GSPC': localizations.indexSp500Label,
       '^IXIC': localizations.indexNasdaqLabel,

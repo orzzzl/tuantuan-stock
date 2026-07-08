@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
 import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
@@ -18,17 +19,16 @@ final watchlistSortProvider = StateProvider<WatchlistSort>(
 );
 
 /// Index-strip quotes (^GSPC / ^IXIC / ^DJI), independent of the watchlist.
-final indexStripQuotesProvider = FutureProvider<Map<String, Quote>>(
-  (ref) => _quoteSnapshots(ref, indexStripSymbols),
+final indexStripQuotesProvider = StreamProvider<CachedQuoteBatch>(
+  (ref) => _quoteSnapshotBatches(ref, indexStripSymbols),
 );
 
 /// One batched quote snapshot refresh for the whole watchlist. This is the
 /// first-paint path: slow chart-derived decorations are filled by separate
 /// providers.
-final watchlistQuotesProvider = FutureProvider<Map<String, Quote>>((ref) async {
+final watchlistQuotesProvider = StreamProvider<CachedQuoteBatch>((ref) async* {
   final symbols = await ref.watch(watchlistProvider.future);
-  if (symbols.isEmpty) return const {};
-  return _quoteSnapshots(ref, symbols);
+  yield* _quoteSnapshotBatches(ref, symbols);
 });
 
 /// Slow YTD decoration for repositories whose quote snapshots intentionally
@@ -67,12 +67,12 @@ final daySparkProvider = FutureProvider.family<ChartSeries, String>(
 final raceBoardProvider = Provider<AsyncValue<RaceBoard>>((ref) {
   final sort = ref.watch(watchlistSortProvider);
   final symbols = ref.watch(watchlistProvider);
-  final quotes = ref.watch(watchlistQuotesProvider);
+  final quoteBatch = ref.watch(watchlistQuotesProvider);
 
   if (symbols case AsyncError(:final error, :final stackTrace)) {
     return AsyncError(error, stackTrace);
   }
-  if (quotes case AsyncError(:final error, :final stackTrace)) {
+  if (quoteBatch case AsyncError(:final error, :final stackTrace)) {
     return AsyncError(error, stackTrace);
   }
 
@@ -80,8 +80,8 @@ final raceBoardProvider = Provider<AsyncValue<RaceBoard>>((ref) {
   if (symbolList == null) return const AsyncLoading();
   if (symbolList.isEmpty) return const AsyncData(RaceBoard.empty);
 
-  final quoteSnapshots = quotes.valueOrNull;
-  if (quoteSnapshots == null) return const AsyncLoading();
+  final quotes = quoteBatch.valueOrNull?.quotes;
+  if (quotes == null) return const AsyncLoading();
 
   final stocks = ref.watch(watchlistStocksProvider).valueOrNull ?? const {};
   final ytdQuotes =
@@ -90,7 +90,7 @@ final raceBoardProvider = Provider<AsyncValue<RaceBoard>>((ref) {
   return AsyncData(
     RaceBoard.build(
       symbols: symbolList,
-      quotes: quoteSnapshots,
+      quotes: quotes,
       stocks: stocks,
       ytdChangePctBySymbol: {
         for (final MapEntry(:key, :value) in ytdQuotes.entries)
@@ -100,6 +100,36 @@ final raceBoardProvider = Provider<AsyncValue<RaceBoard>>((ref) {
     ),
   );
 });
+
+Stream<CachedQuoteBatch> _quoteSnapshotBatches(
+  Ref ref,
+  List<String> symbols,
+) async* {
+  final cache = ref.watch(marketCacheStoreProvider);
+  if (symbols.isEmpty) {
+    yield CachedQuoteBatch(
+      quotes: const {},
+      fetchedAt: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      isStale: false,
+    );
+    return;
+  }
+
+  final cached = await cache.readQuoteSnapshots(symbols);
+  if (cached != null) {
+    yield cached;
+    await Future<void>.delayed(Duration.zero);
+  }
+
+  try {
+    final fresh = await _quoteSnapshots(ref, symbols);
+    final fetchedAt = DateTime.now().toUtc();
+    await cache.writeQuoteSnapshots(fresh, fetchedAt);
+    yield CachedQuoteBatch(quotes: fresh, fetchedAt: fetchedAt, isStale: false);
+  } on Object {
+    if (cached == null) rethrow;
+  }
+}
 
 Future<Map<String, Quote>> _quoteSnapshots(Ref ref, List<String> symbols) {
   final repository = ref.watch(quoteRepositoryProvider);

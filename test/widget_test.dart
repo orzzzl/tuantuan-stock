@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:tuantuan_stock/app/app_theme.dart';
 import 'package:tuantuan_stock/app/candy_card.dart';
 import 'package:tuantuan_stock/app/cute_background.dart';
@@ -34,6 +36,11 @@ const _symbol = 'AAPL';
 
 void main() {
   setUpAll(app_entry.configureBundledFonts);
+
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
 
   Future<void> pumpApp(WidgetTester tester, {Locale? locale}) async {
     await tester.pumpWidget(
@@ -265,8 +272,7 @@ class _FakeQuoteRepository implements QuoteRepository {
 
   @override
   Future<Map<String, Quote>> quotes(List<String> symbols) async => {
-    for (final symbol in symbols)
-      if (symbol == _symbol) symbol: _aapl,
+    for (final symbol in symbols) symbol: _aapl,
   };
 
   @override

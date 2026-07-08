@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
@@ -34,7 +38,14 @@ final _quotes = {
 const _watched = ['AAA', 'BBB', 'CCC', 'DDDD'];
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   final localizations = AppLocalizationsEn();
+
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
 
   Future<_InMemoryWatchlistRepository> pumpWatchlist(
     WidgetTester tester, {
@@ -43,6 +54,8 @@ void main() {
     Map<String, Stock> stocks = const {},
     QuoteRepository? quoteRepository,
     StockRepository? stockRepository,
+    MarketCacheStore? marketCache,
+    bool settle = true,
   }) async {
     final watchlist = _InMemoryWatchlistRepository(watched);
     await tester.pumpWidget(
@@ -54,6 +67,8 @@ void main() {
           stockRepositoryProvider.overrideWithValue(
             stockRepository ?? _FakeStockRepository(stocks),
           ),
+          if (marketCache != null)
+            marketCacheStoreProvider.overrideWithValue(marketCache),
           watchlistRepositoryProvider.overrideWithValue(watchlist),
         ],
         child: const MaterialApp(
@@ -63,7 +78,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) await tester.pumpAndSettle();
     return watchlist;
   }
 
@@ -199,6 +214,41 @@ void main() {
       expect(inRow('BBB', '▲ +30.00%'), findsOneWidget);
     },
   );
+
+  testWidgets('warm quote cache paints stale rows before fresh data lands', (
+    tester,
+  ) async {
+    final cache = MarketCacheStore(SharedPreferencesAsync());
+    final staleAt = DateTime.utc(2026, 7, 8, 4, 15);
+    final freshQuotes = Completer<Map<String, Quote>>();
+    final repository = _DeferredSnapshotQuoteRepository(freshQuotes.future);
+    await cache.writeQuoteSnapshots({
+      'AAA': _quote(dayChangePct: 3, marketCap: 1e11),
+      'BBB': _quote(dayChangePct: 2, marketCap: 3e11),
+    }, staleAt);
+
+    await pumpWatchlist(
+      tester,
+      watched: const ['AAA', 'BBB'],
+      quoteRepository: repository,
+      stockRepository: _FakeStockRepository(const {}),
+      marketCache: cache,
+      settle: false,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(WatchlistScreen.rowKey('AAA')), findsOneWidget);
+    expect(find.textContaining('As of'), findsOneWidget);
+
+    freshQuotes.complete({
+      'AAA': _quote(dayChangePct: 1, marketCap: 1e11),
+      'BBB': _quote(dayChangePct: 4, marketCap: 3e11),
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('As of'), findsNothing);
+    expect(rowY(tester, 'BBB'), lessThan(rowY(tester, 'AAA')));
+  });
 
   testWidgets(
     'market-cap sort reorders rows, headlines market caps, medals stay put',
@@ -371,6 +421,30 @@ class _ProgressiveQuoteRepository implements QuoteSnapshotRepository {
     final bySymbol = await ytdQuotes;
     return {for (final symbol in symbols) symbol: ?bySymbol[symbol]};
   }
+
+  @override
+  Future<ChartSeries> chart(String symbol, ChartRange range) {
+    return Completer<ChartSeries>().future;
+  }
+}
+
+class _DeferredSnapshotQuoteRepository implements QuoteSnapshotRepository {
+  _DeferredSnapshotQuoteRepository(this.snapshots);
+
+  final Future<Map<String, Quote>> snapshots;
+
+  @override
+  Future<Quote> quote(String symbol) async => (await snapshots)[symbol]!;
+
+  @override
+  Future<Map<String, Quote>> quoteSnapshots(List<String> symbols) async {
+    final bySymbol = await snapshots;
+    return {for (final symbol in symbols) symbol: ?bySymbol[symbol]};
+  }
+
+  @override
+  Future<Map<String, Quote>> quotes(List<String> symbols) =>
+      quoteSnapshots(symbols);
 
   @override
   Future<ChartSeries> chart(String symbol, ChartRange range) {
