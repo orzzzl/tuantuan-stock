@@ -30,9 +30,9 @@ See `docs/provider-report-v2.md` for the field maps and analysis.
 | `tencent_quote_aapl_regular.gbk.txt` | REGULAR-hours Tencent quote — field 30 within seconds of wall clock | `curl 'https://qt.gtimg.cn/q=usAAPL'` |
 | `sina_quote_aapl_regular.gbk.txt` | REGULAR-hours Sina quote — ext fields zeroed/empty (21=`0.0000`, 24 empty), field 25 = live minute | `curl -H 'Referer: ...' 'https://hq.sinajs.cn/list=gb_aapl'` |
 | `sina_min5_regular.jsonp.txt` | REGULAR-hours Sina 5-min bars — last bar is the CURRENT in-progress interval (end-stamped `10:05:00` captured at 10:05:11) | same minK command |
-| `tencent_kline_day1_postmarket.json` | POST-market (2026-07-08 16:15 EDT) kline w/ `USA_open_盘后交易` + `US_close_已收盘` tokens; embedded qt marker = `real` | `curl 'https://web.ifzq.gtimg.cn/appstock/app/usfqkline/get?param=usAAPL.OQ,day,,,1,qfq'` |
+| `tencent_kline_day1_postmarket.json` | POST-market (2026-07-08 16:15 EDT) kline w/ `USA_open_盘后交易` + `US_close_已收盘` tokens; embedded qt marker = `delay` | `curl 'https://web.ifzq.gtimg.cn/appstock/app/usfqkline/get?param=usAAPL.OQ,day,,,1,qfq'` |
 | `tencent_quote_aapl_postmarket.gbk.txt` | POST-market Tencent quote — no ext price (fields 3/30 frozen at 16:00:01 close), mirrors pre-market | `curl 'https://qt.gtimg.cn/q=usAAPL'` |
-| `sina_quote_aapl_postmarket.gbk.txt` | POST-market Sina quote — live ext price (field 21 = close-crossed 313.39, field 24 = sample minute `04:15PM EDT`) | `curl -H 'Referer: ...' 'https://hq.sinajs.cn/list=gb_aapl'` |
+| `sina_quote_aapl_postmarket.gbk.txt` | POST-market Sina quote — live ext price (field 21 = 313.22 vs 313.39 close, field 24 = sample minute `04:15PM EDT`) | `curl -H 'Referer: ...' 'https://hq.sinajs.cn/list=gb_aapl'` |
 
 This retires the v0.1 note (PR #13) about synthetic candle fixtures: chart mapping
 tests can now run against these live captures.

@@ -87,10 +87,10 @@ Supporting observations from the same session:
   trade-print latency only; its *price* was current (see track lag). Yahoo's own
   `regularMarketTime` ran median ~1 s behind wall clock.
 - Marker semantics (closing §2.1's open question): `qt.gtimg.cn` field 0 read `200`
-  on every sample all session; the kline's *embedded* quote marker read `real` both
-  in-session (10:05 EDT fixture) and just after the close (16:15 EDT fixture) — the
-  `delay` value appeared only in the overnight probe. Informational only; we never
-  read prices from the embedded quote.
+  on every sample all session; the kline's *embedded* quote marker read `real`
+  in-session (10:05 EDT fixture) but had already flipped back to `delay` just after
+  the close (16:15 EDT fixture), matching the overnight probe. Informational only;
+  we never read prices from the embedded quote.
 - Sina's 5-min bar feed includes the **current in-progress interval** (bar end-stamped
   `10:05:00` was already present when captured at 10:05:11) — the 1D chart's right
   edge is live (fixture `sina_min5_regular.jsonp.txt`).
@@ -122,7 +122,7 @@ Verified against Sina and Yahoo values for AAPL/MSFT/BRK.B:
 
 | idx | value (AAPL) | meaning |
 |-----|--------------|---------|
-| 0 | `200` | quote-class marker (kline's embedded copy reads `real` in-session, `delay` overnight; §2.2) |
+| 0 | `200` | quote-class marker (kline's embedded copy reads `real` in-session, `delay` outside it; §2.2) |
 | 1 | `苹果` | zh name → `Stock.zhName` ✓ |
 | 2 | `AAPL.OQ` | full code with exchange suffix → kline symbol + `Stock.exchange` ✓ |
 | 3 | `310.66` | last price → `Quote.price` ✓ (= Yahoo to the cent) |
@@ -245,7 +245,8 @@ Two independent signals, no device-clock guessing:
 - Tencent's quote host has **no post-market price either** (16:15 EDT probe: fields
   3/30 frozen at the 16:00:01 close) — symmetric with the pre-market finding below;
   ext-hours prices are Sina-only in both directions. Sina's post-market ext quote was
-  again live to the minute (field 21 = 313.39, field 24 = `Jul 08 04:15PM EDT`).
+  again live to the minute (field 21 = 313.22 vs field 1's 313.39 close, field 24 =
+  `Jul 08 04:15PM EDT`).
 - Tencent's quote host carries **no pre-market price**: field 3 / field 30 stay at the
   last regular close (310.66 / `2026-07-07 16:00:01`). Only bid/ask (field 9 = 311.40)
   move. Ext-hours prices must come from Sina.
