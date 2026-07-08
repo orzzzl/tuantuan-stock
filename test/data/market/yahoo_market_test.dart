@@ -213,6 +213,25 @@ void main() {
       expect(aapl.extChangePct, 0.088);
     });
 
+    test(
+      'quoteSnapshots returns v7 quotes without YTD chart requests',
+      () async {
+        final yahoo = _FakeYahoo(
+          quoteResults: const [_aaplQuoteJson],
+          chartBaselines: const {'AAPL:ytd': 271.86},
+        );
+
+        final quotes = await YahooQuoteRepository(
+          yahoo.client(),
+        ).quoteSnapshots(['AAPL']);
+
+        expect(yahoo.quoteCalls, 1);
+        expect(yahoo.chartRequests, isEmpty);
+        expect(quotes['AAPL']!.price, 294.38);
+        expect(quotes['AAPL']!.ytdChangePct, isNull);
+      },
+    );
+
     test('leaves ytdChangePct null when the ytd chart fetch fails', () async {
       // No chartBaselines configured -> the v8 endpoint 404s.
       final yahoo = _FakeYahoo(quoteResults: const [_aaplQuoteJson]);

@@ -56,6 +56,16 @@ document is the source of truth for behavior.
 - Row actions: tap → detail; swipe left → remove. No manual reorder (sorting is automatic).
 - Footer hint: `按当日涨幅自动排序 · 左滑删除`.
 
+### Loading
+
+The watchlist paints progressively in this order: one batched quote snapshot first,
+then row decorations, then sparklines. Before the quote snapshot resolves, rows use
+fixed-size cute skeleton cards so the list footprint is already stable. The quote
+snapshot is enough to render ticker fallbacks, medals, day-change sorting, prices, and
+session tags. Identity (name/logo) and YTD ranks fill into the existing row layout when
+their futures resolve; missing YTD remains a muted `—` under the YTD sort. Row
+sparklines are always per-row async decoration and never block row layout.
+
 ### Session labeling (盘前 / 盘后)
 
 Every displayed change % states its session — never let a number be misread:

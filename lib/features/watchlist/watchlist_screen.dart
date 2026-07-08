@@ -39,10 +39,11 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
   Future<void> _refresh() async {
     ref.invalidate(indexStripQuotesProvider);
     ref.invalidate(watchlistQuotesProvider);
+    ref.invalidate(watchlistYtdQuotesProvider);
     ref.invalidate(watchlistStocksProvider);
     ref.invalidate(daySparkProvider);
     try {
-      await ref.read(raceBoardProvider.future);
+      await ref.read(watchlistQuotesProvider.future);
     } on Exception {
       // The error state renders inline; the indicator just needs to settle.
     }
@@ -122,7 +123,7 @@ class _WatchlistScreenState extends ConsumerState<WatchlistScreen> {
       ),
       const SizedBox(height: 10),
       ...board.when(
-        loading: () => const [_CenteredSpinner()],
+        loading: () => const [_RaceSkeletonList()],
         error: (error, stackTrace) => [
           CandyCard(
             child: Text(
@@ -164,6 +165,91 @@ class _CenteredSpinner extends StatelessWidget {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 48),
       child: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+
+class _RaceSkeletonList extends StatelessWidget {
+  const _RaceSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var i = 0; i < 4; i++)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 10),
+            child: _RaceSkeletonRow(),
+          ),
+      ],
+    );
+  }
+}
+
+class _RaceSkeletonRow extends StatelessWidget {
+  const _RaceSkeletonRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return CandyCard(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      borderRadius: 18,
+      shadowOffset: const Offset(0, 3),
+      child: const SizedBox(
+        height: 40,
+        child: Row(
+          children: [
+            _SkeletonBlock(width: 34, height: 34, radius: 17),
+            SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _SkeletonBlock(width: 92, height: 10, radius: 999),
+                  SizedBox(height: 8),
+                  _SkeletonBlock(width: 132, height: 8, radius: 999),
+                ],
+              ),
+            ),
+            SizedBox(width: 8),
+            _SkeletonBlock(width: 52, height: 24, radius: 999),
+            SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _SkeletonBlock(width: 56, height: 10, radius: 999),
+                SizedBox(height: 8),
+                _SkeletonBlock(width: 46, height: 14, radius: 999),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonBlock extends StatelessWidget {
+  const _SkeletonBlock({
+    required this.width,
+    required this.height,
+    required this.radius,
+  });
+
+  final double width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: CuteColors.cream,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      child: SizedBox(width: width, height: height),
     );
   }
 }
@@ -444,7 +530,7 @@ class _RaceRow extends ConsumerWidget {
                     // Likewise the pill: the YTD race shows the YTD move.
                     _ChangePill(
                       changePct: sort == WatchlistSort.ytd
-                          ? quote.ytdChangePct
+                          ? entry.ytdChangePct
                           : quote.dayChangePct,
                     ),
                     if (_extendedTag(localizations, quote) case final tag?)

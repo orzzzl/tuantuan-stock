@@ -11,7 +11,7 @@ const indexStripSymbols = ['^GSPC', '^IXIC', '^DJI'];
 
 /// [QuoteRepository] backed by Yahoo's batched v7 `quote` and keyless v8
 /// `chart` endpoints.
-class YahooQuoteRepository implements QuoteRepository {
+class YahooQuoteRepository implements QuoteSnapshotRepository {
   YahooQuoteRepository(this._client);
 
   final YahooClient _client;
@@ -31,8 +31,29 @@ class YahooQuoteRepository implements QuoteRepository {
   }
 
   @override
+  Future<Map<String, Quote>> quoteSnapshots(List<String> symbols) async {
+    if (symbols.isEmpty) return const {};
+    final items = await _quoteItems(symbols);
+    return {
+      for (final item in items)
+        item['symbol'] as String: _mapQuote(item, ytdBaseline: null),
+    };
+  }
+
+  @override
   Future<Map<String, Quote>> quotes(List<String> symbols) async {
     if (symbols.isEmpty) return const {};
+    final items = await _quoteItems(symbols);
+    final baselines = await Future.wait(
+      items.map((item) => _ytdBaseline(item['symbol'] as String)),
+    );
+    return {
+      for (final (i, item) in items.indexed)
+        item['symbol'] as String: _mapQuote(item, ytdBaseline: baselines[i]),
+    };
+  }
+
+  Future<List<Map<String, Object?>>> _quoteItems(List<String> symbols) async {
     final json = await _client.getJson(
       Uri.https('query1.finance.yahoo.com', '/v7/finance/quote', {
         'symbols': symbols.join(','),
@@ -43,14 +64,7 @@ class YahooQuoteRepository implements QuoteRepository {
         ((json['quoteResponse'] as Map<String, Object?>?)?['result']
             as List<Object?>?) ??
         const [];
-    final items = results.cast<Map<String, Object?>>();
-    final baselines = await Future.wait(
-      items.map((item) => _ytdBaseline(item['symbol'] as String)),
-    );
-    return {
-      for (final (i, item) in items.indexed)
-        item['symbol'] as String: _mapQuote(item, ytdBaseline: baselines[i]),
-    };
+    return results.cast<Map<String, Object?>>();
   }
 
   @override
