@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tuantuan_stock/app/app_theme.dart';
 import 'package:tuantuan_stock/app/candy_card.dart';
 import 'package:tuantuan_stock/app/cute_background.dart';
@@ -26,10 +28,13 @@ import 'package:tuantuan_stock/l10n/generated/app_localizations.dart';
 import 'package:tuantuan_stock/l10n/generated/app_localizations_en.dart';
 import 'package:tuantuan_stock/l10n/generated/app_localizations_zh.dart';
 import 'package:tuantuan_stock/l10n/localized_sets.dart';
+import 'package:tuantuan_stock/main.dart' as app_entry;
 
 const _symbol = 'AAPL';
 
 void main() {
+  setUpAll(app_entry.configureBundledFonts);
+
   Future<void> pumpApp(WidgetTester tester, {Locale? locale}) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -45,6 +50,32 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  test('bundled font configuration disables runtime fetching', () {
+    GoogleFonts.config.allowRuntimeFetching = true;
+
+    app_entry.configureBundledFonts();
+
+    expect(GoogleFonts.config.allowRuntimeFetching, isFalse);
+  });
+
+  testWidgets('bundled Google font assets are declared', (tester) async {
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+
+    expect(
+      manifest.listAssets(),
+      containsAll(const [
+        'assets/fonts/Baloo2-Regular.ttf',
+        'assets/fonts/Baloo2-Medium.ttf',
+        'assets/fonts/Baloo2-SemiBold.ttf',
+        'assets/fonts/Baloo2-Bold.ttf',
+        'assets/fonts/Baloo2-ExtraBold.ttf',
+        'assets/fonts/ZCOOLKuaiLe-Regular.ttf',
+        'assets/fonts/OFL-Baloo2.txt',
+        'assets/fonts/OFL-ZCOOLKuaiLe.txt',
+      ]),
+    );
+  });
 
   testWidgets('root pushes and pops detail and search routes', (tester) async {
     final localizations = AppLocalizationsEn();
