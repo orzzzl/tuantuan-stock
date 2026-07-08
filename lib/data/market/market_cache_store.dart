@@ -25,6 +25,12 @@ class MarketCacheStore {
 
   final SharedPreferencesAsync _prefs;
 
+  /// True once a fresh quote batch has been served this process lifetime.
+  /// The stale pre-paint exists only to cover cold start; later stream
+  /// rebuilds (pull-to-refresh, watchlist edits) consult this to skip the
+  /// cache read so the banner never flashes over an already-fresh board.
+  bool hasServedFreshQuotes = false;
+
   Future<CachedQuoteBatch?> readQuoteSnapshots(List<String> symbols) async {
     if (symbols.isEmpty) {
       return CachedQuoteBatch(

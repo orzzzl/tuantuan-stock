@@ -115,7 +115,9 @@ Stream<CachedQuoteBatch> _quoteSnapshotBatches(
     return;
   }
 
-  final cached = await cache.readQuoteSnapshots(symbols);
+  final cached = cache.hasServedFreshQuotes
+      ? null
+      : await cache.readQuoteSnapshots(symbols);
   if (cached != null) {
     yield cached;
     await Future<void>.delayed(Duration.zero);
@@ -125,6 +127,7 @@ Stream<CachedQuoteBatch> _quoteSnapshotBatches(
     final fresh = await _quoteSnapshots(ref, symbols);
     final fetchedAt = DateTime.now().toUtc();
     await cache.writeQuoteSnapshots(fresh, fetchedAt);
+    cache.hasServedFreshQuotes = true;
     yield CachedQuoteBatch(quotes: fresh, fetchedAt: fetchedAt, isStale: false);
   } on Object {
     if (cached == null) rethrow;

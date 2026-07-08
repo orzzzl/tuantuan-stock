@@ -250,6 +250,45 @@ void main() {
     expect(rowY(tester, 'BBB'), lessThan(rowY(tester, 'AAA')));
   });
 
+  testWidgets('pull-to-refresh does not flash the stale cue over fresh rows', (
+    tester,
+  ) async {
+    final cache = MarketCacheStore(SharedPreferencesAsync());
+    final repository = _SequencedSnapshotQuoteRepository();
+    await cache.writeQuoteSnapshots({
+      'AAA': _quote(dayChangePct: 3, marketCap: 1e11),
+      'BBB': _quote(dayChangePct: 2, marketCap: 3e11),
+    }, DateTime.utc(2026, 7, 8, 4, 15));
+
+    await pumpWatchlist(
+      tester,
+      watched: const ['AAA', 'BBB'],
+      quoteRepository: repository,
+      stockRepository: _FakeStockRepository(const {}),
+      marketCache: cache,
+      settle: false,
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('As of'), findsOneWidget);
+
+    repository.completePending(_quotes);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('As of'), findsNothing);
+
+    await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // The refresh fetch is still in flight; the stale cue must not pop back
+    // over the already-fresh rows.
+    expect(find.textContaining('As of'), findsNothing);
+
+    repository.completePending(_quotes);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('As of'), findsNothing);
+    expect(find.byKey(WatchlistScreen.rowKey('AAA')), findsOneWidget);
+  });
+
   testWidgets(
     'market-cap sort reorders rows, headlines market caps, medals stay put',
     (tester) async {
@@ -440,6 +479,40 @@ class _DeferredSnapshotQuoteRepository implements QuoteSnapshotRepository {
   Future<Map<String, Quote>> quoteSnapshots(List<String> symbols) async {
     final bySymbol = await snapshots;
     return {for (final symbol in symbols) symbol: ?bySymbol[symbol]};
+  }
+
+  @override
+  Future<Map<String, Quote>> quotes(List<String> symbols) =>
+      quoteSnapshots(symbols);
+
+  @override
+  Future<ChartSeries> chart(String symbol, ChartRange range) {
+    return Completer<ChartSeries>().future;
+  }
+}
+
+/// Hands out one pending future per snapshot fetch so a test can hold a
+/// refresh in flight; [completePending] resolves every outstanding call.
+class _SequencedSnapshotQuoteRepository implements QuoteSnapshotRepository {
+  final _calls = <Completer<Map<String, Quote>>>[];
+
+  void completePending(Map<String, Quote> quotes) {
+    for (final call in _calls) {
+      if (!call.isCompleted) call.complete(quotes);
+    }
+  }
+
+  @override
+  Future<Quote> quote(String symbol) async =>
+      (await quoteSnapshots([symbol]))[symbol]!;
+
+  @override
+  Future<Map<String, Quote>> quoteSnapshots(List<String> symbols) {
+    final call = Completer<Map<String, Quote>>();
+    _calls.add(call);
+    return call.future.then(
+      (bySymbol) => {for (final symbol in symbols) symbol: ?bySymbol[symbol]},
+    );
   }
 
   @override
