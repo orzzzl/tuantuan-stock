@@ -34,3 +34,32 @@ whole project. See [`../AGENTS.md`](../AGENTS.md) for the working agreement and
 - **Data track:** 03 + 04 → 05 → 06; 03 → 07.
 - **UI track:** 02 → 10, 11.
 - **Screens last:** 12 / 13 / 14 when their rows above are DONE. 15 anytime after 01.
+
+## v0.2 — reachable from China + fast first paint
+
+Driven by two owner field reports (2026-07-07): the app is completely unreachable from
+mainland China (Yahoo/Google hosts are GFW-blocked), and even from the US the first
+list takes ~1 minute (serialized request storm: ~`8 + 3N` requests before first paint).
+Owner decision: **Tencent/Sina become the primary data source everywhere** (each
+feature pinned to the better of the two — not runtime failover, not a China-only
+fallback), and the first paint must be fast regardless of provider.
+
+| #  | Task | Status | Blocked by |
+|----|------|--------|-----------|
+| 16 | [Provider spike v2: Tencent/Sina](v0.2/16-provider-spike-v2.md) | READY | — |
+| 17 | [CN data layer: quotes / search / identity](v0.2/17-cn-quotes-search-identity.md) | BLOCKED | 16 |
+| 18 | [CN data layer: charts + YTD baselines](v0.2/18-cn-charts-ytd-session.md) | BLOCKED | 16, 17 |
+| 19 | [Progressive first paint](v0.2/19-progressive-first-paint.md) | READY | — |
+| 20 | [Persistent market cache](v0.2/20-persistent-market-cache.md) | BLOCKED | 19 |
+| 21 | [China-safe logos](v0.2/21-china-safe-logos.md) | BLOCKED | 16, 17 |
+| 22 | [Bundled fonts](v0.2/22-bundled-fonts.md) | READY | — |
+| 23 | [Yahoo removal + on-device verification](v0.2/23-yahoo-removal.md) | BLOCKED | 17, 18, 20, 21 |
+
+## Order of attack (v0.2)
+
+- **Start now, in parallel:** 16 (spike — owner signs off on the report before 17/18),
+  19 and 22 (provider-agnostic, no reason to wait).
+- **Data track:** 16 → 17 → 18; 16 + 17 → 21.
+- **Speed track:** 19 → 20 (20 builds on 19's provider restructure).
+- **Last:** 23 sweeps Yahoo out and gates on real-device checks in both the US and
+  China (the two original reports are the acceptance test).
