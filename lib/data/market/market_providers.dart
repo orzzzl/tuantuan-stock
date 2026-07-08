@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tuantuan_stock/data/market/cached_stock_repository.dart';
+import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/yahoo_client.dart';
 import 'package:tuantuan_stock/data/market/yahoo_company_profiles.dart';
 import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
@@ -23,8 +26,15 @@ final _companyProfilesProvider = Provider<YahooCompanyProfiles>(
   (ref) => YahooCompanyProfiles(ref.watch(_yahooClientProvider)),
 );
 
+final marketCacheStoreProvider = Provider<MarketCacheStore>(
+  (ref) => MarketCacheStore(SharedPreferencesAsync()),
+);
+
 final quoteRepositoryProvider = Provider<QuoteRepository>(
-  (ref) => YahooQuoteRepository(ref.watch(_yahooClientProvider)),
+  (ref) => YahooQuoteRepository(
+    ref.watch(_yahooClientProvider),
+    cache: ref.watch(marketCacheStoreProvider),
+  ),
 );
 
 final searchRepositoryProvider = Provider<SearchRepository>(
@@ -35,8 +45,11 @@ final searchRepositoryProvider = Provider<SearchRepository>(
 );
 
 final stockRepositoryProvider = Provider<StockRepository>(
-  (ref) => YahooStockRepository(
-    ref.watch(_yahooClientProvider),
-    ref.watch(_companyProfilesProvider),
+  (ref) => CachedStockRepository(
+    YahooStockRepository(
+      ref.watch(_yahooClientProvider),
+      ref.watch(_companyProfilesProvider),
+    ),
+    ref.watch(marketCacheStoreProvider),
   ),
 );

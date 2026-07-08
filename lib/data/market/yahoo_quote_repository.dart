@@ -1,3 +1,4 @@
+import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/yahoo_client.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
@@ -12,13 +13,16 @@ const indexStripSymbols = ['^GSPC', '^IXIC', '^DJI'];
 /// [QuoteRepository] backed by Yahoo's batched v7 `quote` and keyless v8
 /// `chart` endpoints.
 class YahooQuoteRepository implements QuoteSnapshotRepository {
-  YahooQuoteRepository(this._client);
+  YahooQuoteRepository(this._client, {this._cache, DateTime Function()? now})
+    : _now = now ?? DateTime.now;
 
   final YahooClient _client;
+  final MarketCacheStore? _cache;
+  final DateTime Function() _now;
 
   /// YTD baselines (last year's final close) are constant for a calendar
   /// year, so one fetch per symbol serves the whole process lifetime.
-  final _ytdBaselineBySymbol = <String, double>{};
+  final _ytdBaselineByKey = <String, double>{};
 
   @override
   Future<Quote> quote(String symbol) async {
@@ -146,11 +150,25 @@ class YahooQuoteRepository implements QuoteSnapshotRepository {
   /// Baseline for the YTD percent, cached per symbol; null when the chart
   /// fetch fails — a quote must not fail because its YTD rank couldn't load.
   Future<double?> _ytdBaseline(String symbol) async {
-    final cached = _ytdBaselineBySymbol[symbol];
+    final year = _now().toUtc().year;
+    final key = '$symbol|$year';
+    final cached = _ytdBaselineByKey[key];
     if (cached != null) return cached;
+
+    final diskCached = await _cache?.readYtdBaseline(symbol, year);
+    if (diskCached != null) {
+      _ytdBaselineByKey[key] = diskCached;
+      return diskCached;
+    }
+
     try {
       final baseline = (await chart(symbol, ChartRange.ytd)).baseline;
-      _ytdBaselineBySymbol[symbol] = baseline;
+      _ytdBaselineByKey[key] = baseline;
+      await _cache?.writeYtdBaseline(
+        symbol: symbol,
+        year: year,
+        baseline: baseline,
+      );
       return baseline;
     } on DataFailure {
       return null;

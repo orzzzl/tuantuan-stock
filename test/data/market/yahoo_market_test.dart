@@ -1,6 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/yahoo_client.dart';
 import 'package:tuantuan_stock/data/market/yahoo_company_profiles.dart';
 import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
@@ -180,6 +184,13 @@ String _jsonObject(Map<String, Object?> item) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
   group('YahooQuoteRepository', () {
     test('maps a batched v7 quote to the domain Quote', () async {
       final yahoo = _FakeYahoo(
@@ -259,6 +270,35 @@ void main() {
         reason: 'the ytd baseline is constant within a year',
       );
     });
+
+    test(
+      'uses the persisted current-year YTD baseline without refetching',
+      () async {
+        final cache = MarketCacheStore(SharedPreferencesAsync());
+        await cache.writeYtdBaseline(
+          symbol: 'AAPL',
+          year: 2026,
+          baseline: 271.86,
+        );
+        final yahoo = _FakeYahoo(
+          quoteResults: const [_aaplQuoteJson],
+          chartBaselines: const {'AAPL:ytd': 123.45},
+        );
+        final repo = YahooQuoteRepository(
+          yahoo.client(),
+          cache: cache,
+          now: () => DateTime.utc(2026, 7, 8),
+        );
+
+        final quote = (await repo.quotes(['AAPL']))['AAPL']!;
+
+        expect(yahoo.chartRequests, isEmpty);
+        expect(
+          quote.ytdChangePct,
+          closeTo((294.38 - 271.86) / 271.86 * 100, 1e-9),
+        );
+      },
+    );
 
     test(
       'chart() sends the per-range v8 request and maps the series',
