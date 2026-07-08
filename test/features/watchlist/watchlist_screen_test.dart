@@ -41,16 +41,18 @@ void main() {
     List<String> watched = _watched,
     Map<String, Quote>? quotes,
     Map<String, Stock> stocks = const {},
+    QuoteRepository? quoteRepository,
+    StockRepository? stockRepository,
   }) async {
     final watchlist = _InMemoryWatchlistRepository(watched);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           quoteRepositoryProvider.overrideWithValue(
-            _FakeQuoteRepository(quotes ?? _quotes),
+            quoteRepository ?? _FakeQuoteRepository(quotes ?? _quotes),
           ),
           stockRepositoryProvider.overrideWithValue(
-            _FakeStockRepository(stocks),
+            stockRepository ?? _FakeStockRepository(stocks),
           ),
           watchlistRepositoryProvider.overrideWithValue(watchlist),
         ],
@@ -129,6 +131,74 @@ void main() {
         .whereType<String>();
     expect(unrankedTexts.any((text) => text.contains('#')), isFalse);
   });
+
+  testWidgets(
+    'rows paint from quote snapshots while identity and YTD resolve later',
+    (tester) async {
+      final stocks = Completer<Map<String, Stock>>();
+      final ytdQuotes = Completer<Map<String, Quote>>();
+      final snapshots = {
+        'AAA': _quote(dayChangePct: 3, marketCap: 1e11),
+        'BBB': _quote(
+          dayChangePct: 2,
+          marketCap: 3e11,
+          session: MarketSession.post,
+          extChangePct: -1.2,
+        ),
+        'CCC': _quote(dayChangePct: -1, marketCap: 2e11),
+        'DDDD': _quote(dayChangePct: -2, marketCap: 4e11),
+      };
+
+      await pumpWatchlist(
+        tester,
+        quoteRepository: _ProgressiveQuoteRepository(
+          snapshots: snapshots,
+          ytdQuotes: ytdQuotes.future,
+        ),
+        stockRepository: _DeferredStockRepository(stocks.future),
+      );
+
+      expect(find.byKey(WatchlistScreen.rowKey('AAA')), findsOneWidget);
+      expect(find.byKey(WatchlistScreen.rowKey('DDDD')), findsOneWidget);
+      expect(inRow('AAA', 'AAA'), findsWidgets);
+      expect(inRow('AAA', localizations.ytdRankLabel(1)), findsNothing);
+      expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'BBB')));
+      expect(rowY(tester, 'BBB'), lessThan(rowY(tester, 'CCC')));
+
+      stocks.complete({
+        'AAA': const Stock(
+          symbol: 'AAA',
+          name: 'Alpha Inc',
+          zhName: '阿尔法',
+          exchange: 'NMS',
+        ),
+      });
+      await tester.pumpAndSettle();
+
+      expect(find.text('Alpha Inc'), findsOneWidget);
+      expect(inRow('AAA', '阿尔法'), findsOneWidget);
+      expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'BBB')));
+
+      ytdQuotes.complete(_quotes);
+      await tester.pumpAndSettle();
+
+      expect(
+        inRow('AAA', '阿尔法 · ${localizations.ytdRankLabel(2)}'),
+        findsOneWidget,
+      );
+      expect(
+        inRow('BBB', 'BBB · ${localizations.ytdRankLabel(1)}'),
+        findsOneWidget,
+      );
+      expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'BBB')));
+
+      await tester.tap(find.byKey(WatchlistScreen.sortByYtdKey));
+      await tester.pumpAndSettle();
+
+      expect(rowY(tester, 'BBB'), lessThan(rowY(tester, 'AAA')));
+      expect(inRow('BBB', '▲ +30.00%'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'market-cap sort reorders rows, headlines market caps, medals stay put',
@@ -279,6 +349,35 @@ class _FakeQuoteRepository implements QuoteRepository {
   }
 }
 
+class _ProgressiveQuoteRepository implements QuoteSnapshotRepository {
+  _ProgressiveQuoteRepository({
+    required this.snapshots,
+    required this.ytdQuotes,
+  });
+
+  final Map<String, Quote> snapshots;
+  final Future<Map<String, Quote>> ytdQuotes;
+
+  @override
+  Future<Quote> quote(String symbol) async => snapshots[symbol]!;
+
+  @override
+  Future<Map<String, Quote>> quoteSnapshots(List<String> symbols) async => {
+    for (final symbol in symbols) symbol: ?snapshots[symbol],
+  };
+
+  @override
+  Future<Map<String, Quote>> quotes(List<String> symbols) async {
+    final bySymbol = await ytdQuotes;
+    return {for (final symbol in symbols) symbol: ?bySymbol[symbol]};
+  }
+
+  @override
+  Future<ChartSeries> chart(String symbol, ChartRange range) {
+    return Completer<ChartSeries>().future;
+  }
+}
+
 class _FakeStockRepository implements StockRepository {
   _FakeStockRepository(this.bySymbol);
 
@@ -288,6 +387,18 @@ class _FakeStockRepository implements StockRepository {
   Future<Map<String, Stock>> stocks(List<String> symbols) async => {
     for (final symbol in symbols) symbol: ?bySymbol[symbol],
   };
+}
+
+class _DeferredStockRepository implements StockRepository {
+  _DeferredStockRepository(this.stocksBySymbol);
+
+  final Future<Map<String, Stock>> stocksBySymbol;
+
+  @override
+  Future<Map<String, Stock>> stocks(List<String> symbols) async {
+    final bySymbol = await stocksBySymbol;
+    return {for (final symbol in symbols) symbol: ?bySymbol[symbol]};
+  }
 }
 
 class _InMemoryWatchlistRepository implements WatchlistRepository {

@@ -15,3 +15,13 @@ abstract interface class QuoteRepository {
   /// Chart bars plus the range's 0% baseline for [symbol] over [range].
   Future<ChartSeries> chart(String symbol, ChartRange range);
 }
+
+/// Optional fast-path for quote providers whose core quote endpoint resolves
+/// before slower decorations such as YTD baselines.
+abstract interface class QuoteSnapshotRepository implements QuoteRepository {
+  /// Current snapshots for [symbols] from the provider's batched quote source.
+  ///
+  /// Implementations should not wait for chart-derived fields such as
+  /// [Quote.ytdChangePct]. Unknown symbols are absent from the map.
+  Future<Map<String, Quote>> quoteSnapshots(List<String> symbols);
+}
