@@ -1,6 +1,6 @@
 # 20 — Persistent market cache: instant stale paint + no cold-start refetch storm
 
-- **Status:** READY
+- **Status:** DONE (PR #22)
 - **Owner:** —
 - **Blocked by:** 19
 - **Allowed new deps:** none (reuse shared_preferences, already in the tree for the
