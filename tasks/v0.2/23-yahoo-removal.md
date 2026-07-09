@@ -1,7 +1,7 @@
 # 23 — Remove the Yahoo layer + real-world verification
 
-- **Status:** BLOCKED
-- **Owner:** —
+- **Status:** IN PROGRESS
+- **Owner:** Claude
 - **Blocked by:** 17, 18, 20, 21
 - **Allowed new deps:** none
 
