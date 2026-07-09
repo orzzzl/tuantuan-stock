@@ -479,7 +479,7 @@ class _RaceRow extends ConsumerWidget {
     final quote = entry.quote;
     final up = quote.dayChangePct >= 0;
     final subtitle = [
-      entry.stock?.zhName ?? entry.symbol,
+      localizations.stockSubtitle(entry.stock, entry.symbol),
       if (entry.ytdRank != null) localizations.ytdRankLabel(entry.ytdRank!),
     ].join(' · ');
 
@@ -517,7 +517,7 @@ class _RaceRow extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        entry.stock?.name ?? entry.symbol,
+                        localizations.stockTitle(entry.stock, entry.symbol),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: textTheme.titleSmall?.copyWith(

@@ -136,6 +136,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
 
     return Row(
@@ -147,7 +148,7 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                stock?.name ?? symbol,
+                localizations.stockTitle(stock, symbol),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.titleSmall?.copyWith(
@@ -156,7 +157,7 @@ class _Header extends StatelessWidget {
                 ),
               ),
               Text(
-                stock?.zhName ?? symbol,
+                localizations.stockSubtitle(stock, symbol),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: textTheme.bodySmall?.copyWith(

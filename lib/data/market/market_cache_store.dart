@@ -20,7 +20,9 @@ class MarketCacheStore {
   MarketCacheStore(this._prefs);
 
   static const quoteSnapshotsKey = 'market.quoteSnapshots.v1';
-  static const stocksKey = 'market.stocks.v1';
+  // v2: v1 held Yahoo-era identities without zh names; the identity cache
+  // has no TTL, so the provider switch (task 17) must refetch once.
+  static const stocksKey = 'market.stocks.v2';
   static const ytdBaselinesKey = 'market.ytdBaselines.v1';
 
   final SharedPreferencesAsync _prefs;

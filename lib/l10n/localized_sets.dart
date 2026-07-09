@@ -1,7 +1,26 @@
 import 'package:intl/intl.dart';
+import 'package:tuantuan_stock/domain/models/stock.dart';
 import 'package:tuantuan_stock/l10n/generated/app_localizations.dart';
 
 extension AppLocalizationSets on AppLocalizations {
+  /// Row title for a stock identity (task 17): a Chinese locale leads with
+  /// the provider's Chinese name when it knows one; other locales keep the
+  /// English name. [fallback] (the ticker) covers a missing identity.
+  String stockTitle(Stock? stock, String fallback) {
+    if (stock == null) return fallback;
+    return _isChinese ? (stock.zhName ?? stock.name) : stock.name;
+  }
+
+  /// Row subtitle under [stockTitle]: the ticker in a Chinese locale (the
+  /// Chinese name is the title there), otherwise the zh-name-or-ticker line
+  /// unchanged from v0.1.
+  String stockSubtitle(Stock? stock, String fallback) {
+    if (stock == null) return fallback;
+    return _isChinese ? fallback : (stock.zhName ?? fallback);
+  }
+
+  bool get _isChinese => localeName.startsWith('zh');
+
   List<String> get chartRangeLabels => [
     rangeDay,
     rangeWeek,
