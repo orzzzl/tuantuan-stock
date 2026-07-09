@@ -23,6 +23,16 @@ final _tencentQuoteLine = RegExp(r'^v_(.+?)="(.*)";?$');
 final _sinaQuoteLine = RegExp(r'^var hq_str_(.+?)="(.*)";$');
 final _sinaSuggestBody = RegExp(r'^var suggestvalue="(.*)";$');
 
+enum CnKlineGranularity {
+  day('day'),
+  week('week'),
+  month('month');
+
+  const CnKlineGranularity(this.queryValue);
+
+  final String queryValue;
+}
+
 /// Low-level Tencent/Sina HTTP client (report §3/§10): browser UA, the Sina
 /// Referer, GBK decoding, envelope stripping, and a hard per-request timeout.
 /// No auth state, no retries, and — deliberately — no request queue: neither
@@ -111,6 +121,62 @@ class CnMarketClient {
     throw NetworkFailure('unexpected kline market shape from ${uri.host}');
   }
 
+  /// Tencent adjusted kline rows for one full-code symbol (report §4.3).
+  /// Rows are `[date, open, close, high, low, volume]` strings; some weekly
+  /// rows carry extra corporate-action metadata, which callers do not need.
+  Future<List<List<String>>> tencentKline({
+    required String klineSymbol,
+    required CnKlineGranularity granularity,
+  }) async {
+    final uri = Uri.https('web.ifzq.gtimg.cn', '/appstock/app/usfqkline/get', {
+      'param': '$klineSymbol,${granularity.queryValue},,,320,qfq',
+    });
+    final json = await _getJson(uri);
+    if (json['code'] != 0) {
+      throw NetworkFailure('kline error ${json['code']} from ${uri.host}');
+    }
+    try {
+      final data = json['data'] as Map<String, Object?>;
+      final payload = data[klineSymbol] as Map<String, Object?>;
+      final rows =
+          payload['qfq${granularity.queryValue}'] as List<Object?>? ?? const [];
+      return [
+        for (final row in rows) _firstStringFields(row as List<Object?>, 6),
+      ];
+    } on RangeError catch (e) {
+      throw NetworkFailure('unexpected kline shape from ${uri.host}: $e');
+    } on StateError catch (e) {
+      throw NetworkFailure('unexpected kline shape from ${uri.host}: $e');
+    } on TypeError catch (e) {
+      throw NetworkFailure('unexpected kline shape from ${uri.host}: $e');
+    }
+  }
+
+  /// Sina 5-minute bars for the regular session (report §4.4/§8), after
+  /// stripping the anti-hotlink comment and JSONP callback.
+  Future<List<Map<String, String>>> sinaMin5(String symbol) async {
+    final uri = Uri.https(
+      'stock.finance.sina.com.cn',
+      '/usstock/api/jsonp.php/cb/US_MinKService.getMinK',
+      {'symbol': symbol.toLowerCase(), 'type': '5'},
+    );
+    final body = await _getGbk(uri, referer: _sinaReferer);
+    final jsonText = _stripSinaJsonp(body, uri);
+    try {
+      final decoded = jsonDecode(jsonText);
+      if (decoded is! List<Object?>) {
+        throw const FormatException('root is not a list');
+      }
+      return [for (final item in decoded) _stringMap(item)];
+    } on FormatException catch (e) {
+      throw NetworkFailure('unexpected Sina minK shape from ${uri.host}: $e');
+    } on StateError catch (e) {
+      throw NetworkFailure('unexpected Sina minK shape from ${uri.host}: $e');
+    } on TypeError catch (e) {
+      throw NetworkFailure('unexpected Sina minK shape from ${uri.host}: $e');
+    }
+  }
+
   Map<String, List<String>> _parseQuoteLines(
     String text, {
     required RegExp pattern,
@@ -135,6 +201,44 @@ class CnMarketClient {
       throw NetworkFailure('unexpected quote body from ${uri.host}');
     }
     return fieldsBySymbol;
+  }
+
+  List<String> _firstStringFields(List<Object?> row, int count) {
+    if (row.length < count) {
+      throw StateError('row has ${row.length} fields');
+    }
+    final fields = <String>[];
+    for (var i = 0; i < count; i += 1) {
+      final value = row[i];
+      if (value is! String) {
+        throw StateError('field $i is ${value.runtimeType}');
+      }
+      fields.add(value);
+    }
+    return fields;
+  }
+
+  Map<String, String> _stringMap(Object? item) {
+    if (item is! Map<String, Object?>) {
+      throw StateError('row is ${item.runtimeType}');
+    }
+    final result = <String, String>{};
+    for (final MapEntry(:key, :value) in item.entries) {
+      if (value is! String) {
+        throw StateError('$key is ${value.runtimeType}');
+      }
+      result[key] = value;
+    }
+    return result;
+  }
+
+  String _stripSinaJsonp(String text, Uri uri) {
+    final start = text.indexOf('cb(');
+    final end = text.lastIndexOf(')');
+    if (start < 0 || end <= start + 3) {
+      throw NetworkFailure('unexpected JSONP body from ${uri.host}');
+    }
+    return text.substring(start + 3, end);
   }
 
   Future<String> _getGbk(Uri uri, {String? referer}) async => gbk.decode(

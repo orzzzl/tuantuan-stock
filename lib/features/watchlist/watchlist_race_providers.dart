@@ -38,10 +38,14 @@ final watchlistYtdQuotesProvider = FutureProvider<Map<String, Quote>>((
   ref,
 ) async {
   final repository = ref.watch(quoteRepositoryProvider);
-  if (repository is! QuoteSnapshotRepository) return const {};
   final symbols = await ref.watch(watchlistProvider.future);
   if (symbols.isEmpty) return const {};
-  return repository.quotes(symbols);
+  return switch (repository) {
+    final QuoteYtdRepository ytdRepository => ytdRepository.ytdQuotes(symbols),
+    final QuoteSnapshotRepository snapshotRepository =>
+      snapshotRepository.quotes(symbols),
+    _ => const {},
+  };
 });
 
 /// Identities (names + logos) for the watchlist. Identity is row decoration,
