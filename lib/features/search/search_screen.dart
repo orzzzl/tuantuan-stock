@@ -8,6 +8,12 @@ import 'package:tuantuan_stock/data/market/market_providers.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
 import 'package:tuantuan_stock/l10n/generated/app_localizations.dart';
+import 'package:tuantuan_stock/l10n/localized_sets.dart';
+
+/// A stock plus its resolved row labels: curated trending rows carry
+/// hand-written lines, search results derive theirs from the locale rules
+/// in [AppLocalizationSets].
+typedef _LabeledStock = ({Stock stock, String title, String subtitle});
 
 /// Matches for [query], provider-scoped so rapid re-queries share one fetch.
 final searchResultsProvider = FutureProvider.autoDispose
@@ -85,7 +91,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               child: _query.isEmpty
                   ? _StockList(
                       title: localizations.searchTrendingTitle,
-                      stocks: _trendingStocks(localizations),
+                      rows: _trendingRows(localizations),
                       watched: watched,
                       onToggle: _toggleWatch,
                     )
@@ -107,37 +113,53 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 }
 
-/// Curated rows for the empty query; no logos so the ticker-ring shows.
-List<Stock> _trendingStocks(AppLocalizations localizations) => [
-  Stock(
-    symbol: 'META',
-    name: localizations.trendingMetaName,
-    zhName: localizations.trendingMetaSubtitle,
-    exchange: 'NMS',
+/// Curated rows for the empty query; both label lines are hand-localized,
+/// and no logos so the ticker-ring shows.
+List<_LabeledStock> _trendingRows(AppLocalizations localizations) => [
+  (
+    stock: Stock(
+      symbol: 'META',
+      name: localizations.trendingMetaName,
+      exchange: 'NMS',
+    ),
+    title: localizations.trendingMetaName,
+    subtitle: localizations.trendingMetaSubtitle,
   ),
-  Stock(
-    symbol: 'SPY',
-    name: localizations.trendingSpyName,
-    zhName: localizations.trendingSpySubtitle,
-    exchange: 'PCX',
+  (
+    stock: Stock(
+      symbol: 'SPY',
+      name: localizations.trendingSpyName,
+      exchange: 'PCX',
+    ),
+    title: localizations.trendingSpyName,
+    subtitle: localizations.trendingSpySubtitle,
   ),
-  Stock(
-    symbol: 'AAPL',
-    name: localizations.trendingAaplName,
-    zhName: localizations.trendingAaplSubtitle,
-    exchange: 'NMS',
+  (
+    stock: Stock(
+      symbol: 'AAPL',
+      name: localizations.trendingAaplName,
+      exchange: 'NMS',
+    ),
+    title: localizations.trendingAaplName,
+    subtitle: localizations.trendingAaplSubtitle,
   ),
-  Stock(
-    symbol: 'NVDA',
-    name: localizations.trendingNvdaName,
-    zhName: localizations.trendingNvdaSubtitle,
-    exchange: 'NMS',
+  (
+    stock: Stock(
+      symbol: 'NVDA',
+      name: localizations.trendingNvdaName,
+      exchange: 'NMS',
+    ),
+    title: localizations.trendingNvdaName,
+    subtitle: localizations.trendingNvdaSubtitle,
   ),
-  Stock(
-    symbol: 'TSLA',
-    name: localizations.trendingTslaName,
-    zhName: localizations.trendingTslaSubtitle,
-    exchange: 'NMS',
+  (
+    stock: Stock(
+      symbol: 'TSLA',
+      name: localizations.trendingTslaName,
+      exchange: 'NMS',
+    ),
+    title: localizations.trendingTslaName,
+    subtitle: localizations.trendingTslaSubtitle,
   ),
 ];
 
@@ -168,7 +190,17 @@ class _ResultsView extends ConsumerWidget {
               ? _StatusMessage(message: localizations.searchNoResultsLabel)
               : _StockList(
                   title: localizations.searchResultsTitle(query),
-                  stocks: stocks,
+                  rows: [
+                    for (final stock in stocks)
+                      (
+                        stock: stock,
+                        title: localizations.stockTitle(stock, stock.symbol),
+                        subtitle: localizations.stockSubtitle(
+                          stock,
+                          stock.symbol,
+                        ),
+                      ),
+                  ],
                   watched: watched,
                   onToggle: onToggle,
                 ),
@@ -179,13 +211,13 @@ class _ResultsView extends ConsumerWidget {
 class _StockList extends StatelessWidget {
   const _StockList({
     required this.title,
-    required this.stocks,
+    required this.rows,
     required this.watched,
     required this.onToggle,
   });
 
   final String title;
-  final List<Stock> stocks;
+  final List<_LabeledStock> rows;
   final Set<String> watched;
   final void Function(Stock stock, bool isWatched) onToggle;
 
@@ -204,11 +236,11 @@ class _StockList extends StatelessWidget {
             ),
           ),
         ),
-        for (final stock in stocks)
+        for (final row in rows)
           _StockRow(
-            stock: stock,
-            isWatched: watched.contains(stock.symbol),
-            isLast: stock == stocks.last,
+            row: row,
+            isWatched: watched.contains(row.stock.symbol),
+            isLast: row == rows.last,
             onToggle: onToggle,
           ),
       ],
@@ -218,13 +250,13 @@ class _StockList extends StatelessWidget {
 
 class _StockRow extends StatelessWidget {
   const _StockRow({
-    required this.stock,
+    required this.row,
     required this.isWatched,
     required this.isLast,
     required this.onToggle,
   });
 
-  final Stock stock;
+  final _LabeledStock row;
   final bool isWatched;
   final bool isLast;
   final void Function(Stock stock, bool isWatched) onToggle;
@@ -233,6 +265,7 @@ class _StockRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
+    final stock = row.stock;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 4),
@@ -252,7 +285,7 @@ class _StockRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  stock.name,
+                  row.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.titleSmall?.copyWith(
@@ -261,7 +294,7 @@ class _StockRow extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  stock.zhName ?? stock.symbol,
+                  row.subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: textTheme.bodySmall?.copyWith(
