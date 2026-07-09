@@ -1,6 +1,6 @@
 # 16 — Provider spike v2: Tencent/Sina as the primary data source
 
-- **Status:** MERGED (PR #20) — owner sign-off pending
+- **Status:** DONE (PR #20; owner signed off 2026-07-08: §12 risks accepted, "All" range pinned to Tencent month/2007+)
 - **Owner:** —
 - **Blocked by:** —
 - **Allowed new deps:** none (spike is curl + docs + fixtures; the GBK decoder dep is

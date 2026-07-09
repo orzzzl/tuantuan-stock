@@ -1,6 +1,6 @@
 # 17 — Tencent/Sina data layer: quotes, search, identity
 
-- **Status:** BLOCKED (needs 16 sign-off)
+- **Status:** READY (16 signed off 2026-07-08)
 - **Owner:** —
 - **Blocked by:** 16
 - **Allowed new deps:** the GBK decoder chosen in the 16 report (`fast_gbk` or

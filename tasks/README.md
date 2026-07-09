@@ -46,8 +46,8 @@ fallback), and the first paint must be fast regardless of provider.
 
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
-| 16 | [Provider spike v2: Tencent/Sina](v0.2/16-provider-spike-v2.md) | MERGED (Claude, PR #20) — owner sign-off pending (gates 17/18) | — |
-| 17 | [CN data layer: quotes / search / identity](v0.2/17-cn-quotes-search-identity.md) | BLOCKED | 16 |
+| 16 | [Provider spike v2: Tencent/Sina](v0.2/16-provider-spike-v2.md) | DONE (Claude, PR #20; owner signed off 2026-07-08) | — |
+| 17 | [CN data layer: quotes / search / identity](v0.2/17-cn-quotes-search-identity.md) | READY | 16 |
 | 18 | [CN data layer: charts + YTD baselines](v0.2/18-cn-charts-ytd-session.md) | BLOCKED | 16, 17 |
 | 19 | [Progressive first paint](v0.2/19-progressive-first-paint.md) | DONE (Codex, PR #19) | — |
 | 20 | [Persistent market cache](v0.2/20-persistent-market-cache.md) | DONE (Codex, PR #22) | 19 |
