@@ -37,15 +37,15 @@ void main() {
   test('stock identities persist and corrupt entries are dropped', () async {
     final store = cache();
     await store.writeStocks({
-      'AAA': const Stock(
-        symbol: 'AAA',
-        name: 'Alpha Inc',
-        exchange: 'NMS',
-        logoUrl: 'https://example.com/a.png',
-      ),
+      'AAA': const Stock(symbol: 'AAA', name: 'Alpha Inc', exchange: 'NMS'),
     });
 
-    expect((await store.readStocks(['AAA']))['AAA']!.logoUrl, isNotNull);
+    expect((await store.readStocks(['AAA']))['AAA']!.name, 'Alpha Inc');
+    expect(
+      (await store.readStocks(['AAA']))['AAA']!.logoAsset,
+      isNull,
+      reason: 'AAA is not in the bundled pack',
+    );
 
     await SharedPreferencesAsync().setString(
       MarketCacheStore.stocksKey,
@@ -53,6 +53,16 @@ void main() {
     );
 
     expect(await store.readStocks(['AAA']), isEmpty);
+  });
+
+  test('stock logo is derived from the bundled pack at read time', () async {
+    final store = cache();
+    await store.writeStocks({
+      'AAPL': const Stock(symbol: 'AAPL', name: 'Apple Inc.', exchange: 'NMS'),
+    });
+
+    final aapl = (await store.readStocks(['AAPL']))['AAPL']!;
+    expect(aapl.logoAsset, 'assets/logos/aapl.png');
   });
 
   test('corrupt quote cache is ignored and removed', () async {

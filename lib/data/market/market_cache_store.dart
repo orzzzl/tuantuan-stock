@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tuantuan_stock/data/market/company_logos.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
 
@@ -210,21 +211,24 @@ class MarketCacheStore {
     );
   }
 
+  // The logo is not persisted: it is derived from the bundled pack at decode
+  // time, so cached identities pick up pack additions without a refetch (and
+  // any Yahoo-era cached URL is dropped rather than fetched).
   static Map<String, Object?> _encodeStock(Stock stock) => {
     'symbol': stock.symbol,
     'name': stock.name,
     'zhName': stock.zhName,
     'exchange': stock.exchange,
-    'logoUrl': stock.logoUrl,
   };
 
   static Stock _decodeStock(Map<String, Object?> json) {
+    final symbol = json['symbol'] as String;
     return Stock(
-      symbol: json['symbol'] as String,
+      symbol: symbol,
       name: json['name'] as String,
       zhName: json['zhName'] as String?,
       exchange: json['exchange'] as String,
-      logoUrl: json['logoUrl'] as String?,
+      logoAsset: companyLogoAsset(symbol),
     );
   }
 }

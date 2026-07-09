@@ -747,11 +747,11 @@ class _StockAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logoUrl = stock?.logoUrl;
+    final logoAsset = stock?.logoAsset;
     final tintIndex =
         symbol.codeUnits.fold(0, (sum, unit) => sum + unit) %
         _fallbackTints.length;
-    final (ring, ink) = logoUrl == null
+    final (ring, ink) = logoAsset == null
         ? _fallbackTints[tintIndex]
         : (CuteColors.borderLogo, CuteColors.text);
 
@@ -764,11 +764,11 @@ class _StockAvatar extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: ring, width: 2),
       ),
-      child: logoUrl == null
+      child: logoAsset == null
           ? _tickerLabel(ink)
           : ClipOval(
-              child: Image.network(
-                logoUrl,
+              child: Image.asset(
+                logoAsset,
                 width: 26,
                 height: 26,
                 fit: BoxFit.cover,

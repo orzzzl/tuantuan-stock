@@ -420,7 +420,7 @@ void main() {
         expect(stocks['AAPL']!.name, 'Apple Inc.');
         expect(stocks['AAPL']!.zhName, _zhApple);
         expect(stocks['AAPL']!.exchange, 'NMS');
-        expect(stocks['AAPL']!.logoUrl, null);
+        expect(stocks['AAPL']!.logoAsset, 'assets/logos/aapl.png');
         expect(stocks['BRK.B']!.name, 'Berkshire Hathaway Inc. New');
         expect(stocks['BRK.B']!.exchange, 'NYQ');
         expect(hosts.count('qt.gtimg.cn'), 1);

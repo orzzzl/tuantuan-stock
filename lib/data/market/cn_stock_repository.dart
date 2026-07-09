@@ -1,5 +1,6 @@
 import 'package:tuantuan_stock/data/market/cn_market_client.dart';
 import 'package:tuantuan_stock/data/market/cn_symbols.dart';
+import 'package:tuantuan_stock/data/market/company_logos.dart';
 import 'package:tuantuan_stock/domain/models/data_failure.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
 import 'package:tuantuan_stock/domain/repositories/stock_repository.dart';
@@ -24,8 +25,7 @@ class CnStockRepository implements StockRepository {
 }
 
 /// Identity from one Tencent quote row; shared by the stock and search
-/// repositories. `logoUrl` stays null — logos become bundled assets in task
-/// 21, and the ticker-ring fallback already ships.
+/// repositories. Logos come from the bundled asset pack, never the network.
 Stock stockFromTencentFields(String symbol, List<String> fields) {
   try {
     final zhName = fields[1];
@@ -35,6 +35,7 @@ Stock stockFromTencentFields(String symbol, List<String> fields) {
       name: name.isEmpty ? symbol : name,
       zhName: zhName.isEmpty ? null : zhName,
       exchange: exchangeFromTencentFullCode(fields[2]),
+      logoAsset: companyLogoAsset(symbol),
     );
   } on RangeError catch (e) {
     throw NetworkFailure('unexpected Tencent quote shape for $symbol: $e');
