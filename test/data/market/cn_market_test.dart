@@ -17,6 +17,19 @@ import 'package:tuantuan_stock/domain/models/data_failure.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 import 'package:tuantuan_stock/domain/repositories/quote_repository.dart';
 
+// Chinese provider-payload literals, written as Unicode escapes so the
+// hand-written source stays ASCII (AGENTS.md: no Chinese outside *.arb).
+const _zhApple = '\u82f9\u679c'; // "Apple"
+const _zhDowJones = '\u9053\u743c\u65af'; // "Dow Jones"
+const _zhAppleHospitalityReit = // "Apple Hospitality REIT"
+    '\u82f9\u679c\u9152\u5e97\u623f\u5730\u4ea7\u4fe1\u6258';
+// The market-token spellings observed in the Tencent payload (report §6).
+const _zhNotOpen = '\u672a\u5f00\u76d8'; // "not open yet"
+const _zhPreTrading = '\u76d8\u524d\u4ea4\u6613'; // "pre-market trading"
+const _zhTrading = '\u4ea4\u6613\u4e2d'; // "trading"
+const _zhClosed = '\u5df2\u6536\u76d8'; // "closed"
+const _zhPostTrading = '\u76d8\u540e\u4ea4\u6613'; // "post-market trading"
+
 /// Raw provider bytes captured by the task-16 probes — GBK stays GBK so the
 /// decode path is exercised end to end.
 Uint8List _fixture(String name) =>
@@ -190,19 +203,27 @@ void main() {
   group('session tokens (report §6)', () {
     test('all six observed spellings map to the right session', () {
       expect(
-        sessionFromMarketTokens('US_close_未开盘|USB_open_盘前交易|USA_close_未开盘'),
+        sessionFromMarketTokens(
+          'US_close_$_zhNotOpen|USB_open_$_zhPreTrading|USA_close_$_zhNotOpen',
+        ),
         MarketSession.pre,
       );
       expect(
-        sessionFromMarketTokens('US_open_交易中|USB_close_已收盘|USA_close_未开盘'),
+        sessionFromMarketTokens(
+          'US_open_$_zhTrading|USB_close_$_zhClosed|USA_close_$_zhNotOpen',
+        ),
         MarketSession.regular,
       );
       expect(
-        sessionFromMarketTokens('US_close_已收盘|USB_close_已收盘|USA_open_盘后交易'),
+        sessionFromMarketTokens(
+          'US_close_$_zhClosed|USB_close_$_zhClosed|USA_open_$_zhPostTrading',
+        ),
         MarketSession.post,
       );
       expect(
-        sessionFromMarketTokens('US_close_未开盘|USB_close_未开盘|USA_close_未开盘'),
+        sessionFromMarketTokens(
+          'US_close_$_zhNotOpen|USB_close_$_zhNotOpen|USA_close_$_zhNotOpen',
+        ),
         MarketSession.closed,
       );
     });
@@ -397,7 +418,7 @@ void main() {
         ).stocks(['AAPL', 'MSFT', 'BRK.B']);
 
         expect(stocks['AAPL']!.name, 'Apple Inc.');
-        expect(stocks['AAPL']!.zhName, '苹果');
+        expect(stocks['AAPL']!.zhName, _zhApple);
         expect(stocks['AAPL']!.exchange, 'NMS');
         expect(stocks['AAPL']!.logoUrl, null);
         expect(stocks['BRK.B']!.name, 'Berkshire Hathaway Inc. New');
@@ -412,7 +433,7 @@ void main() {
       );
       final stocks = await CnStockRepository(hosts.client()).stocks(['^DJI']);
       expect(stocks['^DJI']!.name, 'Dow Jones');
-      expect(stocks['^DJI']!.zhName, '道琼斯');
+      expect(stocks['^DJI']!.zhName, _zhDowJones);
       expect(stocks['^DJI']!.exchange, '');
     });
   });
@@ -425,7 +446,7 @@ void main() {
           [
             _tencentRow(
               query: 'usAAPL',
-              zhName: '苹果',
+              zhName: _zhApple,
               fullCode: 'AAPL.OQ',
               enName: 'Apple Inc.',
             ),
@@ -437,7 +458,7 @@ void main() {
             ),
             _tencentRow(
               query: 'usAPLE',
-              zhName: '苹果酒店房地产信托',
+              zhName: _zhAppleHospitalityReit,
               fullCode: 'APLE.N',
               enName: 'Apple Hospitality REIT Inc.',
             ),
@@ -459,7 +480,7 @@ void main() {
         'PAPL',
       ]);
       expect(results.first.name, 'Apple Inc.');
-      expect(results.first.zhName, '苹果');
+      expect(results.first.zhName, _zhApple);
       expect(results.first.exchange, 'NMS');
       expect(results[1].zhName, null);
       expect(results[2].exchange, 'NYQ');
@@ -474,13 +495,13 @@ void main() {
         tencentQuote: _gbkBytes(
           _tencentRow(
             query: 'usAAPL',
-            zhName: '苹果',
+            zhName: _zhApple,
             fullCode: 'AAPL.OQ',
             enName: 'Apple Inc.',
           ),
         ),
       );
-      final results = await CnSearchRepository(hosts.client()).search('苹果');
+      final results = await CnSearchRepository(hosts.client()).search(_zhApple);
 
       // AAPX is in the suggest payload but unknown to the identity batch
       // here — dropped rather than rendered without an identity.
@@ -488,7 +509,7 @@ void main() {
       final suggestUri = hosts.requests.firstWhere(
         (uri) => uri.host == 'suggest3.sinajs.cn',
       );
-      expect(suggestUri.path, contains('key=${Uri.encodeComponent('苹果')}'));
+      expect(suggestUri.path, contains('key=${Uri.encodeComponent(_zhApple)}'));
     });
 
     test('non-US listing types are filtered out', () async {
@@ -500,7 +521,7 @@ void main() {
         tencentQuote: _gbkBytes(
           _tencentRow(
             query: 'usAAPL',
-            zhName: '苹果',
+            zhName: _zhApple,
             fullCode: 'AAPL.OQ',
             enName: 'Apple Inc.',
           ),

@@ -123,7 +123,8 @@ class CnQuoteRepository implements QuoteSnapshotRepository {
         low: double.parse(fields[34]),
         prevClose: double.parse(fields[4]),
         volume: int.parse(fields[6]),
-        // Total market cap arrives in 1e8 (亿) USD; empty for indices.
+        // Total market cap arrives in hundred-million (1e8) USD; empty for
+        // indices.
         marketCap: marketCap == null || marketCap == 0 ? null : marketCap * 1e8,
         trailingPe: trailingPe == null || trailingPe <= 0 ? null : trailingPe,
         // Not in the Tencent payload (report §4.1).
