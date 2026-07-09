@@ -7,8 +7,6 @@ import 'package:tuantuan_stock/data/market/cn_quote_repository.dart';
 import 'package:tuantuan_stock/data/market/cn_search_repository.dart';
 import 'package:tuantuan_stock/data/market/cn_stock_repository.dart';
 import 'package:tuantuan_stock/data/market/market_cache_store.dart';
-import 'package:tuantuan_stock/data/market/yahoo_client.dart';
-import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
 import 'package:tuantuan_stock/domain/repositories/quote_repository.dart';
 import 'package:tuantuan_stock/domain/repositories/search_repository.dart';
 import 'package:tuantuan_stock/domain/repositories/stock_repository.dart';
@@ -23,12 +21,6 @@ final _cnMarketClientProvider = Provider<CnMarketClient>(
   (ref) => CnMarketClient(httpClient: ref.watch(_httpClientProvider)),
 );
 
-// TODO(18): the Yahoo client serves only the chart seam now; task 18 moves
-// charts to the CN kline endpoints and task 23 deletes the Yahoo layer.
-final _yahooClientProvider = Provider<YahooClient>(
-  (ref) => YahooClient(httpClient: ref.watch(_httpClientProvider)),
-);
-
 final marketCacheStoreProvider = Provider<MarketCacheStore>(
   (ref) => MarketCacheStore(SharedPreferencesAsync()),
 );
@@ -36,10 +28,6 @@ final marketCacheStoreProvider = Provider<MarketCacheStore>(
 final quoteRepositoryProvider = Provider<QuoteRepository>(
   (ref) => CnQuoteRepository(
     ref.watch(_cnMarketClientProvider),
-    chartDelegate: YahooQuoteRepository(
-      ref.watch(_yahooClientProvider),
-      cache: ref.watch(marketCacheStoreProvider),
-    ),
     cache: ref.watch(marketCacheStoreProvider),
   ),
 );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -11,11 +12,10 @@ import 'package:tuantuan_stock/data/market/cn_quote_repository.dart';
 import 'package:tuantuan_stock/data/market/cn_search_repository.dart';
 import 'package:tuantuan_stock/data/market/cn_stock_repository.dart';
 import 'package:tuantuan_stock/data/market/cn_symbols.dart';
+import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
-import 'package:tuantuan_stock/domain/models/chart_series.dart';
 import 'package:tuantuan_stock/domain/models/data_failure.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
-import 'package:tuantuan_stock/domain/repositories/quote_repository.dart';
 
 // Chinese provider-payload literals, written as Unicode escapes so the
 // hand-written source stays ASCII (AGENTS.md: no Chinese outside *.arb).
@@ -43,6 +43,9 @@ class _FakeCnHosts {
     this.sinaQuote,
     this.suggest,
     this.kline,
+    this.min5,
+    this.klineByParam = const {},
+    this.hangingKlineParams = const {},
     this.sinaQuoteStatus = 200,
     this.klineStatus = 200,
   });
@@ -51,14 +54,20 @@ class _FakeCnHosts {
   Uint8List? sinaQuote;
   Uint8List? suggest;
   Uint8List? kline;
+  Uint8List? min5;
+  final Map<String, Uint8List> klineByParam;
+  final Set<String> hangingKlineParams;
   final int sinaQuoteStatus;
   final int klineStatus;
 
   final requests = <Uri>[];
 
   int count(String host) => requests.where((uri) => uri.host == host).length;
+  int countWhere(bool Function(Uri uri) predicate) =>
+      requests.where(predicate).length;
 
-  CnMarketClient client() => CnMarketClient(httpClient: MockClient(_handle));
+  CnMarketClient client({Duration timeout = const Duration(seconds: 8)}) =>
+      CnMarketClient(httpClient: MockClient(_handle), timeout: timeout);
 
   Future<http.Response> _handle(http.Request request) async {
     requests.add(request.url);
@@ -72,39 +81,30 @@ class _FakeCnHosts {
         expect(request.headers['Referer'], 'https://finance.sina.com.cn');
         return http.Response.bytes(suggest!, 200);
       case 'web.ifzq.gtimg.cn':
-        return http.Response.bytes(kline!, klineStatus);
+        final param = request.url.queryParameters['param'];
+        if (hangingKlineParams.contains(param)) {
+          return Completer<http.Response>().future;
+        }
+        final body = klineByParam[param] ?? kline;
+        if (body == null) fail('missing kline fixture for $param');
+        return http.Response.bytes(body, klineStatus);
+      case 'stock.finance.sina.com.cn':
+        expect(request.headers['Referer'], 'https://finance.sina.com.cn');
+        return http.Response.bytes(min5!, 200);
     }
     fail('unexpected host ${request.url.host}');
   }
 }
 
-/// Chart-seam stand-in for the Yahoo delegate that task 18 replaces.
-class _FakeChartDelegate implements QuoteRepository {
-  _FakeChartDelegate({this.baseline = 300.0});
-
-  final double baseline;
-  final chartCalls = <(String, ChartRange)>[];
-
-  @override
-  Future<ChartSeries> chart(String symbol, ChartRange range) async {
-    chartCalls.add((symbol, range));
-    return ChartSeries(baseline: baseline, candles: const []);
-  }
-
-  @override
-  Future<Quote> quote(String symbol) => throw UnimplementedError();
-
-  @override
-  Future<Map<String, Quote>> quotes(List<String> symbols) =>
-      throw UnimplementedError();
-}
-
 CnQuoteRepository _quoteRepository(
   _FakeCnHosts hosts, {
-  _FakeChartDelegate? chartDelegate,
+  Duration timeout = const Duration(seconds: 8),
+  MarketCacheStore? cache,
+  DateTime Function()? now,
 }) => CnQuoteRepository(
-  hosts.client(),
-  chartDelegate: chartDelegate ?? _FakeChartDelegate(),
+  hosts.client(timeout: timeout),
+  cache: cache,
+  now: now,
 );
 
 /// A minimal Tencent quote row with the identity/price positions filled the
@@ -373,36 +373,217 @@ void main() {
     });
   });
 
-  group('quotes() YTD decoration and the chart seam', () {
-    test('quotes() adds the YTD percent from the delegated chart', () async {
-      final delegate = _FakeChartDelegate(baseline: 300);
+  group('quotes() YTD decoration', () {
+    test('quotes() returns while the YTD baseline source hangs', () async {
       final hosts = _FakeCnHosts(
         tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
         sinaQuote: _fixture('sina_quote_batch.gbk.txt'),
         kline: _fixture('tencent_kline_day1_regular.json'),
+        hangingKlineParams: const {'usAAPL.OQ,day,,,320,qfq'},
       );
-      final repository = _quoteRepository(hosts, chartDelegate: delegate);
-
-      final quotes = await repository.quotes(['AAPL']);
-      expect(
-        quotes['AAPL']!.ytdChangePct,
-        closeTo((310.66 - 300) / 300 * 100, 1e-9),
+      final repository = _quoteRepository(
+        hosts,
+        timeout: const Duration(milliseconds: 1),
+        now: () => DateTime.utc(2026, 7, 8),
       );
-      expect(delegate.chartCalls, [('AAPL', ChartRange.ytd)]);
 
-      // The baseline is constant within a year: no second chart fetch.
-      await repository.quotes(['AAPL']);
-      expect(delegate.chartCalls, hasLength(1));
+      final quotes = await repository
+          .quotes(['AAPL'])
+          .timeout(const Duration(milliseconds: 50));
+      expect(quotes['AAPL']!.price, 310.66);
+      expect(quotes['AAPL']!.ytdChangePct, null);
+
+      // Let the background timeout settle so it cannot leak into later tests.
+      await Future<void>.delayed(const Duration(milliseconds: 5));
     });
 
-    test('chart() delegates until task 18 moves it to CN endpoints', () async {
-      final delegate = _FakeChartDelegate();
-      final repository = _quoteRepository(
-        _FakeCnHosts(),
-        chartDelegate: delegate,
+    test(
+      'background YTD baseline is cached per symbol and later decorates',
+      () async {
+        final hosts = _FakeCnHosts(
+          tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+          sinaQuote: _fixture('sina_quote_batch.gbk.txt'),
+          kline: _fixture('tencent_kline_day1_regular.json'),
+          klineByParam: {
+            'usAAPL.OQ,day,,,320,qfq': _fixture('tencent_kline_day.json'),
+          },
+        );
+        final repository = _quoteRepository(
+          hosts,
+          now: () => DateTime.utc(2026, 7, 8),
+        );
+
+        final first = await repository.quotes(['AAPL']);
+        expect(first['AAPL']!.ytdChangePct, null);
+
+        for (var i = 0; i < 5; i += 1) {
+          await Future<void>.delayed(Duration.zero);
+        }
+
+        final second = await repository.quotes(['AAPL']);
+        expect(
+          second['AAPL']!.ytdChangePct,
+          closeTo((310.66 - 271.37) / 271.37 * 100, 1e-9),
+        );
+        expect(
+          hosts.countWhere(
+            (uri) => uri.queryParameters['param'] == 'usAAPL.OQ,day,,,320,qfq',
+          ),
+          1,
+        );
+      },
+    );
+
+    test('ytdQuotes waits for the daily kline baseline', () async {
+      final hosts = _FakeCnHosts(
+        tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+        sinaQuote: _fixture('sina_quote_batch.gbk.txt'),
+        kline: _fixture('tencent_kline_day1_regular.json'),
+        klineByParam: {
+          'usAAPL.OQ,day,,,320,qfq': _fixture('tencent_kline_day.json'),
+        },
       );
-      await repository.chart('AAPL', ChartRange.day);
-      expect(delegate.chartCalls, [('AAPL', ChartRange.day)]);
+      final repository = _quoteRepository(
+        hosts,
+        now: () => DateTime.utc(2026, 7, 8),
+      );
+
+      final quotes = await repository.ytdQuotes(['AAPL']);
+
+      expect(
+        quotes['AAPL']!.ytdChangePct,
+        closeTo((310.66 - 271.37) / 271.37 * 100, 1e-9),
+      );
+      expect(
+        hosts.countWhere(
+          (uri) => uri.queryParameters['param'] == 'usAAPL.OQ,day,,,320,qfq',
+        ),
+        1,
+      );
+    });
+  });
+
+  group('chart()', () {
+    test(
+      'maps the day range to Sina 5-minute bars for the quote date',
+      () async {
+        final hosts = _FakeCnHosts(
+          tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+          min5: _fixture('sina_min5_regular.jsonp.txt'),
+        );
+        final series = await _quoteRepository(
+          hosts,
+        ).chart('AAPL', ChartRange.day);
+
+        expect(series.baseline, 312.66);
+        expect(series.candles, hasLength(78));
+        expect(series.candles.first.time, DateTime.utc(2026, 7, 7, 13, 35));
+        expect(series.candles.first.open, 315.29);
+        expect(series.candles.first.close, 312.98);
+        expect(series.candles.last.time, DateTime.utc(2026, 7, 7, 20));
+        expect(series.candles.last.close, 310.65);
+        expect(hosts.count('stock.finance.sina.com.cn'), 1);
+        expect(
+          hosts.requests
+              .firstWhere((uri) => uri.host == 'stock.finance.sina.com.cn')
+              .queryParameters,
+          containsPair('symbol', 'aapl'),
+        );
+      },
+    );
+
+    test(
+      'maps non-day ranges to Tencent kline granularities and baselines',
+      () async {
+        final hosts = _FakeCnHosts(
+          tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+          klineByParam: {
+            'usAAPL.OQ,day,,,320,qfq': _fixture('tencent_kline_day.json'),
+            'usAAPL.OQ,week,,,320,qfq': _fixture('tencent_kline_week.json'),
+            'usAAPL.OQ,month,,,320,qfq': _fixture('tencent_kline_month.json'),
+          },
+        );
+        final repository = _quoteRepository(hosts);
+        final cases = [
+          (
+            range: ChartRange.week,
+            param: 'usAAPL.OQ,day,,,320,qfq',
+            baseline: 281.74,
+            firstTime: DateTime.utc(2026, 6, 30),
+            firstClose: 289.36,
+          ),
+          (
+            range: ChartRange.month,
+            param: 'usAAPL.OQ,day,,,320,qfq',
+            baseline: 307.34,
+            firstTime: DateTime.utc(2026, 6, 8),
+            firstClose: 301.54,
+          ),
+          (
+            range: ChartRange.quarter,
+            param: 'usAAPL.OQ,day,,,320,qfq',
+            baseline: 258.63,
+            firstTime: DateTime.utc(2026, 4, 7),
+            firstClose: 253.27,
+          ),
+          (
+            range: ChartRange.ytd,
+            param: 'usAAPL.OQ,day,,,320,qfq',
+            baseline: 271.37,
+            firstTime: DateTime.utc(2026, 1, 2),
+            firstClose: 270.52,
+          ),
+          (
+            range: ChartRange.year,
+            param: 'usAAPL.OQ,day,,,320,qfq',
+            baseline: 212.72,
+            firstTime: DateTime.utc(2025, 7, 7),
+            firstClose: 209.13,
+          ),
+          (
+            range: ChartRange.year5,
+            param: 'usAAPL.OQ,week,,,320,qfq',
+            baseline: 136.41,
+            firstTime: DateTime.utc(2021, 7, 9),
+            firstClose: 141.43,
+          ),
+          (
+            range: ChartRange.all,
+            param: 'usAAPL.OQ,month,,,320,qfq',
+            baseline: 2.78,
+            firstTime: DateTime.utc(2007, 3, 30),
+            firstClose: 2.78,
+          ),
+        ];
+
+        for (final entry in cases) {
+          final series = await repository.chart('AAPL', entry.range);
+          expect(series.baseline, entry.baseline, reason: '${entry.range}');
+          expect(series.candles.first.time, entry.firstTime);
+          expect(series.candles.first.close, entry.firstClose);
+          expect(
+            hosts.requests.last.queryParameters['param'],
+            entry.param,
+            reason: '${entry.range}',
+          );
+        }
+      },
+    );
+
+    test('malformed Tencent kline payload fails loudly', () async {
+      final hosts = _FakeCnHosts(
+        tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+        klineByParam: {
+          'usAAPL.OQ,day,,,320,qfq': _gbkBytes(
+            '{"code":0,"data":{"usAAPL.OQ":{"qfqday":[["2026-07-07"]]}}}',
+          ),
+        },
+      );
+
+      await expectLater(
+        _quoteRepository(hosts).chart('AAPL', ChartRange.month),
+        throwsA(isA<NetworkFailure>()),
+      );
     });
   });
 

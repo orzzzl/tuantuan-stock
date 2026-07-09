@@ -25,3 +25,13 @@ abstract interface class QuoteSnapshotRepository implements QuoteRepository {
   /// [Quote.ytdChangePct]. Unknown symbols are absent from the map.
   Future<Map<String, Quote>> quoteSnapshots(List<String> symbols);
 }
+
+/// Optional slow-path for snapshot providers that resolve YTD separately from
+/// first-paint quote snapshots.
+abstract interface class QuoteYtdRepository {
+  /// Current quotes with [Quote.ytdChangePct] filled where available.
+  ///
+  /// Implementations may wait for chart-derived baselines; callers should keep
+  /// this off the first-paint path.
+  Future<Map<String, Quote>> ytdQuotes(List<String> symbols);
+}
