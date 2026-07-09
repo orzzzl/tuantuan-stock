@@ -1,6 +1,6 @@
 # 18 — Tencent/Sina data layer: charts + YTD baselines
 
-- **Status:** BLOCKED (needs 17 client infra; 16 signed off 2026-07-08 — "All" range pinned to Tencent month kline, 2007+, per owner)
+- **Status:** READY (17 merged via PR #23 — client infra available; "All" range pinned to Tencent month kline, 2007+, per owner)
 - **Owner:** —
 - **Blocked by:** 16, 17
 - **Allowed new deps:** none

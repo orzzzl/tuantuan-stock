@@ -1,7 +1,7 @@
 # 17 — Tencent/Sina data layer: quotes, search, identity
 
-- **Status:** READY (16 signed off 2026-07-08)
-- **Owner:** —
+- **Status:** DONE (Claude, PR #23, merged 2026-07-09)
+- **Owner:** Claude
 - **Blocked by:** 16
 - **Allowed new deps:** the GBK decoder chosen in the 16 report (`fast_gbk` or
   `charset_converter`)

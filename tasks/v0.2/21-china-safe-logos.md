@@ -1,6 +1,6 @@
 # 21 — China-safe logos
 
-- **Status:** BLOCKED (needs the 16 logo recommendation + 17 client)
+- **Status:** READY (16 logo recommendation signed off; 17 client merged via PR #23)
 - **Owner:** —
 - **Blocked by:** 16, 17
 - **Allowed new deps:** none expected (bundled asset map is the likely answer; anything
