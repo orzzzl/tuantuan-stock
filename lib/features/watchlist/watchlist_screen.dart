@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:tuantuan_stock/app/app_router.dart';
 import 'package:tuantuan_stock/app/candy_card.dart';
 import 'package:tuantuan_stock/app/cute_palette.dart';
-import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';

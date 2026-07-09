@@ -21,7 +21,7 @@ class MarketCacheStore {
   MarketCacheStore(this._prefs);
 
   static const quoteSnapshotsKey = 'market.quoteSnapshots.v1';
-  // v2: v1 held Yahoo-era identities without zh names; the identity cache
+  // v2: v1 held v0.1-provider identities without zh names; the identity cache
   // has no TTL, so the provider switch (task 17) must refetch once.
   static const stocksKey = 'market.stocks.v2';
   static const ytdBaselinesKey = 'market.ytdBaselines.v1';
@@ -213,7 +213,7 @@ class MarketCacheStore {
 
   // The logo is not persisted: it is derived from the bundled pack at decode
   // time, so cached identities pick up pack additions without a refetch (and
-  // any Yahoo-era cached URL is dropped rather than fetched).
+  // any v0.1-era cached network URL is dropped rather than fetched).
   static Map<String, Object?> _encodeStock(Stock stock) => {
     'symbol': stock.symbol,
     'name': stock.name,
