@@ -5,7 +5,7 @@ class Stock {
     required this.name,
     this.zhName,
     required this.exchange,
-    this.logoUrl,
+    this.logoAsset,
   });
 
   /// Ticker symbol, e.g. `AAPL` or `^GSPC` for an index.
@@ -20,8 +20,10 @@ class Stock {
   /// Exchange code, e.g. `NMS`.
   final String exchange;
 
-  /// Company logo image URL; null means render the ticker-ring fallback.
-  final String? logoUrl;
+  /// Bundled logo image asset path; null means render the ticker-ring
+  /// fallback. Never a network URL: no logo host is reliably reachable from
+  /// both mainland China and the US.
+  final String? logoAsset;
 
   @override
   bool operator ==(Object other) =>
@@ -30,8 +32,8 @@ class Stock {
       other.name == name &&
       other.zhName == zhName &&
       other.exchange == exchange &&
-      other.logoUrl == logoUrl;
+      other.logoAsset == logoAsset;
 
   @override
-  int get hashCode => Object.hash(symbol, name, zhName, exchange, logoUrl);
+  int get hashCode => Object.hash(symbol, name, zhName, exchange, logoAsset);
 }

@@ -6,9 +6,7 @@ import 'package:shared_preferences_platform_interface/in_memory_shared_preferenc
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/yahoo_client.dart';
-import 'package:tuantuan_stock/data/market/yahoo_company_profiles.dart';
 import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
-import 'package:tuantuan_stock/data/market/yahoo_search_repository.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
 import 'package:tuantuan_stock/domain/models/data_failure.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
@@ -59,15 +57,13 @@ const _gspcQuoteJson = <String, Object?>{
   'regularMarketTime': 1782936000,
 };
 
-/// In-memory Yahoo: serves the cookie/crumb dance, v7 quote, v1 search and
-/// v10 quoteSummary, recording calls so tests can assert on traffic shape.
+/// In-memory Yahoo: serves the cookie/crumb dance, v7 quote and v8 chart,
+/// recording calls so tests can assert on traffic shape.
 class _FakeYahoo {
   _FakeYahoo({
     this.crumbs = const ['crumb-1'],
     this.rejectedCrumbs = const {},
     this.quoteResults = const [],
-    this.searchResults = const [],
-    this.websiteBySymbol = const {},
     this.quoteStatusOverride,
     this.chartBaselines = const {},
   });
@@ -75,8 +71,6 @@ class _FakeYahoo {
   final List<String> crumbs;
   final Set<String> rejectedCrumbs;
   final List<Map<String, Object?>> quoteResults;
-  final List<Map<String, Object?>> searchResults;
-  final Map<String, String> websiteBySymbol;
   final int? quoteStatusOverride;
 
   /// `'SYMBOL:range'` -> chartPreviousClose served by the v8 endpoint;
@@ -89,7 +83,6 @@ class _FakeYahoo {
   final quoteRequests = <http.Request>[];
   final chartRequests = <http.Request>[];
   final chartCallsBySymbol = <String, int>{};
-  final summaryCallsBySymbol = <String, int>{};
 
   Future<http.Response> handle(http.Request request) async {
     final url = request.url;
@@ -147,20 +140,6 @@ class _FakeYahoo {
         '"low":[0.5,1.5,2.5],'
         '"close":[1.2,null,3.2]'
         '}]}}],"error":null}}',
-        200,
-      );
-    }
-    if (url.path == '/v1/finance/search') {
-      return http.Response('{"quotes":${_jsonList(searchResults)}}', 200);
-    }
-    if (url.path.startsWith('/v10/finance/quoteSummary/')) {
-      final symbol = url.pathSegments.last;
-      summaryCallsBySymbol.update(symbol, (n) => n + 1, ifAbsent: () => 1);
-      final website = websiteBySymbol[symbol];
-      final profile = website == null ? '{}' : '{"website":"$website"}';
-      return http.Response(
-        '{"quoteSummary":{"result":[{"assetProfile":$profile}],'
-        '"error":null}}',
         200,
       );
     }
@@ -486,79 +465,17 @@ void main() {
       );
 
       expect(
-        () => YahooSearchRepository(
-          client,
-          YahooCompanyProfiles(client),
-        ).search('apple'),
+        () => YahooQuoteRepository(client).chart('AAPL', ChartRange.day),
         throwsA(isA<NetworkFailure>()),
       );
     });
   });
 
-  group('YahooSearchRepository', () {
-    _FakeYahoo searchFake() => _FakeYahoo(
-      searchResults: const [
-        {
-          'symbol': 'AAPL',
-          'shortname': 'Apple Inc.',
-          'exchange': 'NMS',
-          'quoteType': 'EQUITY',
-        },
-        {
-          'symbol': 'SHOP.TO',
-          'shortname': 'Shopify Inc.',
-          'exchange': 'TOR',
-          'quoteType': 'EQUITY',
-        },
-        {
-          'symbol': 'VOO',
-          'shortname': 'Vanguard S&P 500 ETF',
-          'exchange': 'PCX',
-          'quoteType': 'ETF',
-        },
-        {
-          'symbol': '^GSPC',
-          'shortname': 'S&P 500',
-          'exchange': 'SNP',
-          'quoteType': 'INDEX',
-        },
-      ],
-      websiteBySymbol: const {'AAPL': 'https://www.apple.com'},
-    );
-
-    test('filters to US equities/ETFs and resolves logos', () async {
-      final yahoo = searchFake();
-      final client = yahoo.client();
-      final repo = YahooSearchRepository(client, YahooCompanyProfiles(client));
-
-      final stocks = await repo.search('apple');
-
-      expect(stocks.map((s) => s.symbol), ['AAPL', 'VOO']);
-      final aapl = stocks.first;
-      expect(aapl.name, 'Apple Inc.');
-      expect(aapl.exchange, 'NMS');
-      expect(
-        aapl.logoUrl,
-        'https://www.google.com/s2/favicons?domain=www.apple.com&sz=128',
-      );
-      expect(stocks.last.logoUrl, isNull, reason: 'no website in profile');
-    });
-
-    test('caches profile lookups across searches', () async {
-      final yahoo = searchFake();
-      final client = yahoo.client();
-      final repo = YahooSearchRepository(client, YahooCompanyProfiles(client));
-
-      await repo.search('apple');
-      await repo.search('apple');
-
-      expect(yahoo.summaryCallsBySymbol['AAPL'], 1);
-    });
-  });
-
   group('YahooClient', () {
     test('spaces consecutive requests by the minimum interval', () async {
-      final yahoo = _FakeYahoo(searchResults: const []);
+      final yahoo = _FakeYahoo(
+        chartBaselines: const {'AAPL:1d': 271.86, '^GSPC:1d': 6900.0},
+      );
       final waits = <Duration>[];
       final frozen = DateTime.utc(2026, 7, 2, 12);
       final client = YahooClient(
@@ -566,10 +483,10 @@ void main() {
         now: () => frozen,
         wait: (duration) async => waits.add(duration),
       );
-      final repo = YahooSearchRepository(client, YahooCompanyProfiles(client));
+      final repo = YahooQuoteRepository(client);
 
-      await repo.search('a');
-      await repo.search('b');
+      await repo.chart('AAPL', ChartRange.day);
+      await repo.chart('^GSPC', ChartRange.day);
 
       expect(waits, [const Duration(milliseconds: 400)]);
     });

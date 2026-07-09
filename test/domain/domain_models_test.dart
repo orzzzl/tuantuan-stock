@@ -36,14 +36,14 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
-    test('optional zhName and logoUrl participate in equality', () {
+    test('optional zhName and logoAsset participate in equality', () {
       const bare = Stock(symbol: 'AAPL', name: 'Apple Inc.', exchange: 'NMS');
       const branded = Stock(
         symbol: 'AAPL',
         name: 'Apple Inc.',
         zhName: 'apple-zh',
         exchange: 'NMS',
-        logoUrl: 'https://example.com/aapl.png',
+        logoAsset: 'assets/logos/aapl.png',
       );
       expect(bare, isNot(branded));
     });

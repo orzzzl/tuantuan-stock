@@ -43,13 +43,13 @@ class YahooClient {
   DateTime? _lastRequestAt;
 
   /// Tail of the request queue: all requests are serialized so the
-  /// minimum-interval guard holds even for concurrent callers (e.g. logo
-  /// lookups fanned out over search results).
+  /// minimum-interval guard holds even for concurrent callers (e.g. YTD
+  /// baseline charts fanned out over a quote batch).
   Future<void> _queueTail = Future.value();
 
   /// Fetches [uri] and decodes the JSON object body. [authenticated] appends
-  /// the cached crumb and cookie (v7 quote, v10 quoteSummary); on a 401 the
-  /// credentials are refreshed once and the request retried.
+  /// the cached crumb and cookie (v7 quote); on a 401 the credentials are
+  /// refreshed once and the request retried.
   Future<Map<String, Object?>> getJson(
     Uri uri, {
     bool authenticated = false,
