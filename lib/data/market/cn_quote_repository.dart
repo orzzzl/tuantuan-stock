@@ -19,7 +19,7 @@ import 'package:tuantuan_stock/domain/repositories/quote_repository.dart';
 ///
 /// Percent-convention audit (task 17): Tencent field 32 and Sina field 22
 /// deliver PERCENT POINTS (`-0.64` means −0.64%) — the same convention as
-/// the v0.1 Yahoo fields and as [Quote.dayChangePct]/[Quote.extChangePct],
+/// the v0.1 provider fields and as [Quote.dayChangePct]/[Quote.extChangePct],
 /// whose consumers divide by 100 before `formatPercent`. Do not rescale.
 class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
   CnQuoteRepository(this._client, {this._cache, DateTime Function()? now})

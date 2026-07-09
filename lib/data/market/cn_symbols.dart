@@ -28,7 +28,7 @@ String? sinaQuoteSymbol(String appSymbol) =>
 String appSymbolFromSuggest(String suggestSymbol) =>
     suggestSymbol.replaceAll(r'$', '.').toUpperCase();
 
-/// The app's canonical exchange code (Yahoo-era spelling, see
+/// The app's canonical exchange code (v0.1-era spelling, see
 /// `Stock.exchange`) for a Tencent full-code suffix: `.OQ` NASDAQ, `.N`
 /// NYSE, `.AM` NYSE American/Arca. Indices (`.DJI`) have no exchange.
 String exchangeFromTencentFullCode(String fullCode) {

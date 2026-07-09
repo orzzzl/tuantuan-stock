@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
-import 'package:tuantuan_stock/data/market/yahoo_quote_repository.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
 import 'package:tuantuan_stock/domain/models/chart_series.dart';
@@ -17,6 +16,9 @@ enum WatchlistSort { dayChange, marketCap, ytd }
 final watchlistSortProvider = StateProvider<WatchlistSort>(
   (ref) => WatchlistSort.dayChange,
 );
+
+/// The index-strip symbols — real indices, no ETF proxies (04 report).
+const indexStripSymbols = ['^GSPC', '^IXIC', '^DJI'];
 
 /// Index-strip quotes (^GSPC / ^IXIC / ^DJI), independent of the watchlist.
 final indexStripQuotesProvider = StreamProvider<CachedQuoteBatch>(
