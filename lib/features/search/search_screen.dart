@@ -194,7 +194,10 @@ class _ResultsView extends ConsumerWidget {
                     for (final stock in stocks)
                       (
                         stock: stock,
-                        title: localizations.stockTitle(stock, stock.symbol),
+                        title: localizations.stockFullTitle(
+                          stock,
+                          stock.symbol,
+                        ),
                         subtitle: localizations.stockSubtitle(
                           stock,
                           stock.symbol,
