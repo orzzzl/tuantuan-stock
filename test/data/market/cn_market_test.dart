@@ -175,6 +175,17 @@ void main() {
       );
     });
 
+    test('utcToEastern restores the Eastern wall clock', () {
+      expect(
+        utcToEastern(DateTime.utc(2026, 7, 7, 20, 0, 1)),
+        DateTime.utc(2026, 7, 7, 16, 0, 1),
+      );
+      expect(
+        utcToEastern(DateTime.utc(2026, 1, 15, 17, 0, 0)),
+        DateTime.utc(2026, 1, 15, 12, 0, 0),
+      );
+    });
+
     test('DST flips on the 2026 US boundaries', () {
       // 2026: DST starts Mar 8 02:00, ends Nov 1 02:00.
       expect(

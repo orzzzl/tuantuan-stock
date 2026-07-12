@@ -141,6 +141,28 @@ void main() {
     expect(riderState(tester), PlaneRiderState.climbing);
   });
 
+  testWidgets(
+    'empty day chart keeps the day-axis plane instead of empty copy',
+    (tester) async {
+      await pumpDetail(
+        tester,
+        seriesByRange: {ChartRange.day: _series(baseline: 100, closes: [])},
+      );
+
+      final chart = skyChart(tester);
+      expect(
+        chart.dayAxis?.preMarketLabel,
+        localizations.preMarketSessionLabel,
+      );
+      expect(
+        chart.dayAxis?.postMarketLabel,
+        localizations.postMarketSessionLabel,
+      );
+      expect(find.text(localizations.chartEmptyLabel), findsNothing);
+      expect(riderState(tester), PlaneRiderState.climbing);
+    },
+  );
+
   testWidgets('range switch reloads, re-baselines, and re-labels everything', (
     tester,
   ) async {

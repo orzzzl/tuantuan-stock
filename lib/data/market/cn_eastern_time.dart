@@ -20,6 +20,14 @@ DateTime easternToUtc(DateTime wall) {
   return components.add(Duration(hours: _isEasternDst(components) ? 4 : 5));
 }
 
+/// Converts a UTC instant to its US-Eastern wall-clock components.
+DateTime utcToEastern(DateTime instant) {
+  final utc = instant.toUtc();
+  final daylightWall = utc.subtract(const Duration(hours: 4));
+  if (_isEasternDst(daylightWall)) return daylightWall;
+  return utc.subtract(const Duration(hours: 5));
+}
+
 /// Minutes since Eastern midnight of a Sina `MMM dd hh:mmA z` timestamp, or
 /// null when unparseable — the pre/post window test for the extended chip.
 int? easternMinutesOfDay(String timestamp) {

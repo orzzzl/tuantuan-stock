@@ -18,6 +18,7 @@ import 'package:tuantuan_stock/l10n/localized_sets.dart';
 /// Rider pose from the line tip: below the waterline it drowns (adorably);
 /// above it the last segment's slope picks climbing vs diving.
 PlaneRiderState riderStateFor(List<Candle> candles, double baseline) {
+  if (candles.isEmpty) return PlaneRiderState.climbing;
   final tip = candles.last.close;
   if (tip < baseline) return PlaneRiderState.underwater;
   if (candles.length >= 2 && tip < candles[candles.length - 2].close) {
@@ -449,7 +450,19 @@ class _ChartCard extends ConsumerWidget {
             ),
           ),
           data: (series) {
-            if (series.candles.length < 2) {
+            final dayAxis = range == ChartRange.day
+                ? DayAxisChartConfig(
+                    now: DateTime.now().toUtc(),
+                    preMarketLabel: localizations.preMarketSessionLabel,
+                    postMarketLabel: localizations.postMarketSessionLabel,
+                  )
+                : null;
+            final chartCandles = [
+              ...series.preMarketCandles,
+              ...series.candles,
+              ...series.postMarketCandles,
+            ];
+            if (chartCandles.length < 2 && dayAxis == null) {
               return Center(
                 child: Text(
                   localizations.chartEmptyLabel,
@@ -460,17 +473,24 @@ class _ChartCard extends ConsumerWidget {
                 ),
               );
             }
-            final up = series.candles.last.close >= series.baseline;
+            final direction = chartCandles.isEmpty
+                ? ChartDirection.flat
+                : chartCandles.last.close >= series.baseline
+                ? ChartDirection.up
+                : ChartDirection.down;
             return SkyChart(
               candles: series.candles,
+              preMarketCandles: series.preMarketCandles,
+              postMarketCandles: series.postMarketCandles,
               baseline: series.baseline,
-              direction: up ? ChartDirection.up : ChartDirection.down,
+              direction: direction,
+              dayAxis: dayAxis,
               height: 224,
               anchorBuilder: (context, tipAnchor) => Positioned(
                 left: tipAnchor.dx - 28,
                 top: tipAnchor.dy - 40,
                 child: PlaneRider(
-                  state: riderStateFor(series.candles, series.baseline),
+                  state: riderStateFor(chartCandles, series.baseline),
                   size: 52,
                 ),
               ),

@@ -2,12 +2,68 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:tuantuan_stock/app/cute_palette.dart';
+import 'package:tuantuan_stock/data/market/cn_eastern_time.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
 
 enum ChartDirection { up, down, flat }
 
 typedef SkyChartAnchorBuilder =
     Widget Function(BuildContext context, Offset tipAnchor);
+
+class DayAxisChartConfig {
+  const DayAxisChartConfig({
+    required this.now,
+    required this.preMarketLabel,
+    required this.postMarketLabel,
+  });
+
+  static const preMarketStartMinute = 4 * 60;
+  static const regularStartMinute = 9 * 60 + 30;
+  static const regularEndMinute = 16 * 60;
+  static const postMarketEndMinute = 20 * 60;
+
+  static const preMarketWidth = 0.15;
+  static const regularWidth = 0.70;
+  static const postMarketWidth = 0.15;
+
+  final DateTime now;
+  final String preMarketLabel;
+  final String postMarketLabel;
+
+  double xForInstant(DateTime instant, Size size) {
+    final eastern = utcToEastern(instant);
+    return xForEasternMinutes(eastern.hour * 60 + eastern.minute, size);
+  }
+
+  static double xForEasternMinutes(num minutes, Size size) {
+    final clamped = minutes
+        .clamp(preMarketStartMinute, postMarketEndMinute)
+        .toDouble();
+    final fraction = switch (clamped) {
+      <= regularStartMinute =>
+        (clamped - preMarketStartMinute) /
+            (regularStartMinute - preMarketStartMinute) *
+            preMarketWidth,
+      <= regularEndMinute =>
+        preMarketWidth +
+            (clamped - regularStartMinute) /
+                (regularEndMinute - regularStartMinute) *
+                regularWidth,
+      _ =>
+        preMarketWidth +
+            regularWidth +
+            (clamped - regularEndMinute) /
+                (postMarketEndMinute - regularEndMinute) *
+                postMarketWidth,
+    };
+    return size.width * fraction;
+  }
+
+  List<double> zoneDividers(Size size) => [
+    size.width * preMarketWidth,
+    size.width * (preMarketWidth + regularWidth),
+  ];
+}
 
 class SkyChart extends StatelessWidget {
   const SkyChart({
@@ -16,13 +72,19 @@ class SkyChart extends StatelessWidget {
     required this.baseline,
     required this.direction,
     this.height = 220,
+    this.preMarketCandles = const [],
+    this.postMarketCandles = const [],
+    this.dayAxis,
     this.anchorBuilder,
   });
 
   final List<Candle> candles;
+  final List<Candle> preMarketCandles;
+  final List<Candle> postMarketCandles;
   final double baseline;
   final ChartDirection direction;
   final double height;
+  final DayAxisChartConfig? dayAxis;
   final SkyChartAnchorBuilder? anchorBuilder;
 
   @override
@@ -38,8 +100,11 @@ class SkyChart extends StatelessWidget {
           final size = Size(width, height);
           final geometry = SkyChartGeometry.resolve(
             candles: candles,
+            preMarketCandles: preMarketCandles,
+            postMarketCandles: postMarketCandles,
             baseline: baseline,
             size: size,
+            dayAxis: dayAxis,
           );
 
           return Stack(
@@ -49,8 +114,11 @@ class SkyChart extends StatelessWidget {
                 child: CustomPaint(
                   painter: SkyChartPainter(
                     candles: candles,
+                    preMarketCandles: preMarketCandles,
+                    postMarketCandles: postMarketCandles,
                     baseline: baseline,
                     direction: direction,
+                    dayAxis: dayAxis,
                   ),
                 ),
               ),
@@ -94,6 +162,8 @@ class SkyChartGeometry {
     required this.baselineY,
     required this.maxAbsPercent,
     required this.points,
+    required this.zoneDividersX,
+    this.tipAnchorOverride,
   });
 
   static const fallbackWidth = 320.0;
@@ -104,8 +174,12 @@ class SkyChartGeometry {
   final double baselineY;
   final double maxAbsPercent;
   final List<Offset> points;
+  final List<double> zoneDividersX;
+  final Offset? tipAnchorOverride;
 
   Offset get tipAnchor {
+    final override = tipAnchorOverride;
+    if (override != null) return override;
     if (points.isEmpty) {
       return Offset(size.width / 2, baselineY);
     }
@@ -115,9 +189,23 @@ class SkyChartGeometry {
 
   static SkyChartGeometry resolve({
     required List<Candle> candles,
+    List<Candle> preMarketCandles = const [],
+    List<Candle> postMarketCandles = const [],
     required double baseline,
     required Size size,
+    DayAxisChartConfig? dayAxis,
   }) {
+    if (dayAxis != null) {
+      return _resolveDayAxis(
+        candles: candles,
+        preMarketCandles: preMarketCandles,
+        postMarketCandles: postMarketCandles,
+        baseline: baseline,
+        size: size,
+        dayAxis: dayAxis,
+      );
+    }
+
     final baselineY = size.height / 2;
     final closes = candles
         .map((candle) => candle.close)
@@ -130,6 +218,7 @@ class SkyChartGeometry {
         baselineY: baselineY,
         maxAbsPercent: minScalePercent,
         points: const [],
+        zoneDividersX: const [],
       );
     }
 
@@ -166,6 +255,69 @@ class SkyChartGeometry {
       baselineY: baselineY,
       maxAbsPercent: maxAbsPercent,
       points: points,
+      zoneDividersX: const [],
+    );
+  }
+
+  static SkyChartGeometry _resolveDayAxis({
+    required List<Candle> candles,
+    required List<Candle> preMarketCandles,
+    required List<Candle> postMarketCandles,
+    required double baseline,
+    required Size size,
+    required DayAxisChartConfig dayAxis,
+  }) {
+    final baselineY = size.height / 2;
+    final zoneDividersX = dayAxis.zoneDividers(size);
+    final emptyAnchor = Offset(
+      dayAxis.xForInstant(dayAxis.now, size),
+      baselineY,
+    );
+    final allCandles = [...preMarketCandles, ...candles, ...postMarketCandles];
+    final validCandles = allCandles
+        .where((candle) => candle.close.isFinite)
+        .toList(growable: false);
+
+    if (validCandles.isEmpty || !baseline.isFinite || baseline <= 0) {
+      return SkyChartGeometry(
+        size: size,
+        baselineY: baselineY,
+        maxAbsPercent: minScalePercent,
+        points: const [],
+        zoneDividersX: zoneDividersX,
+        tipAnchorOverride: emptyAnchor,
+      );
+    }
+
+    final maxAbsPercent = math.max(
+      minScalePercent,
+      validCandles
+          .map((candle) => ((candle.close - baseline) / baseline).abs())
+          .fold<double>(0, math.max),
+    );
+    final topReach = math.max(0, baselineY - chartPadding.top);
+    final bottomReach = math.max(
+      0,
+      size.height - baselineY - chartPadding.bottom,
+    );
+    final verticalReach = math.min(topReach, bottomReach);
+    final points = [
+      for (final candle in validCandles)
+        Offset(
+          dayAxis.xForInstant(candle.time, size),
+          baselineY -
+              ((candle.close - baseline) / baseline) /
+                  maxAbsPercent *
+                  verticalReach,
+        ),
+    ]..sort((a, b) => a.dx.compareTo(b.dx));
+
+    return SkyChartGeometry(
+      size: size,
+      baselineY: baselineY,
+      maxAbsPercent: maxAbsPercent,
+      points: points,
+      zoneDividersX: zoneDividersX,
     );
   }
 }
@@ -173,20 +325,29 @@ class SkyChartGeometry {
 class SkyChartPainter extends CustomPainter {
   const SkyChartPainter({
     required this.candles,
+    this.preMarketCandles = const [],
+    this.postMarketCandles = const [],
     required this.baseline,
     required this.direction,
+    this.dayAxis,
   });
 
   final List<Candle> candles;
+  final List<Candle> preMarketCandles;
+  final List<Candle> postMarketCandles;
   final double baseline;
   final ChartDirection direction;
+  final DayAxisChartConfig? dayAxis;
 
   @override
   void paint(Canvas canvas, Size size) {
     final geometry = SkyChartGeometry.resolve(
       candles: candles,
+      preMarketCandles: preMarketCandles,
+      postMarketCandles: postMarketCandles,
       baseline: baseline,
       size: size,
+      dayAxis: dayAxis,
     );
     final clip = RRect.fromRectAndRadius(
       Offset.zero & size,
@@ -199,6 +360,9 @@ class SkyChartPainter extends CustomPainter {
     _drawSky(canvas, size, geometry.baselineY);
     _drawWater(canvas, size, geometry.baselineY);
     _drawBaseline(canvas, size, geometry.baselineY);
+    if (dayAxis case final dayAxis?) {
+      _drawDayAxisZones(canvas, size, geometry, dayAxis);
+    }
 
     if (geometry.points.length >= 2) {
       _drawGainFill(canvas, size, geometry);
@@ -212,8 +376,65 @@ class SkyChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(SkyChartPainter oldDelegate) {
     return oldDelegate.candles != candles ||
+        oldDelegate.preMarketCandles != preMarketCandles ||
+        oldDelegate.postMarketCandles != postMarketCandles ||
         oldDelegate.baseline != baseline ||
-        oldDelegate.direction != direction;
+        oldDelegate.direction != direction ||
+        oldDelegate.dayAxis != dayAxis;
+  }
+
+  void _drawDayAxisZones(
+    Canvas canvas,
+    Size size,
+    SkyChartGeometry geometry,
+    DayAxisChartConfig dayAxis,
+  ) {
+    final dividerPaint = Paint()
+      ..color = CuteColors.borderSoft
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    for (final x in geometry.zoneDividersX) {
+      canvas.drawLine(
+        Offset(x, SkyChartGeometry.chartPadding.top / 2),
+        Offset(x, size.height - SkyChartGeometry.chartPadding.bottom / 2),
+        dividerPaint,
+      );
+    }
+
+    _drawZoneLabel(
+      canvas,
+      size,
+      dayAxis.preMarketLabel,
+      size.width * DayAxisChartConfig.preMarketWidth / 2,
+    );
+    _drawZoneLabel(
+      canvas,
+      size,
+      dayAxis.postMarketLabel,
+      size.width *
+          (DayAxisChartConfig.preMarketWidth +
+              DayAxisChartConfig.regularWidth +
+              DayAxisChartConfig.postMarketWidth / 2),
+    );
+  }
+
+  void _drawZoneLabel(Canvas canvas, Size size, String label, double centerX) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(
+          color: CuteColors.textSubtle,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: math.max(0, size.width));
+    final dx = (centerX - painter.width / 2)
+        .clamp(4.0, math.max(4.0, size.width - painter.width - 4))
+        .toDouble();
+    painter.paint(canvas, Offset(dx, 10));
   }
 
   void _drawBackdrop(Canvas canvas, Size size, double baselineY) {
