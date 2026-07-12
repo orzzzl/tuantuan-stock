@@ -141,6 +141,8 @@ Stream<CachedQuoteBatch> _quoteSnapshotBatches(
       interval: (latest) => watchlistQuotesRefreshInterval(
         latest?.quotes.values ?? const Iterable<Quote>.empty(),
       ),
+      nullIntervalDelay: (_) =>
+          closedSessionRefreshDelay(ref.read(liveRefreshClockProvider)()),
       fetchImmediately: false,
     );
   } on Object {
@@ -152,6 +154,8 @@ Stream<CachedQuoteBatch> _quoteSnapshotBatches(
       interval: (latest) => watchlistQuotesRefreshInterval(
         latest?.quotes.values ?? const Iterable<Quote>.empty(),
       ),
+      nullIntervalDelay: (_) =>
+          closedSessionRefreshDelay(ref.read(liveRefreshClockProvider)()),
       fetchImmediately: false,
     );
   }

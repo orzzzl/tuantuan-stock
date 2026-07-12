@@ -54,7 +54,7 @@ Stream<T> livePollingStream<T>({
       if (base == null) {
         final idleDelay = nullIntervalDelay?.call(value);
         if (idleDelay == null) return;
-        delay = idleDelay.isNegative ? Duration.zero : idleDelay;
+        delay = immediate || idleDelay.isNegative ? Duration.zero : idleDelay;
       } else {
         delay = immediate
             ? Duration.zero

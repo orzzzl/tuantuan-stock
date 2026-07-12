@@ -44,7 +44,7 @@ Duration closedSessionRefreshDelay(DateTime now) {
   if (_isWeekday(eastern) &&
       minutes >= _liveSessionStartMinute &&
       minutes < _liveSessionEndMinute) {
-    return Duration.zero;
+    return extendedSessionRefreshInterval;
   }
 
   final nextStart = _nextLiveSessionStart(eastern);

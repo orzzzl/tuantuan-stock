@@ -117,6 +117,27 @@ void main() {
     expect(repository.quoteCalls, 2);
   });
 
+  testWidgets('closed detail quote uses a bounded in-window probe cadence', (
+    tester,
+  ) async {
+    final repository = _PollingQuoteRepository(
+      quoteSession: MarketSession.closed,
+    );
+    final weekdayNoon = easternToUtc(DateTime.utc(2026, 7, 13, 12));
+
+    await _pumpDetailQuoteProbe(tester, repository, clock: () => weekdayNoon);
+
+    expect(repository.quoteCalls, 1);
+
+    await tester.pump(extendedSessionRefreshInterval);
+    await tester.pump();
+    expect(repository.quoteCalls, 2);
+
+    await tester.pump(const Duration(minutes: 2));
+    await tester.pump();
+    expect(repository.quoteCalls, 6);
+  });
+
   testWidgets('polling pauses while backgrounded and resumes on foreground', (
     tester,
   ) async {
