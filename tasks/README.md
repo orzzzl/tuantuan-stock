@@ -53,7 +53,7 @@ fallback), and the first paint must be fast regardless of provider.
 | 20 | [Persistent market cache](v0.2/20-persistent-market-cache.md) | DONE (Codex, PR #22) | 19 |
 | 21 | [China-safe logos](v0.2/21-china-safe-logos.md) | DONE (Claude, PR #24) | 16, 17 |
 | 22 | [Bundled fonts](v0.2/22-bundled-fonts.md) | DONE (Codex, PR #21) | — |
-| 23 | [Yahoo removal + on-device verification](v0.2/23-yahoo-removal.md) | CODE MERGED (Claude, PR #26) — awaiting owner device verification (US + China) | 17, 18, 20, 21 |
+| 23 | [Yahoo removal + on-device verification](v0.2/23-yahoo-removal.md) | DONE (Claude, PR #26; US verified by owner 2026-07-12, China check deferred as non-blocking) | 17, 18, 20, 21 |
 
 ## Order of attack (v0.2)
 
@@ -63,3 +63,14 @@ fallback), and the first paint must be fast regardless of provider.
 - **Speed track:** 19 → 20 (20 builds on 19's provider restructure).
 - **Last:** 23 sweeps Yahoo out and gates on real-device checks in both the US and
   China (the two original reports are the acceptance test).
+
+## v0.3 — live data
+
+Owner report (2026-07-12): during regular hours the chart looks like a static image
+while every other stock app shows the intraday line moving, and pre/post-market
+numbers never update either. Root cause: every quote/chart provider is a one-shot
+`FutureProvider` — nothing in the app re-polls.
+
+| #  | Task | Status | Blocked by |
+|----|------|--------|-----------|
+| 24 | [Session-aware auto-refresh (quotes + intraday chart)](v0.3/24-session-aware-auto-refresh.md) | READY | — |
