@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:tuantuan_stock/core/app_lifecycle.dart';
+import 'package:tuantuan_stock/core/live_polling.dart';
+import 'package:tuantuan_stock/data/market/cn_eastern_time.dart';
 import 'package:tuantuan_stock/data/market/live_market_refresh.dart';
 import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
@@ -76,14 +78,43 @@ void main() {
     final repository = _PollingQuoteRepository(
       quoteSession: MarketSession.closed,
     );
+    final sundayNoon = easternToUtc(DateTime.utc(2026, 7, 12, 12));
 
-    await _pumpDetailQuoteProbe(tester, repository);
+    await _pumpDetailQuoteProbe(tester, repository, clock: () => sundayNoon);
 
     expect(repository.quoteCalls, 1);
 
     await tester.pump(const Duration(minutes: 5));
     await tester.pump();
     expect(repository.quoteCalls, 1);
+  });
+
+  testWidgets('closed detail quote wakes at the next live session boundary', (
+    tester,
+  ) async {
+    final repository = _SequencedQuoteRepository([
+      _quote(price: 100, session: MarketSession.closed),
+      _quote(price: 101, session: MarketSession.pre),
+    ]);
+    final preMarketMinusOneMinute = easternToUtc(
+      DateTime.utc(2026, 7, 13, 3, 59),
+    );
+
+    await _pumpDetailQuoteProbe(
+      tester,
+      repository,
+      clock: () => preMarketMinusOneMinute,
+    );
+
+    expect(repository.quoteCalls, 1);
+
+    await tester.pump(const Duration(seconds: 59));
+    await tester.pump();
+    expect(repository.quoteCalls, 1);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(repository.quoteCalls, 2);
   });
 
   testWidgets('polling pauses while backgrounded and resumes on foreground', (
@@ -106,6 +137,24 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1));
     await tester.pump();
     expect(repository.quoteCalls, 2);
+  });
+
+  testWidgets('detail quote provider stops polling after it is unmounted', (
+    tester,
+  ) async {
+    final repository = _PollingQuoteRepository(
+      quoteSession: MarketSession.regular,
+    );
+
+    await _pumpDetailQuoteProbe(tester, repository);
+
+    expect(repository.quoteCalls, 1);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pump(detailQuoteRegularRefreshInterval);
+    await tester.pump();
+    expect(repository.quoteCalls, 1);
   });
 
   testWidgets('watchlist batch uses 10s regular and 30s extended cadence', (
@@ -224,12 +273,16 @@ void main() {
 
 Future<void Function(AppLifecycleState)> _pumpDetailQuoteProbe(
   WidgetTester tester,
-  QuoteRepository repository,
-) async {
+  QuoteRepository repository, {
+  DateTime Function()? clock,
+}) async {
   late void Function(AppLifecycleState) setLifecycle;
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [quoteRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        quoteRepositoryProvider.overrideWithValue(repository),
+        if (clock != null) liveRefreshClockProvider.overrideWithValue(clock),
+      ],
       child: Consumer(
         builder: (context, ref, child) {
           setLifecycle = (state) =>

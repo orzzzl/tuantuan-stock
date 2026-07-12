@@ -6,12 +6,16 @@ import 'package:tuantuan_stock/core/app_lifecycle.dart';
 
 const liveRefreshMaxBackoffInterval = Duration(minutes: 5);
 
+final liveRefreshClockProvider = Provider<DateTime Function()>(
+  (ref) => DateTime.now,
+);
+
 Stream<T> livePollingStream<T>({
   required Ref ref,
   required Future<T> Function() fetch,
   required Duration? Function(T? latestValue) interval,
+  Duration? Function(T? latestValue)? nullIntervalDelay,
   T? seed,
-  bool emitSeed = false,
   bool fetchImmediately = true,
   List<ProviderListenable<Object?>> rescheduleWhen = const [],
 }) {
@@ -45,13 +49,19 @@ Stream<T> livePollingStream<T>({
     if (immediate && !hasValue) {
       delay = Duration.zero;
     } else {
-      final base = interval(hasValue ? latestValue : null);
-      if (base == null) return;
-      delay = immediate
-          ? Duration.zero
-          : consecutiveFailures == 0
-          ? base
-          : backoff(base);
+      final value = hasValue ? latestValue : null;
+      final base = interval(value);
+      if (base == null) {
+        final idleDelay = nullIntervalDelay?.call(value);
+        if (idleDelay == null) return;
+        delay = idleDelay.isNegative ? Duration.zero : idleDelay;
+      } else {
+        delay = immediate
+            ? Duration.zero
+            : consecutiveFailures == 0
+            ? base
+            : backoff(base);
+      }
     }
     timer = Timer(delay, () {
       unawaited(runFetch());
@@ -99,7 +109,6 @@ Stream<T> livePollingStream<T>({
 
   controller = StreamController<T>(
     onListen: () {
-      if (emitSeed && hasValue) controller.add(latestValue as T);
       schedule(immediate: fetchImmediately);
     },
     onCancel: () {

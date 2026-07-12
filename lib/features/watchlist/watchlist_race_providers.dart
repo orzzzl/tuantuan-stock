@@ -132,15 +132,7 @@ Stream<CachedQuoteBatch> _quoteSnapshotBatches(
   }
 
   try {
-    final fresh = await _quoteSnapshots(ref, symbols);
-    final fetchedAt = DateTime.now().toUtc();
-    await cache.writeQuoteSnapshots(fresh, fetchedAt);
-    cache.hasServedFreshQuotes = true;
-    final freshBatch = CachedQuoteBatch(
-      quotes: fresh,
-      fetchedAt: fetchedAt,
-      isStale: false,
-    );
+    final freshBatch = await _freshQuoteSnapshotBatch(ref, symbols);
     yield freshBatch;
     yield* livePollingStream(
       ref: ref,
