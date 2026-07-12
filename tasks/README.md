@@ -73,4 +73,5 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
-| 24 | [Session-aware auto-refresh (quotes + intraday chart)](v0.3/24-session-aware-auto-refresh.md) | READY | — |
+| 24 | [Session-aware auto-refresh (quotes + intraday chart)](v0.3/24-session-aware-auto-refresh.md) | READY (assigned: Codex) | — |
+| 25 | [Short display names (recognizable list at a glance)](v0.3/25-short-display-names.md) | READY (assigned: Claude) | — |
