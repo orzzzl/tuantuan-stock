@@ -73,7 +73,7 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
-| 24 | [Session-aware auto-refresh (quotes + intraday chart)](v0.3/24-session-aware-auto-refresh.md) | READY (assigned: Codex) | — |
+| 24 | [Session-aware auto-refresh (quotes + intraday chart)](v0.3/24-session-aware-auto-refresh.md) | DONE (Codex, PR #27; manual market-open check deferred to Monday) | — |
 | 25 | [Short display names (recognizable list at a glance)](v0.3/25-short-display-names.md) | DONE (Claude, PR #28) | — |
 | 26 | [1D chart: fixed day axis + 盘前/盘后 zones, 团团 flies left→right](v0.3/26-day-progress-chart.md) | DONE (Codex, PR #29) | — |
 | 27 | [Extended-hours chart data (spike + fill 26's zones)](v0.3/27-extended-hours-chart-data.md) | BLOCKED | 24, 26 |
