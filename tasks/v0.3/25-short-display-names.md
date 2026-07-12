@@ -1,7 +1,7 @@
 # 25 — Short display names: the list is recognizable at a glance
 
-- **Status:** READY
-- **Owner:** —
+- **Status:** IN PROGRESS
+- **Owner:** Claude
 - **Blocked by:** —
 - **Allowed new deps:** none
 

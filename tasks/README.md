@@ -74,7 +74,7 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
 | 24 | [Session-aware auto-refresh (quotes + intraday chart)](v0.3/24-session-aware-auto-refresh.md) | READY (assigned: Codex) | — |
-| 25 | [Short display names (recognizable list at a glance)](v0.3/25-short-display-names.md) | READY (assigned: Claude) | — |
+| 25 | [Short display names (recognizable list at a glance)](v0.3/25-short-display-names.md) | IN PROGRESS (Claude) | — |
 | 26 | [1D chart: fixed day axis + 盘前/盘后 zones, 团团 flies left→right](v0.3/26-day-progress-chart.md) | READY (assigned: Codex, after 24) | — |
 | 27 | [Extended-hours chart data (spike + fill 26's zones)](v0.3/27-extended-hours-chart-data.md) | BLOCKED | 24, 26 |
 
