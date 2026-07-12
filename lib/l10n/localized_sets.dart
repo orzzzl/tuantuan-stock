@@ -1,12 +1,26 @@
 import 'package:intl/intl.dart';
+import 'package:tuantuan_stock/data/market/company_short_names.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
 import 'package:tuantuan_stock/l10n/generated/app_localizations.dart';
 
 extension AppLocalizationSets on AppLocalizations {
-  /// Row title for a stock identity (task 17): a Chinese locale leads with
-  /// the provider's Chinese name when it knows one; other locales keep the
-  /// English name. [fallback] (the ticker) covers a missing identity.
+  /// Row/header title for a stock identity (task 25): the curated colloquial
+  /// short name when the symbol is mapped, else the provider name with legal
+  /// boilerplate conservatively stripped, so titles read at a glance instead
+  /// of truncating. [fallback] (the ticker) covers a missing identity.
   String stockTitle(Stock? stock, String fallback) {
+    if (stock == null) return fallback;
+    final curated = companyShortName(stock.symbol);
+    if (curated != null) return _isChinese ? curated.zh : curated.en;
+    final zhName = stock.zhName;
+    return _isChinese && zhName != null
+        ? shortenCompanyName(zhName, chinese: true)
+        : shortenCompanyName(stock.name, chinese: false);
+  }
+
+  /// Full provider name (the pre-task-25 [stockTitle]): search results keep
+  /// the legal name — it helps disambiguation there.
+  String stockFullTitle(Stock? stock, String fallback) {
     if (stock == null) return fallback;
     return _isChinese ? (stock.zhName ?? stock.name) : stock.name;
   }

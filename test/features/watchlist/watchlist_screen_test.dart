@@ -121,7 +121,7 @@ void main() {
       },
     );
 
-    expect(find.text('Alpha Inc'), findsOneWidget);
+    expect(find.text('Alpha'), findsOneWidget);
     expect(
       inRow('AAA', '阿尔法 · ${localizations.ytdRankLabel(2)}'),
       findsOneWidget,
@@ -190,7 +190,7 @@ void main() {
       });
       await tester.pumpAndSettle();
 
-      expect(find.text('Alpha Inc'), findsOneWidget);
+      expect(find.text('Alpha'), findsOneWidget);
       expect(inRow('AAA', '阿尔法'), findsOneWidget);
       expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'BBB')));
 
