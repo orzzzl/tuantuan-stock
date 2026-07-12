@@ -75,3 +75,13 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 |----|------|--------|-----------|
 | 24 | [Session-aware auto-refresh (quotes + intraday chart)](v0.3/24-session-aware-auto-refresh.md) | READY (assigned: Codex) | — |
 | 25 | [Short display names (recognizable list at a glance)](v0.3/25-short-display-names.md) | READY (assigned: Claude) | — |
+| 26 | [1D chart: fixed day axis + 盘前/盘后 zones, 团团 flies left→right](v0.3/26-day-progress-chart.md) | READY (assigned: Codex, after 24) | — |
+| 27 | [Extended-hours chart data (spike + fill 26's zones)](v0.3/27-extended-hours-chart-data.md) | BLOCKED | 24, 26 |
+
+## Order of attack (v0.3)
+
+- **Codex track:** 24 (auto-refresh) → 26 (day-axis chart; geometry stands alone,
+  its pre/post zones start empty).
+- **Claude track:** 25 (short names) → 27 (spike ext-hours minute source; fallback =
+  accumulate from 24's polling into 26's seam).
+- 24 and 25 run in parallel (polling wiring vs identity/presentation — disjoint).
