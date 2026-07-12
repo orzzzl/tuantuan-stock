@@ -1,6 +1,6 @@
 # 25 — Short display names: the list is recognizable at a glance
 
-- **Status:** IN PROGRESS
+- **Status:** DONE (PR #28)
 - **Owner:** Claude
 - **Blocked by:** —
 - **Allowed new deps:** none
