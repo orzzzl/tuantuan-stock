@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuantuan_stock/core/live_polling.dart';
+import 'package:tuantuan_stock/data/market/live_market_refresh.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
 import 'package:tuantuan_stock/domain/models/chart_series.dart';
@@ -7,8 +9,16 @@ import 'package:tuantuan_stock/domain/models/quote.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
 
 /// Snapshot behind the price hero and stats grid.
-final detailQuoteProvider = FutureProvider.family<Quote, String>(
-  (ref, symbol) => ref.watch(quoteRepositoryProvider).quote(symbol),
+final detailQuoteProvider = StreamProvider.family<Quote, String>((ref, symbol) {
+  return livePollingStream(
+    ref: ref,
+    fetch: () => ref.read(quoteRepositoryProvider).quote(symbol),
+    interval: detailQuoteRefreshInterval,
+  );
+});
+
+final _detailQuoteSessionProvider = Provider.family<MarketSession?, String>(
+  (ref, symbol) => ref.watch(detailQuoteProvider(symbol)).valueOrNull?.session,
 );
 
 /// Header identity (name/logo). Decoration only — a failed lookup renders
@@ -27,7 +37,19 @@ final detailStockProvider = FutureProvider.family<Stock?, String>((
 
 /// Candles + baseline for the selected range chip.
 final detailChartProvider =
-    FutureProvider.family<ChartSeries, ({String symbol, ChartRange range})>(
-      (ref, args) =>
-          ref.watch(quoteRepositoryProvider).chart(args.symbol, args.range),
-    );
+    StreamProvider.family<ChartSeries, ({String symbol, ChartRange range})>((
+      ref,
+      args,
+    ) {
+      return livePollingStream(
+        ref: ref,
+        fetch: () =>
+            ref.read(quoteRepositoryProvider).chart(args.symbol, args.range),
+        interval: (_) => args.range == ChartRange.day
+            ? detailDayChartRefreshInterval(
+                ref.read(_detailQuoteSessionProvider(args.symbol)),
+              )
+            : null,
+        rescheduleWhen: [_detailQuoteSessionProvider(args.symbol)],
+      );
+    });

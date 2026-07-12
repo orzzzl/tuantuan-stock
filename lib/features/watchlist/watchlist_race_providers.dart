@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuantuan_stock/core/live_polling.dart';
+import 'package:tuantuan_stock/data/market/live_market_refresh.dart';
 import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
@@ -134,10 +136,45 @@ Stream<CachedQuoteBatch> _quoteSnapshotBatches(
     final fetchedAt = DateTime.now().toUtc();
     await cache.writeQuoteSnapshots(fresh, fetchedAt);
     cache.hasServedFreshQuotes = true;
-    yield CachedQuoteBatch(quotes: fresh, fetchedAt: fetchedAt, isStale: false);
+    final freshBatch = CachedQuoteBatch(
+      quotes: fresh,
+      fetchedAt: fetchedAt,
+      isStale: false,
+    );
+    yield freshBatch;
+    yield* livePollingStream(
+      ref: ref,
+      seed: freshBatch,
+      fetch: () => _freshQuoteSnapshotBatch(ref, symbols),
+      interval: (latest) => watchlistQuotesRefreshInterval(
+        latest?.quotes.values ?? const Iterable<Quote>.empty(),
+      ),
+      fetchImmediately: false,
+    );
   } on Object {
     if (cached == null) rethrow;
+    yield* livePollingStream(
+      ref: ref,
+      seed: cached,
+      fetch: () => _freshQuoteSnapshotBatch(ref, symbols),
+      interval: (latest) => watchlistQuotesRefreshInterval(
+        latest?.quotes.values ?? const Iterable<Quote>.empty(),
+      ),
+      fetchImmediately: false,
+    );
   }
+}
+
+Future<CachedQuoteBatch> _freshQuoteSnapshotBatch(
+  Ref ref,
+  List<String> symbols,
+) async {
+  final cache = ref.read(marketCacheStoreProvider);
+  final fresh = await _quoteSnapshots(ref, symbols);
+  final fetchedAt = DateTime.now().toUtc();
+  await cache.writeQuoteSnapshots(fresh, fetchedAt);
+  cache.hasServedFreshQuotes = true;
+  return CachedQuoteBatch(quotes: fresh, fetchedAt: fetchedAt, isStale: false);
 }
 
 Future<Map<String, Quote>> _quoteSnapshots(Ref ref, List<String> symbols) {
