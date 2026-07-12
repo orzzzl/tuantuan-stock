@@ -113,6 +113,11 @@ Every displayed change % states its session — never let a number be misread:
   v3.1 removed the `0% 昨收` bubble as noise; the waterline itself says it all).
 - Because of extended-hours trading the line's first point can start **above or below**
   the waterline (gap up / gap down) — never assume it starts at 0%.
+- On **1D only**, x is the US-Eastern trading day rather than candle index:
+  04:00–09:30 pre-market occupies 15% of the width, 09:30–16:00 regular
+  session occupies 70%, and 16:00–20:00 after-hours occupies 15%. Subtle
+  vertical dividers mark the 09:30 and 16:00 seams; pre/post labels live inside
+  those zones. Extended-hour zones stay plain sky/water until data is supplied.
 - The price line: **thick rounded stroke** (gradient along its direction color), a candy
   hard offset shadow underneath, and fat white button nodes at sampled points.
 - Sky decorations: dotted cream gridlines; on an up day a small sun ☀️ + cream clouds; on

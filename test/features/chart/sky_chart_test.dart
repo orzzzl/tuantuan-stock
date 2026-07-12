@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tuantuan_stock/data/market/cn_eastern_time.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
 import 'package:tuantuan_stock/features/chart/sky_chart.dart';
 import 'package:tuantuan_stock/l10n/generated/app_localizations.dart';
@@ -94,6 +95,60 @@ void main() {
     });
   }
 
+  test('1D day axis maps Eastern times into locked zone widths', () {
+    const size = Size(100, 100);
+    final geometry = SkyChartGeometry.resolve(
+      preMarketCandles: [_dayCandle(4, 0, 99)],
+      candles: [
+        _dayCandle(9, 30, 100),
+        _dayCandle(12, 45, 101),
+        _dayCandle(16, 0, 102),
+      ],
+      postMarketCandles: [_dayCandle(20, 0, 103)],
+      baseline: baseline,
+      size: size,
+      dayAxis: _dayAxisAt(12, 45),
+    );
+
+    expect(geometry.zoneDividersX, [closeTo(15, 0.001), closeTo(85, 0.001)]);
+    expect(geometry.points.map((point) => point.dx), [
+      closeTo(0, 0.001),
+      closeTo(15, 0.001),
+      closeTo(50, 0.001),
+      closeTo(85, 0.001),
+      closeTo(100, 0.001),
+    ]);
+  });
+
+  test('empty 1D day axis anchors the plane on the current-time baseline', () {
+    const size = Size(100, 100);
+    final geometry = SkyChartGeometry.resolve(
+      candles: const [],
+      baseline: baseline,
+      size: size,
+      dayAxis: _dayAxisAt(12, 45),
+    );
+
+    expect(geometry.points, isEmpty);
+    expect(geometry.tipAnchor.dx, closeTo(50, 0.001));
+    expect(geometry.tipAnchor.dy, size.height / 2);
+  });
+
+  test('default geometry keeps stretch-to-fit behavior for other ranges', () {
+    final geometry = SkyChartGeometry.resolve(
+      candles: _candles([100, 101, 102]),
+      baseline: baseline,
+      size: chartSize,
+    );
+
+    expect(geometry.zoneDividersX, isEmpty);
+    expect(geometry.points.first.dx, SkyChartGeometry.chartPadding.left);
+    expect(
+      geometry.points.last.dx,
+      chartSize.width - SkyChartGeometry.chartPadding.right,
+    );
+  });
+
   testWidgets('MiniSpark renders the compact row variant', (tester) async {
     await tester.pumpWidget(
       _localizedChart(
@@ -125,6 +180,14 @@ Widget _localizedChart(Widget child) {
   );
 }
 
+DayAxisChartConfig _dayAxisAt(int hour, int minute) {
+  return DayAxisChartConfig(
+    now: easternToUtc(DateTime.utc(2026, 7, 2, hour, minute)),
+    preMarketLabel: 'Pre',
+    postMarketLabel: 'Post',
+  );
+}
+
 List<Candle> _candles(List<double> closes) {
   return [
     for (var index = 0; index < closes.length; index += 1)
@@ -136,6 +199,16 @@ List<Candle> _candles(List<double> closes) {
         close: closes[index],
       ),
   ];
+}
+
+Candle _dayCandle(int hour, int minute, double close) {
+  return Candle(
+    time: easternToUtc(DateTime.utc(2026, 7, 2, hour, minute)),
+    open: close,
+    high: close,
+    low: close,
+    close: close,
+  );
 }
 
 class _ChartCase {
