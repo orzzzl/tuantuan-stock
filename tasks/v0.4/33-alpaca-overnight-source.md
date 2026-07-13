@@ -1,8 +1,8 @@
 # 33 — Alpaca overnight quote source
 
-- **Status:** BLOCKED (owner design sign-off on `docs/overnight-design.md`)
-- **Owner:** —
-- **Blocked by:** 32; owner sign-off on the v0.4 design
+- **Status:** BLOCKED (design signed off by owner 2026-07-13; waiting on task 32)
+- **Owner:** Codex
+- **Blocked by:** 32
 - **Allowed new deps:** none (plain `http` + `dart:convert`, same as the CN client)
 
 ## Why

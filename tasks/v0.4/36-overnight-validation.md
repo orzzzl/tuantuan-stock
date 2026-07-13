@@ -1,6 +1,6 @@
 # 36 — Overnight validation pass + fold the locked design into DESIGN.md
 
-- **Status:** BLOCKED (owner design sign-off on `docs/overnight-design.md`)
+- **Status:** BLOCKED (design signed off by owner 2026-07-13; waiting on tasks 32–35)
 - **Owner:** —
 - **Blocked by:** 32, 33, 34, 35
 - **Allowed new deps:** none

@@ -1,8 +1,8 @@
 # 34 — Overnight polling wiring
 
-- **Status:** BLOCKED (owner design sign-off on `docs/overnight-design.md`)
-- **Owner:** —
-- **Blocked by:** 32, 33; owner sign-off on the v0.4 design
+- **Status:** BLOCKED (design signed off by owner 2026-07-13; waiting on tasks 32, 33)
+- **Owner:** Claude
+- **Blocked by:** 32, 33
 - **Allowed new deps:** none
 
 ## Why

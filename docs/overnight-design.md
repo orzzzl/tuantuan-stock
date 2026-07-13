@@ -1,12 +1,13 @@
 # v0.4 overnight session (夜盘) — design proposal
 
-> **Status: PROPOSAL — owner sign-off required before any implementation task
-> starts.** The data source is decided (owner approved both provider-report-v3c §5
-> items on 2026-07-13: the Alpaca Basic account/credential model for the read-only
+> **Status: SIGNED OFF (owner, 2026-07-13) — picked set A1 + B1 + C2.** The data
+> source was already decided (owner approved both provider-report-v3c §5 items on
+> 2026-07-13: the Alpaca Basic account/credential model for the read-only
 > overnight path, and implementation-phase validation of reachability, rate-limit
-> handling, and silent degradation). What still needs an owner pick is the product
-> shape — §4 below presents the options. Once signed off, the locked decisions get
-> folded into `DESIGN.md` (task 36) and tasks 32–35 flip READY.
+> handling, and silent degradation). The §4 product-shape decision is recorded
+> inline below. Tasks 32–36 are unblocked; C2 is authored as follow-up task 37,
+> scheduled after the A1/B1 pipeline lands. The locked decisions get folded into
+> `DESIGN.md` (task 36).
 
 ## 1. What we are building
 
@@ -55,13 +56,22 @@ market data (the data API is the same), but the shipped APK needs a decision:
 
 ## 4. Product shape — OWNER DECISION
 
+> **DECIDED (owner, 2026-07-13): A1 + B1 + C2.** A1 ships with the whole-set
+> i18n label change as proposed (盘前/盘后/夜盘 ↔ Pre / Post / Overnight; 1D zone
+> labels Pre/Night → Pre/Post) — the owner saw it explicitly and raised no
+> objection; it stays vetoable until implemented, so the carrying task must keep
+> it in its own commit (or a clearly separable change). C2 is theming only and
+> is scoped as follow-up task 37, scheduled after the A1/B1 pipeline lands — it
+> must not block or destabilize the data work; C1's "plane parks at the post
+> line" remains the behavior.
+
 Three decisions, each with options and a recommendation. They are independent,
 but the recommended set (A1 + B1 + C1) is designed to fit together as a minimal,
 honest v0.4.
 
 ### 4.1 How overnight appears in the UI
 
-**Option A1 — the 夜盘 chip, no chart drawing (recommended).**
+**Option A1 — the 夜盘 chip, no chart drawing (recommended; PICKED).**
 Extend the existing 盘前/盘后 session-labeling pattern (DESIGN.md "Session
 labeling") with a third state: during the overnight window, watchlist rows show a
 tiny 夜盘 line under the change pill and the detail hero shows a small inline 夜盘
@@ -99,7 +109,7 @@ geometry for a session with thin, indicative liquidity. Listed for completeness.
 
 ### 4.2 Do watchlist rows update during overnight?
 
-**Option B1 — yes, live 夜盘 tags; frozen race (recommended).** Rows keep their
+**Option B1 — yes, live 夜盘 tags; frozen race (recommended; PICKED).** Rows keep their
 day-race order, medals, and official day-change pills exactly as frozen at the
 close; only the 夜盘 tag (and detail hero chip) updates at the overnight cadence.
 The race stays a *daily* race; overnight is commentary, not ranking.
@@ -114,10 +124,13 @@ complaint that started v0.4.
 extended, so the plane keeps parking where the post-market line ended. No new
 art, no new states, nothing to get wrong.
 
-**Option C2 — night dressing (cheap cosmetic bonus).** During the overnight
-window only: the chart's sun/rain decoration swaps to a moon + stars, and 团团
-gets a nightcap. Pure theming keyed off the session state — no geometry changes.
-If wanted, this is a separate small follow-up task, not part of v0.4's gate.
+**Option C2 — night dressing (cheap cosmetic bonus; PICKED).** During the
+overnight window only: the chart's sun/rain decoration swaps to a moon + stars,
+and 团团 gets a nightcap. Pure theming keyed off the session state — no geometry
+changes. Per the owner's pick this is authored as follow-up **task 37**,
+scheduled after the A1/B1 pipeline (tasks 32–35) lands; it is not part of
+v0.4's data-work gate. C1's plane behavior (parks where the post line ends)
+remains in effect.
 
 ## 5. Technical design (applies to any option set)
 
@@ -246,3 +259,4 @@ change to pre/post behavior.
 | 34 | Overnight polling wiring (cadence, lifecycle, batch composition) | 32, 33 |
 | 35 | Overnight UI per the owner-picked option set | 32, 34, sign-off on §4 |
 | 36 | Validation pass + fold locked design into DESIGN.md | 32–35 |
+| 37 | Night dressing (C2 theming follow-up) | 35 |

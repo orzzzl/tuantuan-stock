@@ -1,19 +1,20 @@
-# 35 — Overnight UI (per the owner-picked option set)
+# 35 — Overnight UI (A1 + B1)
 
-- **Status:** BLOCKED (owner pick of `docs/overnight-design.md` §4 + design sign-off)
-- **Owner:** —
-- **Blocked by:** 32, 34; owner decisions §4.1–§4.3
+- **Status:** BLOCKED (design signed off by owner 2026-07-13; waiting on tasks 32, 34)
+- **Owner:** Claude
+- **Blocked by:** 32, 34
 - **Allowed new deps:** none
 
 ## Why
 
 Tasks 32–34 put live overnight values in `Quote` during the BOATS window; this
-task makes them visible. The exact shape is an owner decision
-(`docs/overnight-design.md` §4). **This spec is written for the recommended set
-A1 + B1 + C1** — if the owner picks differently, this file gets amended (and, for
-A2, a mini-chart sub-task split out) before the task flips READY.
+task makes them visible. The owner signed off `docs/overnight-design.md` §4 on
+2026-07-13 with the set **A1 + B1 + C2**: this task implements A1 + B1; C2 (night
+dressing) is follow-up task 37 and must not ride along here. C1's plane behavior
+(parks where the post line ends) remains in effect — this task adds no plane or
+chart-geometry changes.
 
-## Scope (recommended set A1 + B1 + C1)
+## Scope (signed-off set A1 + B1)
 
 - in:
   - Session labeling grows the third state (DESIGN.md "Session labeling"
@@ -29,14 +30,15 @@ A2, a mini-chart sub-task split out) before the task flips READY.
     whole feed unreachable — e.g. mainland China, or a no-key build) simply show
     no 夜盘 line/chip. The app must be visually indistinguishable from pre-v0.4
     in that case.
-  - i18n whole-set change (pending owner OK in §4.1): zh 盘前/盘后/夜盘 ↔ en
-    Pre / Post / Overnight; the 1D chart zone labels follow (Pre/Night →
-    Pre/Post). Both ARB files move together; no mixed sets.
+  - i18n whole-set change (owner-approved 2026-07-13, but vetoable until
+    implemented — keep it in its own commit or a clearly separable change): zh
+    盘前/盘后/夜盘 ↔ en Pre / Post / Overnight; the 1D chart zone labels follow
+    (Pre/Night → Pre/Post). Both ARB files move together; no mixed sets.
   - The 1D chart is otherwise untouched: no overnight drawing, plane keeps
     parking where the post line ends (C1).
-- out: overnight mini-chart (only if the owner picks A2 — split into its own
-  task then), night-theme dressing (C2 — separate follow-up if wanted), index
-  chips, search screen.
+- out: overnight mini-chart (A2 — not picked), night-theme dressing (C2 —
+  picked as follow-up task 37, blocked by this task), index chips, search
+  screen.
 
 ## Acceptance criteria
 
