@@ -1,6 +1,6 @@
 # 28 — ETF short display names (task 25 follow-up)
 
-- **Status:** IN PROGRESS
+- **Status:** DONE (PR #31)
 - **Owner:** Claude
 - **Blocked by:** —
 - **Allowed new deps:** none
