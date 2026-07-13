@@ -1,8 +1,8 @@
 # 32 — Overnight session model + ET window classifier
 
-- **Status:** BLOCKED (owner design sign-off on `docs/overnight-design.md`)
-- **Owner:** —
-- **Blocked by:** owner sign-off on the v0.4 design
+- **Status:** READY (design signed off by owner 2026-07-13: A1 + B1 + C2)
+- **Owner:** Codex
+- **Blocked by:** —
 - **Allowed new deps:** none
 
 ## Why

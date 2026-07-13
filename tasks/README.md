@@ -93,27 +93,33 @@ Owner report (2026-07-12): broker applications show Blue Ocean ATS activity Sund
 night through the week, while the app stays frozen after post-market. Task 29 closed
 the strict, cross-region search with a no-go. The follow-up permits a US-only source,
 but it must degrade silently when unreachable from mainland China. The source
-(Alpaca Basic `overnight` feed) is owner-signed as of 2026-07-13; the remaining gate
-is owner sign-off on the product design, [`docs/overnight-design.md`](../docs/overnight-design.md).
+(Alpaca Basic `overnight` feed) is owner-signed as of 2026-07-13, and the product
+design [`docs/overnight-design.md`](../docs/overnight-design.md) is **signed off
+(owner, 2026-07-13): A1 + B1 + C2** — implementation is unblocked.
 
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
 | 29 | [Provider spike v3: US overnight-session data source](v0.4/29-provider-spike-v3-overnight.md) | DONE (Codex, PR #32; owner signed off 2026-07-12) | — |
 | 30 | [Provider spike v3b: US-only overnight-session data source](v0.4/30-overnight-spike-relaxed.md) | DONE (Codex, PR #33; owner signed off 2026-07-12) | — |
 | 31 | [Provider spike v3c: Alpaca Basic overnight feed](v0.4/31-alpaca-overnight-spike.md) | DONE (Codex; owner signed off 2026-07-13) | — |
-| 32 | [Overnight session model + ET window classifier](v0.4/32-overnight-session-model.md) | BLOCKED (owner design sign-off) | Design sign-off |
-| 33 | [Alpaca overnight quote source](v0.4/33-alpaca-overnight-source.md) | BLOCKED (owner design sign-off) | 32 |
-| 34 | [Overnight polling wiring](v0.4/34-overnight-polling.md) | BLOCKED (owner design sign-off) | 32, 33 |
-| 35 | [Overnight UI (owner-picked option set)](v0.4/35-overnight-ui.md) | BLOCKED (owner picks design §4 + sign-off) | 32, 34 |
-| 36 | [Overnight validation pass + DESIGN.md fold-in](v0.4/36-overnight-validation.md) | BLOCKED (owner design sign-off) | 32–35 |
+| 32 | [Overnight session model + ET window classifier](v0.4/32-overnight-session-model.md) | READY (assigned: Codex) | — |
+| 33 | [Alpaca overnight quote source](v0.4/33-alpaca-overnight-source.md) | BLOCKED (assigned: Codex) | 32 |
+| 34 | [Overnight polling wiring](v0.4/34-overnight-polling.md) | BLOCKED (assigned: Claude) | 32, 33 |
+| 35 | [Overnight UI (A1 + B1)](v0.4/35-overnight-ui.md) | BLOCKED (assigned: Claude) | 32, 34 |
+| 36 | [Overnight validation pass + DESIGN.md fold-in](v0.4/36-overnight-validation.md) | BLOCKED | 32–35 |
+| 37 | [Night dressing (C2 theming follow-up)](v0.4/37-overnight-night-dressing.md) | BLOCKED | 35 |
 
 ## Order of attack (v0.4)
 
 - Spikes 29/30/31 are complete and owner-signed (31's §5 items approved 2026-07-13:
   the Alpaca Basic account/credential model and the implementation-phase
-  validation). The product design proposal is
-  [`docs/overnight-design.md`](../docs/overnight-design.md) — **owner sign-off on
-  it, including the §4 UI/behavior picks, is the gate**; until then 32–36 stay
-  BLOCKED and no implementation starts.
-- After sign-off: 32 → 33 → 34 → 35 → 36. 33 and the spec-amendment of 35 (if the
-  owner picks a non-default option set) can proceed in parallel once 32 lands.
+  validation). The product design
+  [`docs/overnight-design.md`](../docs/overnight-design.md) is **signed off
+  (owner, 2026-07-13): A1 + B1 + C2** — the gate is open.
+- Pipeline: 32 → 33 → 34 → 35 → 36, then 37 (C2 theming — must not block or
+  destabilize the data work). Split: Codex takes 32 then 33; Claude takes 34
+  then 35. 36 (validation + DESIGN.md fold-in) and 37 get assigned when their
+  blockers are close to done. Cross-review as always (`AGENTS.md`).
+- The A1 i18n whole-set label change (Pre / Post / Overnight; 1D zone labels
+  Pre/Night → Pre/Post) is owner-approved but vetoable until implemented: task
+  35 keeps it in its own commit (or a clearly separable change).
