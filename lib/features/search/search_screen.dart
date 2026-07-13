@@ -198,7 +198,7 @@ class _ResultsView extends ConsumerWidget {
                           stock,
                           stock.symbol,
                         ),
-                        subtitle: localizations.stockSubtitle(
+                        subtitle: localizations.stockFullSubtitle(
                           stock,
                           stock.symbol,
                         ),

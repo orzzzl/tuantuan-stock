@@ -54,4 +54,42 @@ void main() {
       expect(en.stockFullTitle(null, 'AAPL'), 'AAPL');
     });
   });
+
+  const moat = Stock(
+    symbol: 'MOAT',
+    name: 'Vaneck Etf Tr Vaneck Morningstar Wide Moat ETF',
+    zhName: 'VanEck Vectors晨星宽护城河ETF',
+    exchange: 'PCX',
+  );
+
+  group('stockSubtitle (task 28)', () {
+    const uncuratedEtf = Stock(
+      symbol: 'ZZZZ',
+      name: 'ProShares Trust Ultra Something',
+      zhName: '某指数ETF-ProShares',
+      exchange: 'PCX',
+    );
+
+    test('en locale resolves the zh line like stockTitle', () {
+      expect(en.stockSubtitle(apple, 'AAPL'), '苹果');
+      expect(en.stockSubtitle(moat, 'MOAT'), '宽护城河 ETF');
+      expect(en.stockSubtitle(uncuratedEtf, 'ZZZZ'), '某指数ETF');
+    });
+
+    test('zh locale keeps the ticker line', () {
+      expect(zh.stockSubtitle(apple, 'AAPL'), 'AAPL');
+    });
+
+    test('no zh name falls back unchanged', () {
+      expect(en.stockSubtitle(noZhName, 'ZZZZ'), 'ZZZZ');
+    });
+  });
+
+  group('stockFullSubtitle', () {
+    test('keeps the full zh line for search results', () {
+      expect(en.stockFullSubtitle(moat, 'MOAT'), 'VanEck Vectors晨星宽护城河ETF');
+      expect(zh.stockFullSubtitle(moat, 'MOAT'), 'MOAT');
+      expect(en.stockFullSubtitle(null, 'AAPL'), 'AAPL');
+    });
+  });
 }

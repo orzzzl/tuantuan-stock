@@ -55,14 +55,18 @@ companies: the name people actually call the fund ("纳指三倍做多" /
      leading latin issuer ("VanEck Vectors晨星…" → "晨星…").
 3. **Ticker** fallback unchanged.
 
-Search page keeps full names (task 25 rule). Pure data-layer change:
-`stockTitle` already routes through the map + `shortenCompanyName`.
+The en-locale row *subtitle* (the zh line) was part of the owner report too
+("VanEck Vectors晨星…", "标普500指数ETF-SP…") — `stockSubtitle` now resolves
+the zh line the same way `stockTitle` does (curated zh → shortened zh →
+ticker). Search keeps full names in both lines (task 25 rule) via a new
+`stockFullSubtitle`, parallel to `stockFullTitle`.
 
 ## Scope
 
 - in: curated ETF entries + fund-aware stripping in
-  `lib/data/market/company_short_names.dart`; unit tests.
-- out: logo pack, search, provider/network changes, any UI change.
+  `lib/data/market/company_short_names.dart`; short zh subtitle resolution in
+  `localized_sets.dart` (+ `stockFullSubtitle` for search); unit tests.
+- out: logo pack, search ranking, provider/network changes, layout changes.
 
 ## Acceptance criteria
 
