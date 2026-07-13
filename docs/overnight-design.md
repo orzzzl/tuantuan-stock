@@ -136,11 +136,40 @@ If wanted, this is a separate small follow-up task, not part of v0.4's gate.
 
 ### 5.2 Data layer (`lib/data`, provider-swap stays data-only)
 
-- A new `AlpacaOvernightClient` + an overnight decorator over the existing
-  repository path: during the overnight window it enriches the Tencent/Sina
-  quote (which still supplies close/prevClose/identity — those endpoints keep
-  working at night) with the overnight indicative value; outside the window it
-  is a pass-through. `QuoteRepository` consumers see plain `Quote`s.
+The watchlist and the detail screen poll `QuoteRepository` through independent
+streams today, so a decorator that fetched Alpaca on the quote path would see
+two separate requests and could not form their union. The overnight fetch is
+therefore owned by a single shared coordinator; the quote path never talks to
+Alpaca at all.
+
+- **`OvernightQuoteCoordinator`** (new, `lib/data/market/`, one Riverpod-owned
+  instance): the *only* component that ever calls the new
+  `AlpacaOvernightClient`.
+  - **Symbol registry**: consumers register interest — the watchlist provider
+    keeps the watchlist symbol set registered; a detail screen registers its
+    symbol while open and unregisters on dispose. The coordinator polls the
+    **union** of registered symbols.
+  - **Tick loop**: while the ET clock is inside the overnight window (task
+    32's classifier), the app is foregrounded, and the client is enabled
+    (keys present), it fires **exactly one batched latest-quotes request per
+    tick** for the whole union. The loop is driven by the window classifier
+    and lifecycle — never by `Quote.session` (see §5.2a).
+  - **Single-flight invariant**: at most one Alpaca request in flight, ever.
+    A registry change mid-tick does not fire a parallel request; the
+    coordinator may pull the *next* tick forward for a newly registered
+    symbol, but always as one batched request covering the whole union.
+  - **Output**: an immutable `OvernightSnapshot` — per-symbol midpoint +
+    quote timestamp, plus the tick's fetch time — published through a
+    provider. Failed/stale/absent symbols are simply missing from it.
+- **Merge seam (request-free)**: the overnight "decorator" over the repository
+  path does no I/O — it merges the coordinator's *current* snapshot into the
+  Tencent/Sina quote (which still supplies close/prevClose/identity — those
+  endpoints keep working at night): a snapshot hit sets `session = overnight`
+  and `extChangePct`; a miss returns the underlying quote untouched
+  (`session` stays `closed`). Watchlist and detail quote providers also watch
+  the snapshot provider, so a new snapshot re-merges the already-fetched CN
+  quotes and re-renders without any CN refetch. `QuoteRepository` consumers
+  still see plain `Quote`s.
 - **Displayed value = quote midpoint** `(bid + ask) / 2` from the latest-quotes
   response — the only real-time field on Basic. Overnight change % = midpoint vs
   the latest regular close already shown in the app (Sunday night = Friday's
@@ -151,21 +180,46 @@ If wanted, this is a separate small follow-up task, not part of v0.4's gate.
   symbol" from "dead feed" without flapping. Retuning is a one-line diff.
 - **Auth**: `ALPACA_KEY_ID` / `ALPACA_SECRET_KEY` via `--dart-define`; a build
   without them disables the overnight path entirely (compile-time empty string →
-  the decorator is a pass-through). No secret ever logged.
+  the coordinator never ticks and the merge is a pass-through). No secret ever
+  logged.
 - **Failure = absence**: timeout (short, ~8s), non-200, HTTP 429, parse error,
   empty payload — all yield no overnight value for that tick, log-free and
   UI-error-free. On consecutive failures, back off (double up to 5 min, the
   task-24 pattern) and recover on next success.
 
+### 5.2a No-value path (explicit)
+
+Degradation must not stop the clock. Inside the overnight window:
+
+- The coordinator keeps ticking at the 30s cadence (stretched by backoff, max
+  5 min, restored on next success) **regardless of whether any tick returns a
+  value**. Its schedule reads only the ET window classifier and app lifecycle.
+  In particular it must never key off `Quote.session`: on a degraded tick the
+  merged quote falls back to the CN quote whose session is `closed`, and if
+  that fallback drove the schedule the poller would sleep until pre-market and
+  never notice Alpaca recovering.
+- A no-value tick leaves the merged quote exactly equal to the underlying CN
+  quote (`session = closed`, no chip/tag) — the owner-locked silent
+  degradation. The next successful tick re-lights the overnight UI without a
+  restart.
+- The CN quote pollers are untouched by any of this: overnight they keep
+  their existing closed-session behavior (`closedSessionRefreshDelay`),
+  whether or not Alpaca is healthy.
+
 ### 5.3 Polling (reuse task 24's machinery)
 
-- One batched latest-quotes request per tick for **watchlist symbols ∪ the open
-  detail symbol**, at the 30s extended cadence, only while the app is
-  foregrounded and the ET clock is inside the overnight window — the existing
-  lifecycle/session gating extends with one new session state.
+- The coordinator's tick loop *is* the overnight polling: one batched
+  latest-quotes request per tick for the union of registered symbols
+  (**watchlist ∪ the open detail symbol**), at the 30s extended cadence, only
+  while the app is foregrounded and the ET clock is inside the overnight
+  window (§5.2/§5.2a). The detail screen never adds its own overnight poll —
+  opening it just registers one more symbol into the next batch.
+- Window edges: crossing 20:00 ET starts the loop without a restart; crossing
+  04:00 ET stops it. The existing closed-session wake-up delay extends to the
+  next overnight/pre boundary, whichever is sooner.
 - The 1D chart poller stays off overnight (nothing new is drawn on the day
-  axis; under A2 the mini-chart consumes the same quote ticks or its own bars
-  fetch, never a faster cadence).
+  axis; under A2 the mini-chart consumes the same snapshot ticks or its own
+  bars fetch, never a faster cadence).
 
 ### 5.4 Rate-limit posture (validation item, owner-approved)
 
