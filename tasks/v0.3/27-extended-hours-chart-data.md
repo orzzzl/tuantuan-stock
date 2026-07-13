@@ -1,7 +1,6 @@
 # 27 — Extended-hours chart data: fill 26's 盘前/盘后 zones
 
-- **Status:** READY (26 defines the seam it feeds; 24's polling is the fallback
-  path's transport — coordinate, see below)
+- **Status:** DONE (Claude, PR #30; manual pre-market zone check deferred to Monday)
 - **Owner:** —
 - **Blocked by:** 26 (the `ChartSeries` pre/post seam), 24 (only for the
   accumulate-from-polling fallback)

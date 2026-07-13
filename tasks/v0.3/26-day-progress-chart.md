@@ -1,6 +1,6 @@
 # 26 — 1D chart: fixed day axis, 团团 flies left → right through the day
 
-- **Status:** READY
+- **Status:** DONE (Codex, PR #29)
 - **Owner:** —
 - **Blocked by:** — (code-independent of 24, but the live effect only shows once
   24's refresh lands; coordinate merges if both touch the detail screen)

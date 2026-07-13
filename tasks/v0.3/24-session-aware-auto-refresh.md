@@ -1,6 +1,6 @@
 # 24 — Session-aware auto-refresh: quotes + intraday chart
 
-- **Status:** READY
+- **Status:** DONE (Codex, PR #27; manual market-open check deferred to Monday)
 - **Owner:** —
 - **Blocked by:** —
 - **Allowed new deps:** none
