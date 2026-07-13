@@ -1,7 +1,7 @@
 # Provider spike report v3b (task 30) — US-only overnight session
 
 Live probes ran from a US network on 2026-07-13 04:58:32–05:02:48 UTC
-(Sunday 00:58–01:02 EDT), within the BOATS 20:00–04:00 Eastern session. They used no
+(Monday 00:58–01:02 EDT), within the BOATS 20:00–04:00 Eastern session. They used no
 broker login, API key, or credential. This report changes only task 29's
 mainland-China requirement: it does not permit bypassing access controls, using an
 unsupported source as though it were licensed, or adding product code.
