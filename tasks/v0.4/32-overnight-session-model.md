@@ -1,6 +1,6 @@
 # 32 — Overnight session model + ET window classifier
 
-- **Status:** READY (design signed off by owner 2026-07-13: A1 + B1 + C2)
+- **Status:** DONE (Codex, PR #41, merged 2026-07-13)
 - **Owner:** Codex
 - **Blocked by:** —
 - **Allowed new deps:** none
