@@ -333,3 +333,38 @@ is already shipped. Task 21 then = curate the pack + a lookup table; no new deps
 3. Dotted tickers (BRK.B) get no pre/post chip (§5).
 4. 1D chart shows regular session only (§8) — visible product change vs v0.1.
 5. "All" range starts at 2007 if pinned to Tencent month (§8).
+
+## 13. Task-27 spike (2026-07-12): extended-hours minute SERIES — NO-GO
+
+Half-day timeboxed hunt for a free endpoint returning pre/post-market minute
+bars (to fill the 1D chart's 盘前/盘后 zones from task 26). Probes run with
+plain `curl` from the US on a Saturday (market closed; every candidate was
+judged on whether it even exposes an ext-series shape, all of them serve the
+last session's data over the weekend — §2.2 note).
+
+| Candidate | Result |
+| --- | --- |
+| Sina `US_MinKService.getMinK?symbol=aapl&type=1` | Works, 1-min bars — but **09:31–16:00 only**, same regular-session window as the `type=5` feed we chart |
+| Sina `getPreMinK` / `getAfterMinK` service names | Do not exist (service-not-found envelope) |
+| Tencent `web.ifzq.gtimg.cn/appstock/app/UsMinutePre\|UsMinuteAfter/query` | Controllers do not exist (404-class envelope) |
+| Tencent `UsMinute/query` param variants (`type=pre\|after`, `period=pre`, `pre=1`, `ext=1`, `session=pre`) | All ignored — 391 regular bars regardless (already known, spec header) |
+| Tencent's own 自选股 H5 chart bundle (`zxgweb-chart` JS, gu.qq.com) | Network-inspected: it calls plain `UsMinute/query` with **no ext param** — Tencent serves no ext series even to its own web chart |
+| Eastmoney `push2his.eastmoney.com/api/qt/stock/trends2/get?iscr=1` | Returned regular-only bars once, then hard-blocked this US IP (502/empty bodies) — unreliable, NO-GO |
+| Xueqiu `stock.xueqiu.com/v5/stock/chart/minute.json` | Auth-cookie-gated, NO-GO for an account-less app |
+
+**Verdict: NO-GO.** No free CN-reachable endpoint returns an extended-hours
+minute series. No fixtures were added for the spike: none of the candidates
+produced an ext-series payload the app could parse (the negative evidence is
+the absent controllers/params above). Consequence: task 27 ships the
+fallback — the app accumulates its own per-day ext series from the Sina
+`gb_` ext quote (fields 21/24, §4.2) while task 24's 30-second extended
+polling is live, persisted in the market cache and drained into the
+`ChartSeries` pre/post seam. Points only accumulate while the app is open;
+sparse segments are accepted by design.
+
+Spike bonus (switching the 1D regular source to `UsMinute` 1-min bars) is
+**deferred, not taken**: the endpoint looks solid but weekday
+stability/headers were not re-verified in this pass, and the swap is
+orthogonal to the ext-hours goal. `UsMinute` (§8 candidate) plus its
+`pandata` block (latest ext quote incl. volume) remains the best future
+upgrade path for both finer regular bars and a second ext-quote source.
