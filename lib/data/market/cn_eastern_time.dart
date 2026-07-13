@@ -4,6 +4,23 @@
 library;
 
 final _clockTime = RegExp(r'\b(\d{1,2}):(\d{2})(AM|PM)\b');
+final _monthDay = RegExp(
+  r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2})\b',
+);
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
 /// Converts an Eastern wall-clock [wall] (only its date/time components are
 /// read) to the UTC instant. DST per the US rule: second Sunday of March
@@ -36,6 +53,23 @@ int? easternMinutesOfDay(String timestamp) {
   final hour12 = int.parse(match.group(1)!) % 12;
   final hour = match.group(3) == 'PM' ? hour12 + 12 : hour12;
   return hour * 60 + int.parse(match.group(2)!);
+}
+
+/// Full Eastern wall-clock components (month, day, time) of a Sina
+/// `MMM dd hh:mmA z` timestamp, or null when unparseable. The stamp carries
+/// no year, so the caller supplies [year]; callers that must not trust a
+/// stale stamp compare the result's calendar date themselves.
+DateTime? easternSinaWall(String timestamp, {required int year}) {
+  final monthDay = _monthDay.firstMatch(timestamp);
+  final minutes = easternMinutesOfDay(timestamp);
+  if (monthDay == null || minutes == null) return null;
+  return DateTime.utc(
+    year,
+    _months.indexOf(monthDay.group(1)!) + 1,
+    int.parse(monthDay.group(2)!),
+    minutes ~/ 60,
+    minutes % 60,
+  );
 }
 
 bool _isEasternDst(DateTime wallComponents) {

@@ -34,6 +34,11 @@ class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
   final _ytdBaselineByKey = <String, double>{};
   final _ytdBaselineFutureByKey = <String, Future<double?>>{};
 
+  /// Ext-point writes are read-modify-write on one prefs key; chaining them
+  /// keeps the watchlist and detail refreshes from dropping each other's
+  /// appends.
+  var _extPointsWrites = Future<void>.value();
+
   @override
   Future<Quote> quote(String symbol) async {
     final bySymbol = await quotes([symbol]);
@@ -55,6 +60,11 @@ class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
     final tencent = await tencentFuture;
     final sina = await sinaFuture;
     final session = await sessionFuture;
+    if (session == MarketSession.pre || session == MarketSession.post) {
+      _extPointsWrites = _extPointsWrites.then(
+        (_) => _recordExtPoints(session, sina),
+      );
+    }
     return {
       for (final MapEntry(:key, :value) in tencent.entries)
         key: _mapQuote(key, value, session: session, sina: sina[key]),
@@ -186,9 +196,12 @@ class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
               when dateTime.startsWith('$tradingDate '))
             _sinaMin5Bar(row).toCandle(),
       ];
+      final ext = await _extZoneCandles(symbol, tradingDate);
       return ChartSeries(
         baseline: baseline,
         candles: List.unmodifiable(candles),
+        preMarketCandles: ext.pre,
+        postMarketCandles: ext.post,
       );
     } on FormatException catch (e) {
       throw NetworkFailure('unexpected day chart shape for $symbol: $e');
@@ -286,6 +299,81 @@ class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
       baseline: baseline,
       candles: List.unmodifiable(rows.skip(first).map((row) => row.toCandle())),
     );
+  }
+
+  /// Accumulates the batch's ext quotes (Sina field 21 price, field 24
+  /// date+time stamp) into the per-day store feeding the 1D chart's pre/post
+  /// zones — the task-27 fallback for the missing ext minute series (report
+  /// §13). Rides the existing extended-session polling; purely decorative,
+  /// so it never fails or delays the quote path.
+  Future<void> _recordExtPoints(
+    MarketSession session,
+    Map<String, List<String>> sina,
+  ) async {
+    final cache = _cache;
+    if (cache == null) return;
+    try {
+      final eastern = utcToEastern(_now().toUtc());
+      final points = <String, ({DateTime time, double price})>{};
+      for (final MapEntry(key: symbol, value: fields) in sina.entries) {
+        if (fields.length <= 24) continue;
+        final price = double.tryParse(fields[21]);
+        final wall = easternSinaWall(fields[24], year: eastern.year);
+        if (price == null || price <= 0 || wall == null) continue;
+        // The stamp must be from today's Eastern calendar date: a stale
+        // previous-day figure carries an in-window clock time too, and only
+        // the date exposes it. Then the PREPRE rule as for the chip: the
+        // time must fall inside the session the point claims. Bounds match
+        // the chart's zone edges (04:00 / 20:00 ET).
+        if (wall.month != eastern.month || wall.day != eastern.day) continue;
+        final minutes = wall.hour * 60 + wall.minute;
+        final inSession = switch (session) {
+          MarketSession.pre => minutes >= 4 * 60 && minutes < 9 * 60 + 30,
+          MarketSession.post => minutes >= 16 * 60 && minutes < 20 * 60,
+          _ => false,
+        };
+        if (!inSession) continue;
+        points[symbol] = (time: easternToUtc(wall), price: price);
+      }
+      if (points.isEmpty) return;
+      await cache.appendExtPoints(
+        easternDate: _isoDate(eastern),
+        session: session,
+        points: points,
+      );
+    } on Object {
+      // Accumulation must never surface as an error anywhere.
+    }
+  }
+
+  /// The stored ext points that belong on the chart for [tradingDate]. Post
+  /// points follow their own regular session, so they need the exact date.
+  /// Pre points render only on their own Eastern calendar day: that keeps
+  /// the intended live-pre attach (the charted regular session is still the
+  /// previous day's — Tencent's trade date only advances at the open) while
+  /// rejecting a leftover cache from an earlier day, which the trade date
+  /// alone cannot expose (Friday's cache also matches Friday's trade date
+  /// during Monday's pre-market).
+  Future<({List<Candle> pre, List<Candle> post})> _extZoneCandles(
+    String symbol,
+    String tradingDate,
+  ) async {
+    const empty = (pre: <Candle>[], post: <Candle>[]);
+    try {
+      final stored = await _cache?.readExtPoints(symbol);
+      if (stored == null) return empty;
+      final today = _isoDate(utcToEastern(_now().toUtc()));
+      return (
+        pre: stored.easternDate == today ? stored.pre : const <Candle>[],
+        post: stored.easternDate == tradingDate
+            ? stored.post
+            : const <Candle>[],
+      );
+    } on Object {
+      // Ext zones are decoration: any store failure leaves them empty and
+      // the regular line untouched.
+      return empty;
+    }
   }
 
   Quote _mapQuote(
@@ -476,6 +564,13 @@ _PriceBar _sinaMin5Bar(Map<String, String> row) => _PriceBar(
   low: double.parse(row['l']!),
   close: double.parse(row['c']!),
 );
+
+/// `yyyy-MM-dd` of an Eastern wall-clock — the ext-point store's day key,
+/// comparable with the Tencent trade date (field 30 prefix).
+String _isoDate(DateTime eastern) =>
+    '${eastern.year.toString().padLeft(4, '0')}'
+    '-${eastern.month.toString().padLeft(2, '0')}'
+    '-${eastern.day.toString().padLeft(2, '0')}';
 
 DateTime _dateOnly(String raw) => DateTime.utc(
   int.parse(raw.substring(0, 4)),
