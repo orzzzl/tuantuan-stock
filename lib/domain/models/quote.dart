@@ -9,6 +9,9 @@ enum MarketSession {
   /// After-hours.
   post,
 
+  /// Blue Ocean ATS overnight trading.
+  overnight,
+
   /// Market closed, no extended-hours trading in progress.
   closed,
 }
@@ -73,7 +76,7 @@ class Quote {
   final MarketSession session;
 
   /// Extended-hours percent move; non-null only when [session] is
-  /// [MarketSession.pre] or [MarketSession.post] and drives the pre/post chip.
+  /// [MarketSession.pre], [MarketSession.post], or [MarketSession.overnight].
   final double? extChangePct;
 
   @override
