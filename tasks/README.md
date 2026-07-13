@@ -98,9 +98,12 @@ sign-off before product work.
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
 | 29 | [Provider spike v3: US overnight-session data source](v0.4/29-provider-spike-v3-overnight.md) | DONE (Codex, PR #32; owner signed off 2026-07-12) | — |
-| 30 | [Provider spike v3b: US-only overnight-session data source](v0.4/30-overnight-spike-relaxed.md) | IN PROGRESS (Codex) | 29 |
+| 30 | [Provider spike v3b: US-only overnight-session data source](v0.4/30-overnight-spike-relaxed.md) | DONE (Codex, PR #33; owner signed off 2026-07-12) | — |
+| 31 | [Provider spike v3c: Alpaca Basic overnight feed](v0.4/31-alpaca-overnight-spike.md) | BLOCKED (Codex; awaiting owner-provisioned credentials) | Owner credentials |
 
 ## Order of attack (v0.4)
 
-- 29 is complete. 30 is report-only and tests the relaxed US-only requirement; owner
-  sign-off on its source decision gates any implementation.
+- 29 and 30 are complete; task 30's no-product-GO is owner-signed. 31 is a
+  report-only, credentialed Alpaca Basic probe and remains blocked until the owner
+  locally provisions the approved free-plan credentials. Its source decision still
+  requires owner sign-off before any implementation task.
