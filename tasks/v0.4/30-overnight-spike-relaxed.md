@@ -1,8 +1,8 @@
 # 30 — Provider spike v3b: US-only overnight-session data source
 
-- **Status:** IN PROGRESS (Codex)
-- **Owner:** Codex
-- **Blocked by:** 29 (source-decision record)
+- **Status:** DONE (Codex, PR #33; owner signed off 2026-07-12)
+- **Owner:** —
+- **Blocked by:** —
 - **Allowed new deps:** none (report-only spike)
 
 ## Goal
