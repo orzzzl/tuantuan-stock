@@ -86,3 +86,17 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 - **Claude track:** 25 (short names) → 27 (spike ext-hours minute source; fallback =
   accumulate from 24's polling into 26's seam).
 - 24 and 25 run in parallel (polling wiring vs identity/presentation — disjoint).
+
+## v0.4 — overnight session (夜盘)
+
+Owner report (2026-07-12): broker applications show Blue Ocean ATS activity Sunday
+night through the week, while the app stays frozen after post-market. A source decision
+must be made before product design.
+
+| #  | Task | Status | Blocked by |
+|----|------|--------|-----------|
+| 29 | [Provider spike v3: US overnight-session data source](v0.4/29-provider-spike-v3-overnight.md) | IN PROGRESS (Codex) | — |
+
+## Order of attack (v0.4)
+
+- 29 is report-only. Owner sign-off on the source decision gates any implementation.
