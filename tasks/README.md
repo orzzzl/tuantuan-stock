@@ -77,6 +77,7 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 | 25 | [Short display names (recognizable list at a glance)](v0.3/25-short-display-names.md) | DONE (Claude, PR #28) | — |
 | 26 | [1D chart: fixed day axis + 盘前/盘后 zones, 团团 flies left→right](v0.3/26-day-progress-chart.md) | DONE (Codex, PR #29) | — |
 | 27 | [Extended-hours chart data (spike + fill 26's zones)](v0.3/27-extended-hours-chart-data.md) | DONE (Claude, PR #30; manual pre-market zone check deferred to Monday) | — |
+| 28 | [ETF short display names (task 25 follow-up)](v0.3/28-etf-short-names.md) | IN PROGRESS (Claude; owner-approved 2026-07-12) | — |
 
 ## Order of attack (v0.3)
 
