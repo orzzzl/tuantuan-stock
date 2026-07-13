@@ -26,9 +26,22 @@ extension AppLocalizationSets on AppLocalizations {
   }
 
   /// Row subtitle under [stockTitle]: the ticker in a Chinese locale (the
-  /// Chinese name is the title there), otherwise the zh-name-or-ticker line
-  /// unchanged from v0.1.
+  /// Chinese name is the title there), otherwise the zh name resolved like
+  /// [stockTitle] (task 28 — provider zh names carry issuer boilerplate that
+  /// truncates the line).
   String stockSubtitle(Stock? stock, String fallback) {
+    if (stock == null || _isChinese) return fallback;
+    final curated = companyShortName(stock.symbol);
+    if (curated != null) return curated.zh;
+    final zhName = stock.zhName;
+    return zhName == null
+        ? fallback
+        : shortenCompanyName(zhName, chinese: true);
+  }
+
+  /// Full-name variant of [stockSubtitle] for search results (task 25 rule:
+  /// search keeps full names — they help disambiguation there).
+  String stockFullSubtitle(Stock? stock, String fallback) {
     if (stock == null) return fallback;
     return _isChinese ? fallback : (stock.zhName ?? fallback);
   }

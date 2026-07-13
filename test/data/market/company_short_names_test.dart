@@ -44,6 +44,106 @@ void main() {
     });
   });
 
+  group('companyShortName (ETFs, task 28)', () {
+    test('maps the owner-reported ETF rows to punchy pairs', () {
+      expect(companyShortName('TQQQ'), (zh: '纳指三倍做多', en: 'UltraPro QQQ'));
+      expect(companyShortName('SSO'), (zh: '标普两倍做多', en: 'Ultra S&P 500'));
+      expect(companyShortName('YINN'), (zh: '中国三倍做多', en: 'China Bull 3X'));
+      expect(companyShortName('MOAT'), (zh: '宽护城河 ETF', en: 'Wide Moat ETF'));
+      expect(companyShortName('SPY'), (zh: '标普500 ETF', en: 'SPDR S&P 500'));
+    });
+
+    test('same-index funds stay distinguishable via the issuer', () {
+      expect(companyShortName('VOO'), (zh: '先锋标普500', en: 'Vanguard S&P 500'));
+      expect(companyShortName('IVV'), (zh: '安硕标普500', en: 'iShares S&P 500'));
+    });
+  });
+
+  group('shortenCompanyName (en ETF fallback, task 28)', () {
+    test('strips a leading issuer/trust prefix', () {
+      expect(
+        shortenCompanyName('ProShares Trust Ultra S&P 500', chinese: false),
+        'Ultra S&P 500',
+      );
+      expect(
+        shortenCompanyName(
+          'Direxion Shares ETF Trust Daily FTSE China Bull 3X Shares',
+          chinese: false,
+        ),
+        'FTSE China Bull 3X',
+      );
+    });
+
+    test('sheds stacked issuer layers and title-case artifacts', () {
+      expect(
+        shortenCompanyName(
+          'Vaneck Etf Tr Vaneck Morningstar Wide Moat ETF',
+          chinese: false,
+        ),
+        'Morningstar Wide Moat ETF',
+      );
+    });
+
+    test('collapses ETF Trust and Select Sector SPDR wrappers', () {
+      expect(
+        shortenCompanyName(
+          'State Street SPDR S&P 500 ETF Trust',
+          chinese: false,
+        ),
+        'S&P 500 ETF',
+      );
+      expect(
+        shortenCompanyName(
+          'Technology Select Sector SPDR Fund',
+          chinese: false,
+        ),
+        'Technology',
+      );
+    });
+
+    test('leaves company names alone, even fund-marker lookalikes', () {
+      expect(
+        shortenCompanyName('Northern Trust Corp', chinese: false),
+        'Northern Trust',
+      );
+      expect(
+        shortenCompanyName('Fidelity National Financial Inc', chinese: false),
+        'Fidelity National Financial',
+      );
+    });
+
+    test('never strips to empty', () {
+      expect(
+        shortenCompanyName('ProShares Trust', chinese: false),
+        'ProShares Trust',
+      );
+    });
+  });
+
+  group('shortenCompanyName (zh ETF fallback, task 28)', () {
+    test('strips the trailing -发行商 tail', () {
+      expect(
+        shortenCompanyName('标普500指数ETF-SPDR', chinese: true),
+        '标普500指数ETF',
+      );
+      expect(
+        shortenCompanyName('纳斯达克100三倍做多ETF-ProShares', chinese: true),
+        '纳斯达克100三倍做多ETF',
+      );
+    });
+
+    test('strips a leading latin issuer', () {
+      expect(
+        shortenCompanyName('VanEck Vectors晨星宽护城河ETF', chinese: true),
+        '晨星宽护城河ETF',
+      );
+    });
+
+    test('non-fund zh names keep their hyphen tails', () {
+      expect(shortenCompanyName('伯克希尔-B', chinese: true), '伯克希尔-B');
+    });
+  });
+
   group('shortenCompanyName (en)', () {
     test('strips a single legal suffix', () {
       expect(
