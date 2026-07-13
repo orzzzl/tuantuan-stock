@@ -45,6 +45,29 @@ DateTime utcToEastern(DateTime instant) {
   return utc.subtract(const Duration(hours: 5));
 }
 
+/// Whether [instant] falls in the Blue Ocean ATS window: Sunday through
+/// Thursday, 20:00 inclusive to 04:00 exclusive, in US Eastern time.
+///
+/// The window is intentionally based on Eastern wall-clock components, not a
+/// UTC calendar date, because it crosses midnight and follows DST.
+bool isOvernightSession(DateTime instant) {
+  final eastern = utcToEastern(instant);
+  final minutes = eastern.hour * 60 + eastern.minute;
+  const start = 20 * 60;
+  const end = 4 * 60;
+
+  return switch (eastern.weekday) {
+    DateTime.sunday => minutes >= start,
+    DateTime.monday ||
+    DateTime.tuesday ||
+    DateTime.wednesday ||
+    DateTime.thursday => minutes < end || minutes >= start,
+    DateTime.friday => minutes < end,
+    DateTime.saturday => false,
+    _ => false,
+  };
+}
+
 /// Minutes since Eastern midnight of a Sina `MMM dd hh:mmA z` timestamp, or
 /// null when unparseable — the pre/post window test for the extended chip.
 int? easternMinutesOfDay(String timestamp) {

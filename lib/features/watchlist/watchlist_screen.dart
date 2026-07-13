@@ -598,7 +598,9 @@ class _RaceRow extends ConsumerWidget {
     final label = switch (quote.session) {
       MarketSession.pre => localizations.preMarketSessionLabel,
       MarketSession.post => localizations.postMarketSessionLabel,
-      MarketSession.regular || MarketSession.closed => null,
+      MarketSession.regular ||
+      MarketSession.overnight ||
+      MarketSession.closed => null,
     };
     if (label == null) return null;
     return '$label ${localizations.formatSignedPercent(extChangePct / 100)}';

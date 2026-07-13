@@ -12,7 +12,7 @@ Duration? detailQuoteRefreshInterval(Quote? latest) {
   return switch (latest?.session) {
     MarketSession.regular => detailQuoteRegularRefreshInterval,
     MarketSession.pre || MarketSession.post => extendedSessionRefreshInterval,
-    MarketSession.closed => null,
+    MarketSession.overnight || MarketSession.closed => null,
     null => detailQuoteRegularRefreshInterval,
   };
 }
@@ -36,7 +36,7 @@ Duration? detailDayChartRefreshInterval(MarketSession? session) {
     // chart's pre/post zones gain the points the quote poll accumulates
     // (task 27).
     MarketSession.pre || MarketSession.post => extendedSessionRefreshInterval,
-    MarketSession.closed => null,
+    MarketSession.overnight || MarketSession.closed => null,
     null => null,
   };
 }
