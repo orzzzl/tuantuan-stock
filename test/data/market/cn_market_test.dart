@@ -212,6 +212,20 @@ void main() {
       expect(easternMinutesOfDay(''), null);
       expect(easternMinutesOfDay('not a time'), null);
     });
+
+    test('easternSinaWall reads date and time of the Sina stamps', () {
+      expect(
+        easternSinaWall('Jul 08 04:12AM EDT', year: 2026),
+        DateTime.utc(2026, 7, 8, 4, 12),
+      );
+      expect(
+        easternSinaWall('Jan 02 12:00AM EST', year: 2027),
+        DateTime.utc(2027, 1, 2),
+      );
+      expect(easternSinaWall('04:12AM EDT', year: 2026), null);
+      expect(easternSinaWall('Jul 08', year: 2026), null);
+      expect(easternSinaWall('', year: 2026), null);
+    });
   });
 
   group('session tokens (report §6)', () {
@@ -658,6 +672,26 @@ void main() {
       expect(points.post.single.time, DateTime.utc(2026, 7, 8, 20, 15));
       expect(points.post.single.close, 313.22);
       expect(points.pre, isEmpty);
+    });
+
+    test('a stale previous-day pre stamp records nothing', () async {
+      final hosts = _FakeCnHosts(
+        tencentQuote: _fixture('tencent_quote_aapl_premarket.gbk.txt'),
+        // Fixture stamp `Jul 08 04:12AM EDT`: in-window clock time, but a
+        // leftover from the PREVIOUS pre-market once "now" is Jul 09 — the
+        // date gate must reject it, not mint a false Jul 09 point.
+        sinaQuote: _fixture('sina_quote_aapl_premarket.gbk.txt'),
+        kline: _fixture('tencent_kline_day1_premarket.json'),
+      );
+      final store = cacheStore();
+      await _quoteRepository(
+        hosts,
+        cache: store,
+        now: () => DateTime.utc(2026, 7, 9, 8, 12),
+      ).quoteSnapshots(['AAPL']);
+      await settle();
+
+      expect(await store.readExtPoints('AAPL'), isNull);
     });
 
     test('a stale post stamp records nothing during pre-market', () async {

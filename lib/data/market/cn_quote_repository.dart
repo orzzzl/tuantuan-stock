@@ -302,7 +302,7 @@ class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
   }
 
   /// Accumulates the batch's ext quotes (Sina field 21 price, field 24
-  /// minute stamp) into the per-day store feeding the 1D chart's pre/post
+  /// date+time stamp) into the per-day store feeding the 1D chart's pre/post
   /// zones — the task-27 fallback for the missing ext minute series (report
   /// §13). Rides the existing extended-session polling; purely decorative,
   /// so it never fails or delays the quote path.
@@ -318,29 +318,22 @@ class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
       for (final MapEntry(key: symbol, value: fields) in sina.entries) {
         if (fields.length <= 24) continue;
         final price = double.tryParse(fields[21]);
-        final minutes = easternMinutesOfDay(fields[24]);
-        if (price == null || price <= 0 || minutes == null) continue;
-        // Same PREPRE rule as the chip: the stamp must fall inside the
-        // session the point claims, else it is a stale previous-session
-        // figure. Bounds match the chart's zone edges (04:00 / 20:00 ET).
+        final wall = easternSinaWall(fields[24], year: eastern.year);
+        if (price == null || price <= 0 || wall == null) continue;
+        // The stamp must be from today's Eastern calendar date: a stale
+        // previous-day figure carries an in-window clock time too, and only
+        // the date exposes it. Then the PREPRE rule as for the chip: the
+        // time must fall inside the session the point claims. Bounds match
+        // the chart's zone edges (04:00 / 20:00 ET).
+        if (wall.month != eastern.month || wall.day != eastern.day) continue;
+        final minutes = wall.hour * 60 + wall.minute;
         final inSession = switch (session) {
           MarketSession.pre => minutes >= 4 * 60 && minutes < 9 * 60 + 30,
           MarketSession.post => minutes >= 16 * 60 && minutes < 20 * 60,
           _ => false,
         };
         if (!inSession) continue;
-        points[symbol] = (
-          time: easternToUtc(
-            DateTime.utc(
-              eastern.year,
-              eastern.month,
-              eastern.day,
-              minutes ~/ 60,
-              minutes % 60,
-            ),
-          ),
-          price: price,
-        );
+        points[symbol] = (time: easternToUtc(wall), price: price);
       }
       if (points.isEmpty) return;
       await cache.appendExtPoints(
