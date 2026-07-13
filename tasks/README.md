@@ -92,18 +92,28 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 Owner report (2026-07-12): broker applications show Blue Ocean ATS activity Sunday
 night through the week, while the app stays frozen after post-market. Task 29 closed
 the strict, cross-region search with a no-go. The follow-up permits a US-only source,
-but it must degrade silently when unreachable from mainland China and still needs owner
-sign-off before product work.
+but it must degrade silently when unreachable from mainland China. The source
+(Alpaca Basic `overnight` feed) is owner-signed as of 2026-07-13; the remaining gate
+is owner sign-off on the product design, [`docs/overnight-design.md`](../docs/overnight-design.md).
 
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
 | 29 | [Provider spike v3: US overnight-session data source](v0.4/29-provider-spike-v3-overnight.md) | DONE (Codex, PR #32; owner signed off 2026-07-12) | — |
 | 30 | [Provider spike v3b: US-only overnight-session data source](v0.4/30-overnight-spike-relaxed.md) | DONE (Codex, PR #33; owner signed off 2026-07-12) | — |
 | 31 | [Provider spike v3c: Alpaca Basic overnight feed](v0.4/31-alpaca-overnight-spike.md) | DONE (Codex; owner signed off 2026-07-13) | — |
+| 32 | [Overnight session model + ET window classifier](v0.4/32-overnight-session-model.md) | BLOCKED (owner design sign-off) | Design sign-off |
+| 33 | [Alpaca overnight quote source](v0.4/33-alpaca-overnight-source.md) | BLOCKED (owner design sign-off) | 32 |
+| 34 | [Overnight polling wiring](v0.4/34-overnight-polling.md) | BLOCKED (owner design sign-off) | 32, 33 |
+| 35 | [Overnight UI (owner-picked option set)](v0.4/35-overnight-ui.md) | BLOCKED (owner picks design §4 + sign-off) | 32, 34 |
+| 36 | [Overnight validation pass + DESIGN.md fold-in](v0.4/36-overnight-validation.md) | BLOCKED (owner design sign-off) | 32–35 |
 
 ## Order of attack (v0.4)
 
-- 29 and 30 are complete; task 30's no-product-GO is owner-signed. Task 31's live,
-  report-only Alpaca Basic probe is complete and owner-signed: the read-only
-  credential model and implementation-phase validation are approved. Product work
-  still requires a separately specified implementation task.
+- Spikes 29/30/31 are complete and owner-signed (31's §5 items approved 2026-07-13:
+  the Alpaca Basic account/credential model and the implementation-phase
+  validation). The product design proposal is
+  [`docs/overnight-design.md`](../docs/overnight-design.md) — **owner sign-off on
+  it, including the §4 UI/behavior picks, is the gate**; until then 32–36 stay
+  BLOCKED and no implementation starts.
+- After sign-off: 32 → 33 → 34 → 35 → 36. 33 and the spec-amendment of 35 (if the
+  owner picks a non-default option set) can proceed in parallel once 32 lands.
