@@ -6,7 +6,7 @@ window of Sunday–Thursday 20:00–04:00 ET. This report uses the owner-provisi
 Alpaca Basic credentials only at runtime. No credential value, account identifier, or
 authentication header is recorded here, in git, PR text, or the activity journal.
 
-> **Status: CONDITIONAL RESEARCH GO — owner decision required.** Alpaca Basic's
+> **Status: RESEARCH GO — owner approved 2026-07-13.** Alpaca Basic's
 > documented `overnight` feed returned fresh, on-demand indicative quotes for every
 > sampled symbol and a one-request batch result. It is a supported, account-backed
 > research candidate—not authorization to add product code, retain credentials, or
@@ -122,12 +122,13 @@ not a replacement for the regular-session sources and does not establish China
 availability, legal distribution rights beyond the selected plan, websocket support,
 or a product design.
 
-Before any implementation specification, the owner must decide whether to approve:
+The owner approved both requested decisions on 2026-07-13:
 
 1. retaining the Alpaca Basic account/credential model for the app's read-only data
    path; and
 2. an implementation-specific validation of regional reachability, operational
    rate-limit handling, and the unchanged no-value/no-error degradation rule.
 
-No app code, dependency, UI, chart behavior, or credential-storage mechanism is
-authorized by this report.
+This research approval does not itself authorize app code, dependencies, UI, chart
+behavior, or a credential-storage mechanism; those need a separately specified
+implementation task.

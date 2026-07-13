@@ -1,8 +1,8 @@
 # 31 — Provider spike v3c: Alpaca Basic overnight feed
 
-- **Status:** BLOCKED (Codex; live probe complete; owner data-source sign-off required)
-- **Owner:** Codex
-- **Blocked by:** Owner sign-off before any implementation task
+- **Status:** DONE (Codex; owner signed off 2026-07-13)
+- **Owner:** —
+- **Blocked by:** —
 - **Allowed new deps:** none (report-only, credentialed spike)
 
 ## Goal
@@ -48,5 +48,4 @@ input only and must never be copied into the repository, a PR, terminal output,
 - [ ] The report preserves task 30's rule: an unavailable overnight source (including
       from mainland China) yields no overnight value and no user-visible error; it
       flags owner decisions rather than designing the implementation.
-- [ ] `tasks/README.md` records task 30 as DONE and this task as IN REVIEW pending
-      owner sign-off.
+- [ ] `tasks/README.md` records tasks 30 and 31 as DONE after the owner sign-off.
