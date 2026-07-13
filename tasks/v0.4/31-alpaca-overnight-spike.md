@@ -1,6 +1,6 @@
 # 31 — Provider spike v3c: Alpaca Basic overnight feed
 
-- **Status:** IN REVIEW (Codex; live probe complete; owner data-source sign-off required)
+- **Status:** BLOCKED (Codex; live probe complete; owner data-source sign-off required)
 - **Owner:** Codex
 - **Blocked by:** Owner sign-off before any implementation task
 - **Allowed new deps:** none (report-only, credentialed spike)
