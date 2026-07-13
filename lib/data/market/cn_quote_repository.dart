@@ -347,10 +347,13 @@ class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
   }
 
   /// The stored ext points that belong on the chart for [tradingDate]. Post
-  /// points follow their own regular session, so they need the exact date;
-  /// pre points also render during a LIVE pre-market, when the charted
-  /// regular session is still the previous day's (Tencent's trade date only
-  /// advances at the open) — hence the store date may be newer.
+  /// points follow their own regular session, so they need the exact date.
+  /// Pre points render only on their own Eastern calendar day: that keeps
+  /// the intended live-pre attach (the charted regular session is still the
+  /// previous day's — Tencent's trade date only advances at the open) while
+  /// rejecting a leftover cache from an earlier day, which the trade date
+  /// alone cannot expose (Friday's cache also matches Friday's trade date
+  /// during Monday's pre-market).
   Future<({List<Candle> pre, List<Candle> post})> _extZoneCandles(
     String symbol,
     String tradingDate,
@@ -359,10 +362,9 @@ class CnQuoteRepository implements QuoteSnapshotRepository, QuoteYtdRepository {
     try {
       final stored = await _cache?.readExtPoints(symbol);
       if (stored == null) return empty;
+      final today = _isoDate(utcToEastern(_now().toUtc()));
       return (
-        pre: stored.easternDate.compareTo(tradingDate) >= 0
-            ? stored.pre
-            : const <Candle>[],
+        pre: stored.easternDate == today ? stored.pre : const <Candle>[],
         post: stored.easternDate == tradingDate
             ? stored.post
             : const <Candle>[],

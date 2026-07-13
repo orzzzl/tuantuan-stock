@@ -734,6 +734,8 @@ void main() {
       final series = await _quoteRepository(
         hosts,
         cache: store,
+        // Same Eastern day as the store, after the close (17:00 ET).
+        now: () => DateTime.utc(2026, 7, 7, 21, 0),
       ).chart('AAPL', ChartRange.day);
 
       expect(series.candles, hasLength(78));
@@ -769,12 +771,56 @@ void main() {
         final series = await _quoteRepository(
           hosts,
           cache: store,
+          // Inside the live Jul 08 pre-market (04:30 ET).
+          now: () => DateTime.utc(2026, 7, 8, 8, 30),
         ).chart('AAPL', ChartRange.day);
 
         expect(series.preMarketCandles.single.close, 311.19);
         // A post list from a NEWER date belongs to a session the chart is not
         // showing yet.
         expect(series.postMarketCandles, isEmpty);
+      },
+    );
+
+    test(
+      "an earlier day's cached pre points never fill a later pre-market",
+      () async {
+        // The Friday-cache/Monday-pre-market case: the store still holds the
+        // previous session's points (a stale first Sina response is rejected
+        // by the record gate, so no rollover wipe happened) and Tencent's
+        // trade date still matches that session — only the current Eastern
+        // date exposes the pre list as an earlier day's.
+        final store = cacheStore();
+        await store.appendExtPoints(
+          easternDate: '2026-07-07',
+          session: MarketSession.pre,
+          points: {
+            'AAPL': (time: DateTime.utc(2026, 7, 7, 8, 12), price: 314.1),
+          },
+        );
+        await store.appendExtPoints(
+          easternDate: '2026-07-07',
+          session: MarketSession.post,
+          points: {
+            'AAPL': (time: DateTime.utc(2026, 7, 7, 20, 15), price: 310.9),
+          },
+        );
+
+        final hosts = _FakeCnHosts(
+          tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+          min5: _fixture('sina_min5_regular.jsonp.txt'),
+        );
+        final series = await _quoteRepository(
+          hosts,
+          cache: store,
+          // Inside the NEXT day's live pre-market (04:12 ET Jul 08), with
+          // Tencent's trade date still 2026-07-07.
+          now: () => DateTime.utc(2026, 7, 8, 8, 12),
+        ).chart('AAPL', ChartRange.day);
+
+        expect(series.preMarketCandles, isEmpty);
+        // The post zone still belongs to the charted 07-07 session.
+        expect(series.postMarketCandles.single.close, 310.9);
       },
     );
 
