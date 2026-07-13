@@ -32,7 +32,11 @@ Duration? watchlistQuotesRefreshInterval(Iterable<Quote> quotes) {
 Duration? detailDayChartRefreshInterval(MarketSession? session) {
   return switch (session) {
     MarketSession.regular => detailDayChartRegularRefreshInterval,
-    MarketSession.pre || MarketSession.post || MarketSession.closed => null,
+    // A live extended session repolls at the locked ext cadence so the
+    // chart's pre/post zones gain the points the quote poll accumulates
+    // (task 27).
+    MarketSession.pre || MarketSession.post => extendedSessionRefreshInterval,
+    MarketSession.closed => null,
     null => null,
   };
 }

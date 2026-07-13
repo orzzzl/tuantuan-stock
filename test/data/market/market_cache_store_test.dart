@@ -72,6 +72,103 @@ void main() {
     expect(await cache().readQuoteSnapshots(['AAA']), isNull);
     expect(await prefs.getString(MarketCacheStore.quoteSnapshotsKey), isNull);
   });
+
+  group('ext points (task 27)', () {
+    const day = '2026-07-08';
+
+    test('appended points read back as flat candles per session', () async {
+      final store = cache();
+      await store.appendExtPoints(
+        easternDate: day,
+        session: MarketSession.pre,
+        points: {
+          'AAPL': (time: DateTime.utc(2026, 7, 8, 8, 12), price: 311.19),
+          'MSFT': (time: DateTime.utc(2026, 7, 8, 8, 12), price: 388.5),
+        },
+      );
+      await store.appendExtPoints(
+        easternDate: day,
+        session: MarketSession.pre,
+        points: {
+          'AAPL': (time: DateTime.utc(2026, 7, 8, 8, 13), price: 311.42),
+        },
+      );
+      await store.appendExtPoints(
+        easternDate: day,
+        session: MarketSession.post,
+        points: {
+          'AAPL': (time: DateTime.utc(2026, 7, 8, 20, 15), price: 313.22),
+        },
+      );
+
+      final aapl = (await store.readExtPoints('AAPL'))!;
+      expect(aapl.easternDate, day);
+      expect(aapl.pre, hasLength(2));
+      expect(aapl.pre.first.time, DateTime.utc(2026, 7, 8, 8, 12));
+      expect(aapl.pre.first.close, 311.19);
+      expect(aapl.pre.first.open, 311.19);
+      expect(aapl.pre.last.close, 311.42);
+      expect(aapl.post.single.time, DateTime.utc(2026, 7, 8, 20, 15));
+      expect(aapl.post.single.close, 313.22);
+
+      expect((await store.readExtPoints('MSFT'))!.pre, hasLength(1));
+      expect((await store.readExtPoints('ZZZZ'))!.pre, isEmpty);
+    });
+
+    test('a repeat of the latest minute stamp is skipped', () async {
+      final store = cache();
+      final stamp = DateTime.utc(2026, 7, 8, 8, 12);
+      await store.appendExtPoints(
+        easternDate: day,
+        session: MarketSession.pre,
+        points: {'AAPL': (time: stamp, price: 311.19)},
+      );
+      await store.appendExtPoints(
+        easternDate: day,
+        session: MarketSession.pre,
+        points: {'AAPL': (time: stamp, price: 311.19)},
+      );
+
+      expect((await store.readExtPoints('AAPL'))!.pre, hasLength(1));
+    });
+
+    test('a new Eastern date wipes the previous day', () async {
+      final store = cache();
+      await store.appendExtPoints(
+        easternDate: day,
+        session: MarketSession.post,
+        points: {
+          'AAPL': (time: DateTime.utc(2026, 7, 8, 20, 15), price: 313.22),
+        },
+      );
+      await store.appendExtPoints(
+        easternDate: '2026-07-09',
+        session: MarketSession.pre,
+        points: {'AAPL': (time: DateTime.utc(2026, 7, 9, 8, 5), price: 314.0)},
+      );
+
+      final aapl = (await store.readExtPoints('AAPL'))!;
+      expect(aapl.easternDate, '2026-07-09');
+      expect(aapl.post, isEmpty);
+      expect(aapl.pre.single.close, 314.0);
+    });
+
+    test('corrupt ext store is dropped; bad rows are skipped', () async {
+      final prefs = SharedPreferencesAsync();
+      await prefs.setString(MarketCacheStore.extPointsKey, '{bad json');
+      expect(await cache().readExtPoints('AAPL'), isNull);
+      expect(await prefs.getString(MarketCacheStore.extPointsKey), isNull);
+
+      await prefs.setString(
+        MarketCacheStore.extPointsKey,
+        '{"version":1,"date":"$day","symbols":{"AAPL":{"pre":'
+        '[{"t":"not a time","p":1},"bad",{"t":"2026-07-08T08:12:00.000Z",'
+        '"p":311.19}]}}}',
+      );
+      final aapl = (await cache().readExtPoints('AAPL'))!;
+      expect(aapl.pre.single.close, 311.19);
+    });
+  });
 }
 
 Quote _quote(double dayChangePct) {

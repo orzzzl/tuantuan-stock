@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tuantuan_stock/data/market/company_logos.dart';
+import 'package:tuantuan_stock/domain/models/candle.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
 
@@ -17,6 +18,23 @@ class CachedQuoteBatch {
   final bool isStale;
 }
 
+/// One symbol's accumulated extended-hours points (task 27): flat candles
+/// built from the ext quotes observed during [easternDate]'s pre/post
+/// sessions, oldest-first.
+class CachedExtSessionPoints {
+  const CachedExtSessionPoints({
+    required this.easternDate,
+    required this.pre,
+    required this.post,
+  });
+
+  /// The US-Eastern calendar date (`yyyy-MM-dd`) the points belong to.
+  final String easternDate;
+
+  final List<Candle> pre;
+  final List<Candle> post;
+}
+
 class MarketCacheStore {
   MarketCacheStore(this._prefs);
 
@@ -25,6 +43,7 @@ class MarketCacheStore {
   // has no TTL, so the provider switch (task 17) must refetch once.
   static const stocksKey = 'market.stocks.v2';
   static const ytdBaselinesKey = 'market.ytdBaselines.v1';
+  static const extPointsKey = 'market.extPoints.v1';
 
   final SharedPreferencesAsync _prefs;
 
@@ -154,6 +173,87 @@ class MarketCacheStore {
       ytdBaselinesKey,
       jsonEncode({'version': 1, 'baselines': entries}),
     );
+  }
+
+  Future<CachedExtSessionPoints?> readExtPoints(String symbol) async {
+    final root = await _readMap(extPointsKey);
+    if (root == null) return null;
+    final date = root['date'];
+    final symbols = root['symbols'];
+    if (date is! String || symbols is! Map<String, Object?>) {
+      await _prefs.remove(extPointsKey);
+      return null;
+    }
+    final entry = symbols[symbol];
+    final (pre, post) = switch (entry) {
+      Map<String, Object?> map => (
+        _decodeExtPoints(map['pre']),
+        _decodeExtPoints(map['post']),
+      ),
+      _ => (const <Candle>[], const <Candle>[]),
+    };
+    return CachedExtSessionPoints(easternDate: date, pre: pre, post: post);
+  }
+
+  /// Appends one refresh's extended-hours points. The store holds a single
+  /// Eastern day: a different [easternDate] wipes it (the previous day's
+  /// points are history the day chart no longer draws). A point whose
+  /// timestamp equals a symbol's latest stored one is a repeat of the same
+  /// minute-stamped ext quote and is skipped.
+  Future<void> appendExtPoints({
+    required String easternDate,
+    required MarketSession session,
+    required Map<String, ({DateTime time, double price})> points,
+  }) async {
+    if (points.isEmpty) return;
+    if (session != MarketSession.pre && session != MarketSession.post) return;
+    final root = await _readMap(extPointsKey);
+    final symbols = switch (root) {
+      {'date': final String date, 'symbols': final Map<String, Object?> map}
+          when date == easternDate =>
+        {...map},
+      _ => <String, Object?>{},
+    };
+    final listKey = session == MarketSession.pre ? 'pre' : 'post';
+    for (final MapEntry(key: symbol, value: point) in points.entries) {
+      final entry = switch (symbols[symbol]) {
+        final Map<String, Object?> map => {...map},
+        _ => <String, Object?>{},
+      };
+      final list = switch (entry[listKey]) {
+        final List<Object?> existing => [...existing],
+        _ => <Object?>[],
+      };
+      final time = point.time.toUtc().toIso8601String();
+      if (list.lastOrNull case {'t': final String last} when last == time) {
+        continue;
+      }
+      list.add({'t': time, 'p': point.price});
+      entry[listKey] = list;
+      symbols[symbol] = entry;
+    }
+    await _prefs.setString(
+      extPointsKey,
+      jsonEncode({'version': 1, 'date': easternDate, 'symbols': symbols}),
+    );
+  }
+
+  /// Malformed rows are skipped rather than nuking the day: a partially
+  /// corrupt list still renders its readable points.
+  static List<Candle> _decodeExtPoints(Object? raw) {
+    if (raw is! List<Object?>) return const [];
+    return List.unmodifiable([
+      for (final item in raw)
+        if (item case {'t': final String time, 'p': final num price})
+          if (DateTime.tryParse(time)?.toUtc() case final DateTime parsed)
+            Candle(
+              time: parsed,
+              open: price.toDouble(),
+              high: price.toDouble(),
+              low: price.toDouble(),
+              close: price.toDouble(),
+            ),
+    ]);
   }
 
   Future<Map<String, Object?>?> _readMap(String key) async {

@@ -32,6 +32,23 @@ void main() {
         InMemorySharedPreferencesAsync.empty();
   });
 
+  test('day chart cadence: 60s regular, 30s extended, idle closed', () {
+    expect(
+      detailDayChartRefreshInterval(MarketSession.regular),
+      detailDayChartRegularRefreshInterval,
+    );
+    expect(
+      detailDayChartRefreshInterval(MarketSession.pre),
+      extendedSessionRefreshInterval,
+    );
+    expect(
+      detailDayChartRefreshInterval(MarketSession.post),
+      extendedSessionRefreshInterval,
+    );
+    expect(detailDayChartRefreshInterval(MarketSession.closed), isNull);
+    expect(detailDayChartRefreshInterval(null), isNull);
+  });
+
   testWidgets('detail quote polls every 5s in regular session', (tester) async {
     final repository = _PollingQuoteRepository(
       quoteSession: MarketSession.regular,

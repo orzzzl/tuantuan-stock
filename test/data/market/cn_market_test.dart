@@ -6,6 +6,9 @@ import 'package:fast_gbk/fast_gbk.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:tuantuan_stock/data/market/cn_eastern_time.dart';
 import 'package:tuantuan_stock/data/market/cn_market_client.dart';
 import 'package:tuantuan_stock/data/market/cn_quote_repository.dart';
@@ -595,6 +598,170 @@ void main() {
         _quoteRepository(hosts).chart('AAPL', ChartRange.month),
         throwsA(isA<NetworkFailure>()),
       );
+    });
+  });
+
+  group('ext-hours accumulation (task 27)', () {
+    setUp(() {
+      SharedPreferencesAsyncPlatform.instance =
+          InMemorySharedPreferencesAsync.empty();
+    });
+
+    MarketCacheStore cacheStore() => MarketCacheStore(SharedPreferencesAsync());
+
+    // Ext-point writes are fire-and-forget off the quote path; drain the
+    // microtask queue so the chained append lands before asserting.
+    Future<void> settle() async {
+      for (var i = 0; i < 10; i += 1) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+
+    test('a pre-market refresh appends the Sina ext point', () async {
+      final hosts = _FakeCnHosts(
+        tencentQuote: _fixture('tencent_quote_aapl_premarket.gbk.txt'),
+        sinaQuote: _fixture('sina_quote_aapl_premarket.gbk.txt'),
+        kline: _fixture('tencent_kline_day1_premarket.json'),
+      );
+      final store = cacheStore();
+      await _quoteRepository(
+        hosts,
+        cache: store,
+        now: () => DateTime.utc(2026, 7, 8, 8, 12),
+      ).quoteSnapshots(['AAPL']);
+      await settle();
+
+      final points = (await store.readExtPoints('AAPL'))!;
+      expect(points.easternDate, '2026-07-08');
+      // Fixture field 24 stamp `Jul 08 04:12AM EDT` on the day's ET date.
+      expect(points.pre.single.time, DateTime.utc(2026, 7, 8, 8, 12));
+      expect(points.pre.single.close, 311.1988);
+      expect(points.post, isEmpty);
+    });
+
+    test('a post-market refresh appends to the post list', () async {
+      final hosts = _FakeCnHosts(
+        tencentQuote: _fixture('tencent_quote_aapl_postmarket.gbk.txt'),
+        sinaQuote: _fixture('sina_quote_aapl_postmarket.gbk.txt'),
+        kline: _fixture('tencent_kline_day1_postmarket.json'),
+      );
+      final store = cacheStore();
+      await _quoteRepository(
+        hosts,
+        cache: store,
+        now: () => DateTime.utc(2026, 7, 8, 20, 15),
+      ).quoteSnapshots(['AAPL']);
+      await settle();
+
+      final points = (await store.readExtPoints('AAPL'))!;
+      expect(points.easternDate, '2026-07-08');
+      expect(points.post.single.time, DateTime.utc(2026, 7, 8, 20, 15));
+      expect(points.post.single.close, 313.22);
+      expect(points.pre, isEmpty);
+    });
+
+    test('a stale post stamp records nothing during pre-market', () async {
+      final hosts = _FakeCnHosts(
+        tencentQuote: _fixture('tencent_quote_aapl_premarket.gbk.txt'),
+        // Batch fixture: AAPL's ext figure is stamped `Jul 07 07:59PM EDT`.
+        sinaQuote: _fixture('sina_quote_batch.gbk.txt'),
+        kline: _fixture('tencent_kline_day1_premarket.json'),
+      );
+      final store = cacheStore();
+      await _quoteRepository(
+        hosts,
+        cache: store,
+        now: () => DateTime.utc(2026, 7, 8, 8, 12),
+      ).quoteSnapshots(['AAPL']);
+      await settle();
+
+      expect(await store.readExtPoints('AAPL'), isNull);
+    });
+
+    test("day chart attaches the charted day's stored zones", () async {
+      final store = cacheStore();
+      await store.appendExtPoints(
+        easternDate: '2026-07-07',
+        session: MarketSession.pre,
+        points: {'AAPL': (time: DateTime.utc(2026, 7, 7, 8, 12), price: 314.1)},
+      );
+      await store.appendExtPoints(
+        easternDate: '2026-07-07',
+        session: MarketSession.post,
+        points: {
+          'AAPL': (time: DateTime.utc(2026, 7, 7, 20, 15), price: 310.9),
+        },
+      );
+
+      final hosts = _FakeCnHosts(
+        tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+        min5: _fixture('sina_min5_regular.jsonp.txt'),
+      );
+      final series = await _quoteRepository(
+        hosts,
+        cache: store,
+      ).chart('AAPL', ChartRange.day);
+
+      expect(series.candles, hasLength(78));
+      expect(series.preMarketCandles.single.close, 314.1);
+      expect(series.postMarketCandles.single.close, 310.9);
+    });
+
+    test(
+      'live pre-market points attach to the previous session chart',
+      () async {
+        // During pre-market the Tencent trade date is still the previous
+        // session's, while the store is already on the new ET date.
+        final store = cacheStore();
+        await store.appendExtPoints(
+          easternDate: '2026-07-08',
+          session: MarketSession.pre,
+          points: {
+            'AAPL': (time: DateTime.utc(2026, 7, 8, 8, 12), price: 311.19),
+          },
+        );
+        await store.appendExtPoints(
+          easternDate: '2026-07-08',
+          session: MarketSession.post,
+          points: {
+            'AAPL': (time: DateTime.utc(2026, 7, 8, 20, 15), price: 313.22),
+          },
+        );
+
+        final hosts = _FakeCnHosts(
+          tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+          min5: _fixture('sina_min5_regular.jsonp.txt'),
+        );
+        final series = await _quoteRepository(
+          hosts,
+          cache: store,
+        ).chart('AAPL', ChartRange.day);
+
+        expect(series.preMarketCandles.single.close, 311.19);
+        // A post list from a NEWER date belongs to a session the chart is not
+        // showing yet.
+        expect(series.postMarketCandles, isEmpty);
+      },
+    );
+
+    test('a corrupt ext store leaves the zones empty', () async {
+      await SharedPreferencesAsync().setString(
+        MarketCacheStore.extPointsKey,
+        '{bad json',
+      );
+
+      final hosts = _FakeCnHosts(
+        tencentQuote: _fixture('tencent_quote_batch.gbk.txt'),
+        min5: _fixture('sina_min5_regular.jsonp.txt'),
+      );
+      final series = await _quoteRepository(
+        hosts,
+        cache: cacheStore(),
+      ).chart('AAPL', ChartRange.day);
+
+      expect(series.candles, hasLength(78));
+      expect(series.preMarketCandles, isEmpty);
+      expect(series.postMarketCandles, isEmpty);
     });
   });
 
