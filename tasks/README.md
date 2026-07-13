@@ -90,13 +90,17 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 ## v0.4 — overnight session (夜盘)
 
 Owner report (2026-07-12): broker applications show Blue Ocean ATS activity Sunday
-night through the week, while the app stays frozen after post-market. A source decision
-must be made before product design.
+night through the week, while the app stays frozen after post-market. Task 29 closed
+the strict, cross-region search with a no-go. The follow-up permits a US-only source,
+but it must degrade silently when unreachable from mainland China and still needs owner
+sign-off before product work.
 
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
-| 29 | [Provider spike v3: US overnight-session data source](v0.4/29-provider-spike-v3-overnight.md) | IN PROGRESS (Codex) | — |
+| 29 | [Provider spike v3: US overnight-session data source](v0.4/29-provider-spike-v3-overnight.md) | DONE (Codex, PR #32; owner signed off 2026-07-12) | — |
+| 30 | [Provider spike v3b: US-only overnight-session data source](v0.4/30-overnight-spike-relaxed.md) | IN PROGRESS (Codex) | 29 |
 
 ## Order of attack (v0.4)
 
-- 29 is report-only. Owner sign-off on the source decision gates any implementation.
+- 29 is complete. 30 is report-only and tests the relaxed US-only requirement; owner
+  sign-off on its source decision gates any implementation.
