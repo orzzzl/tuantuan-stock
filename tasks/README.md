@@ -99,11 +99,11 @@ sign-off before product work.
 |----|------|--------|-----------|
 | 29 | [Provider spike v3: US overnight-session data source](v0.4/29-provider-spike-v3-overnight.md) | DONE (Codex, PR #32; owner signed off 2026-07-12) | — |
 | 30 | [Provider spike v3b: US-only overnight-session data source](v0.4/30-overnight-spike-relaxed.md) | DONE (Codex, PR #33; owner signed off 2026-07-12) | — |
-| 31 | [Provider spike v3c: Alpaca Basic overnight feed](v0.4/31-alpaca-overnight-spike.md) | BLOCKED (Codex; live probe complete; owner data-source sign-off required) | Owner sign-off |
+| 31 | [Provider spike v3c: Alpaca Basic overnight feed](v0.4/31-alpaca-overnight-spike.md) | DONE (Codex; owner signed off 2026-07-13) | — |
 
 ## Order of attack (v0.4)
 
 - 29 and 30 are complete; task 30's no-product-GO is owner-signed. Task 31's live,
-  report-only Alpaca Basic probe is complete and is blocked on owner sign-off for its
-  conditional research GO. Any source decision still requires owner sign-off before
-  an implementation task.
+  report-only Alpaca Basic probe is complete and owner-signed: the read-only
+  credential model and implementation-phase validation are approved. Product work
+  still requires a separately specified implementation task.
