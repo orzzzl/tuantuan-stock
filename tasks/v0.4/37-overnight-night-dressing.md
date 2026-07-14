@@ -1,7 +1,7 @@
 # 37 — Night dressing (C2 theming follow-up)
 
-- **Status:** BLOCKED (waiting on task 35)
-- **Owner:** —
+- **Status:** READY (task 35 merged as of 2026-07-13, PR #45)
+- **Owner:** Claude
 - **Blocked by:** 35
 - **Allowed new deps:** none
 

@@ -105,9 +105,9 @@ design [`docs/overnight-design.md`](../docs/overnight-design.md) is **signed off
 | 32 | [Overnight session model + ET window classifier](v0.4/32-overnight-session-model.md) | DONE (Codex, PR #41) | — |
 | 33 | [Alpaca overnight quote source](v0.4/33-alpaca-overnight-source.md) | DONE (Codex, PR #43) | 32 |
 | 34 | [Overnight polling wiring](v0.4/34-overnight-polling.md) | DONE (Claude, PR #44) | 32, 33 |
-| 35 | [Overnight UI (A1 + B1)](v0.4/35-overnight-ui.md) | IN REVIEW (Claude, PR #45) | 32, 34 |
-| 36 | [Overnight validation pass + DESIGN.md fold-in](v0.4/36-overnight-validation.md) | BLOCKED | 32–35 |
-| 37 | [Night dressing (C2 theming follow-up)](v0.4/37-overnight-night-dressing.md) | BLOCKED | 35 |
+| 35 | [Overnight UI (A1 + B1)](v0.4/35-overnight-ui.md) | DONE (Claude, PR #45) | 32, 34 |
+| 36 | [Overnight validation pass + DESIGN.md fold-in](v0.4/36-overnight-validation.md) | READY (assigned: Codex) | 32–35 |
+| 37 | [Night dressing (C2 theming follow-up)](v0.4/37-overnight-night-dressing.md) | READY (assigned: Claude) | 35 |
 
 ## Order of attack (v0.4)
 
