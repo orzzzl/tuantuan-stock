@@ -1,6 +1,6 @@
 # 33 — Alpaca overnight quote source
 
-- **Status:** READY (task 32 merged as PR #41, 2026-07-13)
+- **Status:** DONE (Codex, PR #43, merged 2026-07-13)
 - **Owner:** Codex
 - **Blocked by:** 32
 - **Allowed new deps:** none (plain `http` + `dart:convert`, same as the CN client)
