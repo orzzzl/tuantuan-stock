@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tuantuan_stock/core/live_polling.dart';
 import 'package:tuantuan_stock/data/market/alpaca_overnight_client.dart';
 import 'package:tuantuan_stock/data/market/cached_stock_repository.dart';
 import 'package:tuantuan_stock/data/market/cn_market_client.dart';
@@ -37,6 +38,7 @@ final overnightQuoteCoordinatorProvider = Provider<OvernightQuoteCoordinator>((
 ) {
   final coordinator = OvernightQuoteCoordinator(
     client: ref.watch(_alpacaOvernightClientProvider),
+    now: ref.watch(liveRefreshClockProvider),
   );
   ref.onDispose(coordinator.dispose);
   return coordinator;
@@ -61,6 +63,7 @@ final quoteRepositoryProvider = Provider<QuoteRepository>(
       cache: ref.watch(marketCacheStoreProvider),
     ),
     ref.watch(overnightQuoteCoordinatorProvider),
+    now: ref.watch(liveRefreshClockProvider),
   ),
 );
 

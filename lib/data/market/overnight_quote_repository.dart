@@ -63,21 +63,44 @@ class OvernightQuoteRepository
 /// Turns a usable quote midpoint into the existing extended-session seam.
 /// The regular quote's price remains authoritative; the UI shows the move in
 /// its session chip, just like pre/post-market data.
+///
+/// Accepts an already-merged quote: the overnight stamp is its own output, so
+/// it is first undone, which makes re-merging a later snapshot update the
+/// value and re-merging a miss fall back to the plain closed quote. A quote
+/// in any live session (regular/pre/post) is always returned untouched.
 Quote mergeOvernightQuote(
   Quote quote,
   String symbol,
   OvernightSnapshot snapshot, {
   required DateTime now,
 }) {
+  final base = _withoutOvernightStamp(quote);
   final overnight = snapshot.quotes[symbol];
-  if (quote.session != MarketSession.closed ||
+  if (base.session != MarketSession.closed ||
       overnight == null ||
       overnight.timestamp.toUtc().isBefore(
         now.toUtc().subtract(overnightQuoteMaxAge),
       ) ||
-      quote.price == 0) {
-    return quote;
+      base.price == 0) {
+    return base;
   }
+  return _withSession(
+    base,
+    session: MarketSession.overnight,
+    extChangePct: (overnight.midpoint - base.price) / base.price * 100,
+  );
+}
+
+Quote _withoutOvernightStamp(Quote quote) {
+  if (quote.session != MarketSession.overnight) return quote;
+  return _withSession(quote, session: MarketSession.closed, extChangePct: null);
+}
+
+Quote _withSession(
+  Quote quote, {
+  required MarketSession session,
+  required double? extChangePct,
+}) {
   return Quote(
     price: quote.price,
     dayChange: quote.dayChange,
@@ -92,7 +115,7 @@ Quote mergeOvernightQuote(
     forwardPe: quote.forwardPe,
     ytdChangePct: quote.ytdChangePct,
     asOf: quote.asOf,
-    session: MarketSession.overnight,
-    extChangePct: (overnight.midpoint - quote.price) / quote.price * 100,
+    session: session,
+    extChangePct: extChangePct,
   );
 }

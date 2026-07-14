@@ -45,8 +45,53 @@ void main() {
       detailDayChartRefreshInterval(MarketSession.post),
       extendedSessionRefreshInterval,
     );
+    expect(detailDayChartRefreshInterval(MarketSession.overnight), isNull);
     expect(detailDayChartRefreshInterval(MarketSession.closed), isNull);
     expect(detailDayChartRefreshInterval(null), isNull);
+  });
+
+  test('overnight quotes idle the CN quote cadences', () {
+    expect(
+      detailQuoteRefreshInterval(_quote(session: MarketSession.overnight)),
+      isNull,
+    );
+    expect(
+      watchlistQuotesRefreshInterval([
+        _quote(session: MarketSession.overnight),
+        _quote(session: MarketSession.closed),
+      ]),
+      isNull,
+    );
+  });
+
+  test('overnight window delay: cadence inside, next window start outside', () {
+    // 2026-07-13 is a Monday; wall clocks are US Eastern (EDT).
+    Duration delayAt(DateTime eastern) =>
+        overnightWindowRefreshDelay(easternToUtc(eastern));
+
+    // Tuesday 02:00 — inside the window.
+    expect(
+      delayAt(DateTime.utc(2026, 7, 14, 2)),
+      extendedSessionRefreshInterval,
+    );
+    // Monday 19:59 — one minute to the 20:00 start.
+    expect(
+      delayAt(DateTime.utc(2026, 7, 13, 19, 59)),
+      const Duration(minutes: 1),
+    );
+    // Monday noon — tonight's start.
+    expect(delayAt(DateTime.utc(2026, 7, 13, 12)), const Duration(hours: 8));
+    // Friday 04:00 — the window just closed; next start is Sunday 20:00.
+    expect(
+      delayAt(DateTime.utc(2026, 7, 17, 4)),
+      const Duration(days: 2, hours: 16),
+    );
+    // Friday noon and Saturday evening also wait for Sunday 20:00.
+    expect(
+      delayAt(DateTime.utc(2026, 7, 17, 12)),
+      const Duration(days: 2, hours: 8),
+    );
+    expect(delayAt(DateTime.utc(2026, 7, 18, 21)), const Duration(hours: 23));
   });
 
   testWidgets('detail quote polls every 5s in regular session', (tester) async {

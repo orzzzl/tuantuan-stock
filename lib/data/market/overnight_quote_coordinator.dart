@@ -11,13 +11,19 @@ class OvernightSnapshot {
   OvernightSnapshot({
     required Map<String, OvernightQuote> quotes,
     required this.fetchedAt,
+    this.failed = false,
   }) : quotes = Map.unmodifiable(quotes);
 
-  factory OvernightSnapshot.empty(DateTime fetchedAt) =>
-      OvernightSnapshot(quotes: const {}, fetchedAt: fetchedAt);
+  factory OvernightSnapshot.empty(DateTime fetchedAt, {bool failed = false}) =>
+      OvernightSnapshot(quotes: const {}, fetchedAt: fetchedAt, failed: failed);
 
   final Map<String, OvernightQuote> quotes;
   final DateTime fetchedAt;
+
+  /// True when this tick got no data because the feed failed, as opposed to a
+  /// quiet or out-of-window tick. Merge consumers ignore it; the polling loop
+  /// reads it to feed its failure backoff.
+  final bool failed;
 }
 
 /// Owns the whole-app overnight request path. Consumers only manage their
@@ -88,7 +94,7 @@ class OvernightQuoteCoordinator {
       };
       return _publish(OvernightSnapshot(quotes: fresh, fetchedAt: fetchedAt));
     } on Object {
-      return _publish(OvernightSnapshot.empty(fetchedAt));
+      return _publish(OvernightSnapshot.empty(fetchedAt, failed: true));
     }
   }
 
