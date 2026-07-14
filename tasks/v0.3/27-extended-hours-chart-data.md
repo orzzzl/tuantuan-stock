@@ -1,7 +1,7 @@
 # 27 — Extended-hours chart data: fill 26's 盘前/盘后 zones
 
 - **Status:** DONE (Claude, PR #30; post-market zone manual check passed
-  2026-07-13; pre-market zone check remains, scheduled Tue 2026-07-14 pre session)
+  2026-07-13; pre-market zone manual check passed 2026-07-14)
 - **Owner:** —
 - **Blocked by:** 26 (the `ChartSeries` pre/post seam), 24 (only for the
   accumulate-from-polling fallback)
