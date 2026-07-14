@@ -1,6 +1,8 @@
-# 团团看盘 (TuanTuan Stocks) — Design (v3.1, LOCKED)
+# 团团看盘 (TuanTuan Stocks) — Design (v4.0, LOCKED)
 
-> v3.1 (2026-07-02, owner): the detail hero's change line now follows the selected
+> v4.0 (2026-07-13, owner): the app adds the owner-locked US-only Blue Ocean ATS
+> overnight path described below. v3.1 (2026-07-02, owner): the detail hero's change line
+> now follows the selected
 > range (Robinhood mode) instead of always showing today; the waterline text label is
 > gone on every range (noise); ranges gain 5年/全部 (chips wrap onto two rows); the
 > watchlist sort toggle gains 今年 and the row's numbers follow the active sort; the
@@ -66,15 +68,45 @@ session tags. Identity (name/logo) and YTD ranks fill into the existing row layo
 their futures resolve; missing YTD remains a muted `—` under the YTD sort. Row
 sparklines are always per-row async decoration and never block row layout.
 
-### Session labeling (盘前 / 盘后)
+### Session labeling (盘前 / 盘后 / 夜盘)
 
 Every displayed change % states its session — never let a number be misread:
 - During regular hours the pill/hero reads as `今天`.
 - Outside regular hours, show the extended move with a small tag: **盘前 (pre)** before
-  open, **盘后 (night)** after close — on watchlist rows (tiny line under the pill) and
+  open, **盘后 (post)** after close, or **夜盘 (overnight)** in the Blue Ocean window — on
+  watchlist rows (tiny line under the pill) and
   in the detail hero (small inline chip). The regular-day change stays visible; the tag
   carries the extended-session change.
-- zh/en label sets: 盘前/盘后 ↔ Pre/Night (whole-set swap, per the i18n rule).
+- zh/en label sets: 盘前/盘后/夜盘 ↔ Pre/Post/Overnight (whole-set swap, per the i18n
+  rule).
+
+### Overnight session (v4.0)
+
+- **Window and source:** during the Blue Ocean ATS window, Sunday–Thursday 20:00–04:00
+  America/New_York, the app may show Alpaca Basic `overnight` latest-quote midpoints.
+  All other sessions retain Tencent/Sina as the primary quote source. The ET clock—not
+  the UTC date—defines the cross-midnight window; holidays are simply quiet.
+- **Polling:** one shared coordinator owns the only Alpaca request path. In the foreground
+  it sends one batched request every 30 seconds for the union of the watchlist and any
+  open detail symbol (two requests per minute); the 1D chart makes no overnight request
+  or drawing. Backgrounding makes zero requests and foreground resumption refreshes
+  immediately. Failures back off per source to five minutes and recover on success.
+- **Presentation (A1 + B1):** a usable midpoint creates a small 夜盘/Overnight tag in
+  watchlist rows and an inline detail-hero chip, showing its percent move versus the
+  latest regular close. The headline price, official day-change pill, day-race order,
+  medals, and chart geometry remain frozen at the regular close. C2 night dressing is a
+  separate task-37 cosmetic follow-up, not part of this data path.
+- **Silent degradation:** missing build-time credentials, unreachable/timeout/HTTP/429,
+  malformed or stale data, and unavailable mainland-China access all show no overnight
+  tag and no error UI; regular/pre/post behavior and cached CN quotes remain intact. A
+  build reads `ALPACA_KEY_ID` and `ALPACA_SECRET_KEY` only through `--dart-define`; no
+  credential belongs in source, logs, or docs.
+- **Operational posture:** the client records `X-RateLimit-Remaining`; a 429 is a normal
+  no-value tick, never a retry storm. The 2026-07-13 emulator validation observed live
+  hands-off tags during the BOATS window, a normal no-key build, and a normal
+  app-network-unreachable run. Mainland-China reachability remains deferred for the
+  owner's next real-world China session; its expected behavior is the same quiet
+  no-overnight state.
 
 ## Company logos
 
@@ -153,7 +185,7 @@ Every displayed change % states its session — never let a number be misread:
 ## Architecture seams
 
 - `QuoteRepository` — quote (incl. day change, market cap, **ytdChangePct**, and the
-  **session** — pre/regular/post/closed — with the extended-hours change when outside
+  **session** — pre/regular/post/overnight/closed — with the extended-hours change when outside
   regular hours) + candles for a symbol/range.
 - `SearchRepository` — symbol/name search → matches.
 - `WatchlistRepository` — local-first CRUD of saved symbols.

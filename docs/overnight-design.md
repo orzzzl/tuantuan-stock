@@ -1,13 +1,14 @@
-# v0.4 overnight session (夜盘) — design proposal
+# v0.4 overnight session (夜盘) — locked design record
 
-> **Status: SIGNED OFF (owner, 2026-07-13) — picked set A1 + B1 + C2.** The data
-> source was already decided (owner approved both provider-report-v3c §5 items on
-> 2026-07-13: the Alpaca Basic account/credential model for the read-only
-> overnight path, and implementation-phase validation of reachability, rate-limit
-> handling, and silent degradation). The §4 product-shape decision is recorded
-> inline below. Tasks 32–36 are unblocked; C2 is authored as follow-up task 37,
-> scheduled after the A1/B1 pipeline lands. The locked decisions get folded into
-> `DESIGN.md` (task 36).
+> **Status: FOLDED AND LOCKED (2026-07-13).** The canonical behavior now lives in
+> [`DESIGN.md`](DESIGN.md#overnight-session-v40); this document retains the signed-off
+> decision history and implementation rationale. The owner picked A1 + B1 + C2; C2 remains
+> the separate task-37 cosmetic follow-up.
+
+> The owner also approved the provider-report-v3c §5 items on 2026-07-13: the Alpaca
+> Basic account/credential model for the read-only overnight path and implementation-phase
+> validation of reachability, rate-limit handling, and silent degradation. The §4
+> product-shape decision is recorded inline below.
 
 ## 1. What we are building
 
