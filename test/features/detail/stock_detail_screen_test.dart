@@ -110,6 +110,11 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('-1.50%'), findsOneWidget);
+    expect(skyChart(tester).nightDressing, isFalse);
+    expect(
+      tester.widget<PlaneRider>(find.byType(PlaneRider)).nightcap,
+      isFalse,
+    );
   });
 
   testWidgets('overnight session shows the hero chip on official numbers', (
@@ -137,6 +142,9 @@ void main() {
     // regular-session values — overnight is a chip, nothing more.
     expect(find.textContaining(localizations.todayLabel), findsOneWidget);
     expect(heroGradient(tester), CuteColors.upGradient);
+    // Night dressing (C2): moon + stars sky and the nightcap, overnight only.
+    expect(skyChart(tester).nightDressing, isTrue);
+    expect(tester.widget<PlaneRider>(find.byType(PlaneRider)).nightcap, isTrue);
   });
 
   testWidgets('closed session without an overnight value shows no chip', (
@@ -161,6 +169,12 @@ void main() {
     expect(
       find.textContaining(localizations.postMarketSessionLabel),
       findsNothing,
+    );
+    // The dressing reverts with the session — pre-task-37 visuals return.
+    expect(skyChart(tester).nightDressing, isFalse);
+    expect(
+      tester.widget<PlaneRider>(find.byType(PlaneRider)).nightcap,
+      isFalse,
     );
   });
 
