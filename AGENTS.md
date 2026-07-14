@@ -27,6 +27,11 @@ require that, stop and leave a note in the PR instead of guessing.
    (mailbox `~/agents/inbox/antigravity/new/`) when the default reviewer is out of
    quota or unresponsive. The owner can always override or add review. Address review
    comments on the same branch; merge only after an explicit approval.
+   After merging, the task's completion is recorded in TWO places and BOTH must move
+   in the same board commit: the row in `tasks/README.md` AND the `- **Status:**`
+   line inside the task's own file. A task is not closed until both say DONE — the
+   owner reads the task files on GitHub, not just the board (missed twice: v0.3
+   tasks 24/26/27, v0.4 task 35).
 7. **Agent-to-agent notifications go through the machine-level mailbox** at
    `~/agents/` (spec: `~/agents/PROTOCOL.md`) — e.g. "PR #N is ready for your
    review". Review content itself stays on the GitHub PR. Never commit mailbox

@@ -1,6 +1,6 @@
 # 35 — Overnight UI (A1 + B1)
 
-- **Status:** IN REVIEW (Claude, PR #45; manual BOATS-window check passed 2026-07-13)
+- **Status:** DONE (Claude, PR #45; manual BOATS-window check passed 2026-07-13)
 - **Owner:** Claude
 - **Blocked by:** 32, 34
 - **Allowed new deps:** none
