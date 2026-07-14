@@ -224,6 +224,10 @@
   "@postMarketSessionLabel": {
     "description": "Post-market session tag label."
   },
+  "overnightSessionLabel": "Overnight",
+  "@overnightSessionLabel": {
+    "description": "Overnight (Blue Ocean ATS) session tag label."
+  },
   "currentPriceLabel": "Price (USD)",
   "@currentPriceLabel": {
     "description": "Label above the huge price in the detail hero."

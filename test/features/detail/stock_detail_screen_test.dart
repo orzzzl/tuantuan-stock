@@ -112,6 +112,58 @@ void main() {
     expect(find.textContaining('-1.50%'), findsOneWidget);
   });
 
+  testWidgets('overnight session shows the hero chip on official numbers', (
+    tester,
+  ) async {
+    await pumpDetail(
+      tester,
+      quote: _quote(
+        dayChange: 2.1,
+        dayChangePct: 1.0,
+        session: MarketSession.overnight,
+        extChangePct: 0.98,
+      ),
+      seriesByRange: {
+        ChartRange.day: _series(baseline: 100, closes: [101, 102, 103]),
+      },
+    );
+
+    expect(
+      find.textContaining(localizations.overnightSessionLabel),
+      findsOneWidget,
+    );
+    expect(find.textContaining('+0.98%'), findsOneWidget);
+    // Headline price, day-change line, and chart geometry keep the official
+    // regular-session values — overnight is a chip, nothing more.
+    expect(find.textContaining(localizations.todayLabel), findsOneWidget);
+    expect(heroGradient(tester), CuteColors.upGradient);
+  });
+
+  testWidgets('closed session without an overnight value shows no chip', (
+    tester,
+  ) async {
+    await pumpDetail(
+      tester,
+      quote: _quote(
+        dayChange: 2.1,
+        dayChangePct: 1.0,
+        session: MarketSession.closed,
+      ),
+      seriesByRange: {
+        ChartRange.day: _series(baseline: 100, closes: [101, 102, 103]),
+      },
+    );
+
+    expect(
+      find.textContaining(localizations.overnightSessionLabel),
+      findsNothing,
+    );
+    expect(
+      find.textContaining(localizations.postMarketSessionLabel),
+      findsNothing,
+    );
+  });
+
   testWidgets('underwater: rider drowns below the baseline', (tester) async {
     await pumpDetail(
       tester,

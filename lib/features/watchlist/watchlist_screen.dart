@@ -590,17 +590,16 @@ class _RaceRow extends ConsumerWidget {
     );
   }
 
-  /// `盘前/盘后 ±x.x%` when an extended session is in progress; null hides
-  /// the line entirely.
+  /// `盘前/盘后/夜盘 ±x.x%` when an extended session is in progress; null
+  /// hides the line entirely.
   String? _extendedTag(AppLocalizations localizations, Quote quote) {
     final extChangePct = quote.extChangePct;
     if (extChangePct == null) return null;
     final label = switch (quote.session) {
       MarketSession.pre => localizations.preMarketSessionLabel,
       MarketSession.post => localizations.postMarketSessionLabel,
-      MarketSession.regular ||
-      MarketSession.overnight ||
-      MarketSession.closed => null,
+      MarketSession.overnight => localizations.overnightSessionLabel,
+      MarketSession.regular || MarketSession.closed => null,
     };
     if (label == null) return null;
     return '$label ${localizations.formatSignedPercent(extChangePct / 100)}';
