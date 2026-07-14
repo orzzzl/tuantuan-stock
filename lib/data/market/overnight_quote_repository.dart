@@ -70,7 +70,8 @@ Quote mergeOvernightQuote(
   required DateTime now,
 }) {
   final overnight = snapshot.quotes[symbol];
-  if (overnight == null ||
+  if (quote.session != MarketSession.closed ||
+      overnight == null ||
       overnight.timestamp.toUtc().isBefore(
         now.toUtc().subtract(overnightQuoteMaxAge),
       ) ||

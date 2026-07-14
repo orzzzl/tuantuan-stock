@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tuantuan_stock/data/market/cached_stock_repository.dart';
 import 'package:tuantuan_stock/data/market/alpaca_overnight_client.dart';
+import 'package:tuantuan_stock/data/market/cached_stock_repository.dart';
 import 'package:tuantuan_stock/data/market/cn_market_client.dart';
 import 'package:tuantuan_stock/data/market/cn_quote_repository.dart';
 import 'package:tuantuan_stock/data/market/cn_search_repository.dart';

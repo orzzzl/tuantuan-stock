@@ -259,5 +259,27 @@ void main() {
         );
       },
     );
+
+    test('pre-market quotes preserve their live extended-session values', () {
+      final quote = Quote(
+        price: 315,
+        dayChange: 1,
+        dayChangePct: 0.32,
+        open: 314,
+        high: 316,
+        low: 313,
+        prevClose: 314,
+        volume: 100,
+        asOf: _now,
+        session: MarketSession.pre,
+        extChangePct: 0.75,
+      );
+      final snapshot = OvernightSnapshot(
+        quotes: {'AAPL': OvernightQuote(midpoint: 315.84, timestamp: _now)},
+        fetchedAt: _now,
+      );
+
+      expect(mergeOvernightQuote(quote, 'AAPL', snapshot, now: _now), quote);
+    });
   });
 }
