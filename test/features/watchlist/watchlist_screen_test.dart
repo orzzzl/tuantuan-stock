@@ -351,6 +351,83 @@ void main() {
     expect(find.byKey(WatchlistScreen.sessionTagKey('CCC')), findsNothing);
   });
 
+  testWidgets('overnight tags light up while the day race stays frozen', (
+    tester,
+  ) async {
+    // Frozen at the close: no extended session in progress anywhere.
+    final closed = {
+      for (final MapEntry(:key, :value) in _quotes.entries)
+        key: _quote(
+          dayChangePct: value.dayChangePct,
+          marketCap: value.marketCap,
+          ytdChangePct: value.ytdChangePct,
+          session: MarketSession.closed,
+        ),
+    };
+    // An overnight tick later: CCC gets a big positive overnight move that
+    // must NOT promote it in the day race; DDDD has no overnight value this
+    // tick and must look exactly as before.
+    final overnight = {
+      ...closed,
+      'AAA': _quote(
+        dayChangePct: 3,
+        marketCap: 1e11,
+        ytdChangePct: 10,
+        session: MarketSession.overnight,
+        extChangePct: -0.4,
+      ),
+      'CCC': _quote(
+        dayChangePct: -1,
+        marketCap: 2e11,
+        ytdChangePct: -5,
+        session: MarketSession.overnight,
+        extChangePct: 5,
+      ),
+    };
+
+    void expectFrozenRace() {
+      expect(rowY(tester, 'AAA'), lessThan(rowY(tester, 'BBB')));
+      expect(rowY(tester, 'BBB'), lessThan(rowY(tester, 'CCC')));
+      expect(rowY(tester, 'CCC'), lessThan(rowY(tester, 'DDDD')));
+      expect(inRow('AAA', '🥇'), findsOneWidget);
+      expect(inRow('BBB', '🥈'), findsOneWidget);
+      expect(inRow('CCC', '🥉'), findsOneWidget);
+      expect(inRow('DDDD', '4'), findsOneWidget);
+      expect(inRow('AAA', '▲ +3.00%'), findsOneWidget);
+      expect(inRow('BBB', '▲ +2.00%'), findsOneWidget);
+      expect(inRow('CCC', '▼ -1.00%'), findsOneWidget);
+      expect(inRow('DDDD', '▼ -2.00%'), findsOneWidget);
+    }
+
+    final repository = _SwappableQuoteRepository(closed);
+    await pumpWatchlist(tester, quoteRepository: repository);
+
+    expectFrozenRace();
+    for (final symbol in _watched) {
+      expect(find.byKey(WatchlistScreen.sessionTagKey(symbol)), findsNothing);
+    }
+
+    // An overnight tick lands through pull-to-refresh (same silent-update
+    // rendering path as the pollers).
+    repository.bySymbol = overnight;
+    await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+    await tester.pumpAndSettle();
+
+    expectFrozenRace();
+    final aaaTag = tester.widget<Text>(
+      find.byKey(WatchlistScreen.sessionTagKey('AAA')),
+    );
+    expect(aaaTag.data, contains(localizations.overnightSessionLabel));
+    expect(aaaTag.data, contains('-0.40%'));
+    final cccTag = tester.widget<Text>(
+      find.byKey(WatchlistScreen.sessionTagKey('CCC')),
+    );
+    expect(cccTag.data, contains(localizations.overnightSessionLabel));
+    expect(cccTag.data, contains('+5.00%'));
+    expect(find.byKey(WatchlistScreen.sessionTagKey('BBB')), findsNothing);
+    expect(find.byKey(WatchlistScreen.sessionTagKey('DDDD')), findsNothing);
+  });
+
   testWidgets('empty watchlist shows the search nudge', (tester) async {
     await pumpWatchlist(tester, watched: const []);
 
@@ -514,6 +591,30 @@ class _SequencedSnapshotQuoteRepository implements QuoteSnapshotRepository {
       (bySymbol) => {for (final symbol in symbols) symbol: ?bySymbol[symbol]},
     );
   }
+
+  @override
+  Future<Map<String, Quote>> quotes(List<String> symbols) =>
+      quoteSnapshots(symbols);
+
+  @override
+  Future<ChartSeries> chart(String symbol, ChartRange range) {
+    return Completer<ChartSeries>().future;
+  }
+}
+
+/// Answers immediately from a map the test swaps between "ticks".
+class _SwappableQuoteRepository implements QuoteSnapshotRepository {
+  _SwappableQuoteRepository(this.bySymbol);
+
+  Map<String, Quote> bySymbol;
+
+  @override
+  Future<Quote> quote(String symbol) async => bySymbol[symbol]!;
+
+  @override
+  Future<Map<String, Quote>> quoteSnapshots(List<String> symbols) async => {
+    for (final symbol in symbols) symbol: ?bySymbol[symbol],
+  };
 
   @override
   Future<Map<String, Quote>> quotes(List<String> symbols) =>

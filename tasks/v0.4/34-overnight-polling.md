@@ -1,6 +1,6 @@
 # 34 — Overnight polling wiring
 
-- **Status:** IN REVIEW (Claude, PR #44; blockers 32, 33 merged 2026-07-13)
+- **Status:** DONE (Claude, PR #44, merged 2026-07-13)
 - **Owner:** Claude
 - **Blocked by:** 32, 33
 - **Allowed new deps:** none

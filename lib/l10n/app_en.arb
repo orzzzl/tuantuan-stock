@@ -220,9 +220,13 @@
   "@preMarketSessionLabel": {
     "description": "Pre-market session tag label."
   },
-  "postMarketSessionLabel": "Night",
+  "postMarketSessionLabel": "Post",
   "@postMarketSessionLabel": {
     "description": "Post-market session tag label."
+  },
+  "overnightSessionLabel": "Overnight",
+  "@overnightSessionLabel": {
+    "description": "Overnight (Blue Ocean ATS) session tag label."
   },
   "currentPriceLabel": "Price (USD)",
   "@currentPriceLabel": {

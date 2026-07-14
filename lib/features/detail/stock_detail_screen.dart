@@ -338,16 +338,16 @@ class _PriceHero extends StatelessWidget {
     );
   }
 
-  /// `盘前/盘后 ±x.x%` chip content when an extended session is in progress.
+  /// `盘前/盘后/夜盘 ±x.x%` chip content when an extended session is in
+  /// progress.
   String? _extendedTag(AppLocalizations localizations, Quote quote) {
     final extChangePct = quote.extChangePct;
     if (extChangePct == null) return null;
     final label = switch (quote.session) {
       MarketSession.pre => localizations.preMarketSessionLabel,
       MarketSession.post => localizations.postMarketSessionLabel,
-      MarketSession.regular ||
-      MarketSession.overnight ||
-      MarketSession.closed => null,
+      MarketSession.overnight => localizations.overnightSessionLabel,
+      MarketSession.regular || MarketSession.closed => null,
     };
     if (label == null) return null;
     return '$label ${localizations.formatSignedPercent(extChangePct / 100)}';
