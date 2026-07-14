@@ -41,6 +41,31 @@ void main() {
     }
   }
 
+  for (final nightcap in [false, true]) {
+    testWidgets('PlaneRider plumbs nightcap=$nightcap to the painter', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: PlaneRider(
+              state: PlaneRiderState.climbing,
+              nightcap: nightcap,
+            ),
+          ),
+        ),
+      );
+
+      final customPaintFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is CustomPaint &&
+            widget.painter is PlaneRiderPainter &&
+            (widget.painter! as PlaneRiderPainter).nightcap == nightcap,
+      );
+      expect(customPaintFinder, findsOneWidget);
+    });
+  }
+
   test('face metric stays circular for every state', () {
     expect(PlaneRiderPainter.faceRadius, greaterThan(0));
     expect(PlaneRiderPainter.faceCenter.dx, PlaneRider.logicalSize.width / 2);

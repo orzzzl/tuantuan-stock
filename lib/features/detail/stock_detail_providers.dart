@@ -31,7 +31,9 @@ final detailQuoteProvider = StreamProvider.autoDispose.family<Quote, String>((
   return overnightRemergedQuotes(ref, symbol, quotes);
 });
 
-final _detailQuoteSessionProvider = Provider.autoDispose
+/// Session of the latest detail quote — the signal behind the extended-hours
+/// chip, the 1D chart's refresh cadence, and the overnight night dressing.
+final detailQuoteSessionProvider = Provider.autoDispose
     .family<MarketSession?, String>(
       (ref, symbol) =>
           ref.watch(detailQuoteProvider(symbol)).valueOrNull?.session,
@@ -60,9 +62,9 @@ final detailChartProvider = StreamProvider.autoDispose
             ref.read(quoteRepositoryProvider).chart(args.symbol, args.range),
         interval: (_) => args.range == ChartRange.day
             ? detailDayChartRefreshInterval(
-                ref.read(_detailQuoteSessionProvider(args.symbol)),
+                ref.read(detailQuoteSessionProvider(args.symbol)),
               )
             : null,
-        rescheduleWhen: [_detailQuoteSessionProvider(args.symbol)],
+        rescheduleWhen: [detailQuoteSessionProvider(args.symbol)],
       );
     });

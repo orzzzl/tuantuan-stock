@@ -76,6 +76,7 @@ class SkyChart extends StatelessWidget {
     this.postMarketCandles = const [],
     this.dayAxis,
     this.anchorBuilder,
+    this.nightDressing = false,
   });
 
   final List<Candle> candles;
@@ -86,6 +87,10 @@ class SkyChart extends StatelessWidget {
   final double height;
   final DayAxisChartConfig? dayAxis;
   final SkyChartAnchorBuilder? anchorBuilder;
+
+  /// Swaps the sky decoration to a moon + stars during the overnight
+  /// session (design §4 C2). Decoration only — geometry is unaffected.
+  final bool nightDressing;
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +124,7 @@ class SkyChart extends StatelessWidget {
                     baseline: baseline,
                     direction: direction,
                     dayAxis: dayAxis,
+                    nightDressing: nightDressing,
                   ),
                 ),
               ),
@@ -330,6 +336,7 @@ class SkyChartPainter extends CustomPainter {
     required this.baseline,
     required this.direction,
     this.dayAxis,
+    this.nightDressing = false,
   });
 
   final List<Candle> candles;
@@ -338,6 +345,7 @@ class SkyChartPainter extends CustomPainter {
   final double baseline;
   final ChartDirection direction;
   final DayAxisChartConfig? dayAxis;
+  final bool nightDressing;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -380,7 +388,8 @@ class SkyChartPainter extends CustomPainter {
         oldDelegate.postMarketCandles != postMarketCandles ||
         oldDelegate.baseline != baseline ||
         oldDelegate.direction != direction ||
-        oldDelegate.dayAxis != dayAxis;
+        oldDelegate.dayAxis != dayAxis ||
+        oldDelegate.nightDressing != nightDressing;
   }
 
   void _drawDayAxisZones(
@@ -458,6 +467,12 @@ class SkyChartPainter extends CustomPainter {
         Offset(size.width - SkyChartGeometry.chartPadding.right, y),
         gridPaint,
       );
+    }
+
+    if (nightDressing) {
+      _drawMoon(canvas, Offset(size.width - 48, 38));
+      _drawStars(canvas, size);
+      return;
     }
 
     switch (direction) {
@@ -650,6 +665,50 @@ class SkyChartPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2,
       );
+  }
+
+  void _drawMoon(Canvas canvas, Offset center) {
+    final crescent = Path.combine(
+      PathOperation.difference,
+      Path()..addOval(Rect.fromCircle(center: center, radius: 12)),
+      Path()..addOval(
+        Rect.fromCircle(center: center + const Offset(-7, -4), radius: 10),
+      ),
+    );
+    canvas
+      ..drawPath(crescent, Paint()..color = CuteColors.sun)
+      ..drawPath(
+        crescent,
+        Paint()
+          ..color = CuteColors.sunStroke
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+  }
+
+  void _drawStars(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = CuteColors.sunRay
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.7
+      ..strokeCap = StrokeCap.round;
+    for (final (center, radius) in [
+      (const Offset(52, 42), 4.0),
+      (const Offset(88, 26), 2.6),
+      (Offset(size.width - 92, 52), 3.2),
+    ]) {
+      canvas
+        ..drawLine(
+          center + Offset(0, -radius),
+          center + Offset(0, radius),
+          paint,
+        )
+        ..drawLine(
+          center + Offset(-radius, 0),
+          center + Offset(radius, 0),
+          paint,
+        );
+    }
   }
 
   void _drawCloud(Canvas canvas, Offset center, Color color) {

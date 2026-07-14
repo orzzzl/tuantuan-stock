@@ -6,31 +6,43 @@ import 'package:tuantuan_stock/app/cute_palette.dart';
 enum PlaneRiderState { climbing, diving, underwater }
 
 class PlaneRider extends StatelessWidget {
-  const PlaneRider({super.key, required this.state, this.size = 66});
+  const PlaneRider({
+    super.key,
+    required this.state,
+    this.size = 66,
+    this.nightcap = false,
+  });
 
   static const logicalSize = Size(66, 48);
 
   final PlaneRiderState state;
   final double size;
 
+  /// Dresses the mascot with a nightcap during the overnight session
+  /// (design §4 C2). Decoration only — pose and layout are unaffected.
+  final bool nightcap;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size * logicalSize.height / logicalSize.width,
-      child: CustomPaint(painter: PlaneRiderPainter(state: state)),
+      child: CustomPaint(
+        painter: PlaneRiderPainter(state: state, nightcap: nightcap),
+      ),
     );
   }
 }
 
 class PlaneRiderPainter extends CustomPainter {
-  const PlaneRiderPainter({required this.state});
+  const PlaneRiderPainter({required this.state, this.nightcap = false});
 
   static const logicalSize = PlaneRider.logicalSize;
   static const faceCenter = Offset(33, 16);
   static const faceRadius = 10.2;
 
   final PlaneRiderState state;
+  final bool nightcap;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -52,7 +64,7 @@ class PlaneRiderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(PlaneRiderPainter oldDelegate) {
-    return oldDelegate.state != state;
+    return oldDelegate.state != state || oldDelegate.nightcap != nightcap;
   }
 
   void _drawTiltedRider(Canvas canvas) {
@@ -211,7 +223,9 @@ class PlaneRiderPainter extends CustomPainter {
   }
 
   void _drawMascot(Canvas canvas) {
-    _drawSprout(canvas);
+    if (!nightcap) {
+      _drawSprout(canvas);
+    }
     canvas
       ..drawCircle(
         faceCenter,
@@ -227,11 +241,53 @@ class PlaneRiderPainter extends CustomPainter {
           ..strokeWidth = 0.8,
       );
 
+    if (nightcap) {
+      _drawNightcap(canvas);
+    }
     if (_isPanic) {
       _drawPanicFace(canvas);
     } else {
       _drawHappyFace(canvas);
     }
+  }
+
+  void _drawNightcap(Canvas canvas) {
+    final cap = Path()
+      ..moveTo(24.5, 11.5)
+      ..quadraticBezierTo(27, 3.5, 34, 3)
+      ..quadraticBezierTo(41, 2.8, 45.5, 4.5)
+      ..lineTo(41.5, 11)
+      ..quadraticBezierTo(33, 7.5, 24.5, 11.5)
+      ..close();
+    final stroke = Paint()
+      ..color = CuteColors.lavenderText
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas
+      ..drawPath(cap, Paint()..color = CuteColors.lavenderRing)
+      ..drawPath(cap, stroke);
+
+    final band = Path()
+      ..moveTo(24, 12.2)
+      ..quadraticBezierTo(33, 7.8, 42.2, 11.6);
+    canvas.drawPath(
+      band,
+      Paint()
+        ..color = CuteColors.lavenderBlob
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round,
+    );
+
+    canvas
+      ..drawCircle(
+        const Offset(46.5, 4.5),
+        2.6,
+        Paint()..color = CuteColors.lavenderBlob,
+      )
+      ..drawCircle(const Offset(46.5, 4.5), 2.6, stroke..strokeWidth = 1);
   }
 
   void _drawSprout(Canvas canvas) {

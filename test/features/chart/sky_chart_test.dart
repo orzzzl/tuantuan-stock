@@ -149,6 +149,54 @@ void main() {
     );
   });
 
+  testWidgets('night dressing reaches the painter without moving geometry', (
+    tester,
+  ) async {
+    final candles = [
+      _dayCandle(9, 30, 100),
+      _dayCandle(12, 45, 101),
+      _dayCandle(16, 0, 102),
+    ];
+    final anchors = <bool, Offset>{};
+
+    for (final nightDressing in [false, true]) {
+      await tester.pumpWidget(
+        _localizedChart(
+          SizedBox(
+            width: chartSize.width,
+            child: SkyChart(
+              candles: candles,
+              baseline: baseline,
+              direction: ChartDirection.up,
+              height: chartSize.height,
+              dayAxis: _dayAxisAt(12, 45),
+              nightDressing: nightDressing,
+              anchorBuilder: (context, tipAnchor) {
+                anchors[nightDressing] = tipAnchor;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+
+      final painter =
+          tester
+                  .widget<CustomPaint>(
+                    find.byWidgetPredicate(
+                      (widget) =>
+                          widget is CustomPaint &&
+                          widget.painter is SkyChartPainter,
+                    ),
+                  )
+                  .painter!
+              as SkyChartPainter;
+      expect(painter.nightDressing, nightDressing);
+    }
+
+    expect(anchors[true], anchors[false]);
+  });
+
   testWidgets('MiniSpark renders the compact row variant', (tester) async {
     await tester.pumpWidget(
       _localizedChart(

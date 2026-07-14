@@ -459,6 +459,13 @@ class _ChartCard extends ConsumerWidget {
                     postMarketLabel: localizations.postMarketSessionLabel,
                   )
                 : null;
+            // Night dressing rides the same session signal as the overnight
+            // chip; when the feed degrades the session reads closed and the
+            // scene reverts (design §4 C2).
+            final nightDressing =
+                dayAxis != null &&
+                ref.watch(detailQuoteSessionProvider(symbol)) ==
+                    MarketSession.overnight;
             final chartCandles = [
               ...series.preMarketCandles,
               ...series.candles,
@@ -488,12 +495,14 @@ class _ChartCard extends ConsumerWidget {
               direction: direction,
               dayAxis: dayAxis,
               height: 224,
+              nightDressing: nightDressing,
               anchorBuilder: (context, tipAnchor) => Positioned(
                 left: tipAnchor.dx - 28,
                 top: tipAnchor.dy - 40,
                 child: PlaneRider(
                   state: riderStateFor(chartCandles, series.baseline),
                   size: 52,
+                  nightcap: nightDressing,
                 ),
               ),
             );
