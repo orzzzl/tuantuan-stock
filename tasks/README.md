@@ -76,7 +76,7 @@ numbers never update either. Root cause: every quote/chart provider is a one-sho
 | 24 | [Session-aware auto-refresh (quotes + intraday chart)](v0.3/24-session-aware-auto-refresh.md) | DONE (Codex, PR #27; market-open check passed 2026-07-13) | — |
 | 25 | [Short display names (recognizable list at a glance)](v0.3/25-short-display-names.md) | DONE (Claude, PR #28) | — |
 | 26 | [1D chart: fixed day axis + 盘前/盘后 zones, 团团 flies left→right](v0.3/26-day-progress-chart.md) | DONE (Codex, PR #29) | — |
-| 27 | [Extended-hours chart data (spike + fill 26's zones)](v0.3/27-extended-hours-chart-data.md) | DONE (Claude, PR #30; post-market zone check passed 2026-07-13; pre-market zone check Tue 2026-07-14) | — |
+| 27 | [Extended-hours chart data (spike + fill 26's zones)](v0.3/27-extended-hours-chart-data.md) | DONE (Claude, PR #30; post-market zone check passed 2026-07-13; pre-market zone check passed 2026-07-14) | — |
 | 28 | [ETF short display names (task 25 follow-up)](v0.3/28-etf-short-names.md) | DONE (Claude, PR #31) | — |
 
 ## Order of attack (v0.3)
@@ -107,7 +107,7 @@ design [`docs/overnight-design.md`](../docs/overnight-design.md) is **signed off
 | 34 | [Overnight polling wiring](v0.4/34-overnight-polling.md) | DONE (Claude, PR #44) | 32, 33 |
 | 35 | [Overnight UI (A1 + B1)](v0.4/35-overnight-ui.md) | DONE (Claude, PR #45) | 32, 34 |
 | 36 | [Overnight validation pass + DESIGN.md fold-in](v0.4/36-overnight-validation.md) | DONE (Codex, 2026-07-13: live, no-key, and unreachable runs passed) | — |
-| 37 | [Night dressing (C2 theming follow-up)](v0.4/37-overnight-night-dressing.md) | READY (assigned: Claude) | 35 |
+| 37 | [Night dressing (C2 theming follow-up)](v0.4/37-overnight-night-dressing.md) | DONE (Claude, PR #48) | 35 |
 
 ## Order of attack (v0.4)
 

@@ -1,6 +1,6 @@
 # 37 — Night dressing (C2 theming follow-up)
 
-- **Status:** READY (task 35 merged as of 2026-07-13, PR #45)
+- **Status:** DONE (Claude, PR #48)
 - **Owner:** Claude
 - **Blocked by:** 35
 - **Allowed new deps:** none
