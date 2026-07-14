@@ -32,6 +32,7 @@ class _FakeClient implements OvernightQuoteClient {
   _FakeClient({this.enabled = true, this.response = const {}});
 
   bool enabled;
+  bool failing = false;
   Map<String, OvernightQuote> response;
   final calls = <List<String>>[];
   Completer<Map<String, OvernightQuote>>? pending;
@@ -42,6 +43,7 @@ class _FakeClient implements OvernightQuoteClient {
   @override
   Future<Map<String, OvernightQuote>> latestQuotes(List<String> symbols) {
     calls.add(List.of(symbols));
+    if (failing) return Future.error(const OvernightFeedFailure());
     return pending?.future ?? Future.value(response);
   }
 }
@@ -83,43 +85,50 @@ void main() {
       },
     );
 
-    test(
-      'missing symbols, malformed JSON, 429, and timeout silently return no values',
-      () async {
-        final missing = AlpacaOvernightClient(
-          httpClient: MockClient(
-            (_) async => http.Response('{"quotes": {}}', 200),
-          ),
-          keyId: 'key',
-          secretKey: 'secret',
-        );
-        final malformed = AlpacaOvernightClient(
-          httpClient: MockClient((_) async => http.Response('{not json', 200)),
-          keyId: 'key',
-          secretKey: 'secret',
-        );
-        final limited = AlpacaOvernightClient(
-          httpClient: MockClient(
-            (_) async =>
-                http.Response('', 429, headers: {'x-ratelimit-remaining': '0'}),
-          ),
-          keyId: 'key',
-          secretKey: 'secret',
-        );
-        final timeout = AlpacaOvernightClient(
-          httpClient: MockClient((_) => Completer<http.Response>().future),
-          keyId: 'key',
-          secretKey: 'secret',
-          timeout: const Duration(milliseconds: 1),
-        );
+    test('missing symbols return no values; malformed JSON, 429, and timeout '
+        'surface one payload-free failure for the backoff', () async {
+      final missing = AlpacaOvernightClient(
+        httpClient: MockClient(
+          (_) async => http.Response('{"quotes": {}}', 200),
+        ),
+        keyId: 'key',
+        secretKey: 'secret',
+      );
+      final malformed = AlpacaOvernightClient(
+        httpClient: MockClient((_) async => http.Response('{not json', 200)),
+        keyId: 'key',
+        secretKey: 'secret',
+      );
+      final limited = AlpacaOvernightClient(
+        httpClient: MockClient(
+          (_) async =>
+              http.Response('', 429, headers: {'x-ratelimit-remaining': '0'}),
+        ),
+        keyId: 'key',
+        secretKey: 'secret',
+      );
+      final timeout = AlpacaOvernightClient(
+        httpClient: MockClient((_) => Completer<http.Response>().future),
+        keyId: 'key',
+        secretKey: 'secret',
+        timeout: const Duration(milliseconds: 1),
+      );
 
-        expect(await missing.latestQuotes(['AAPL']), isEmpty);
-        expect(await malformed.latestQuotes(['AAPL']), isEmpty);
-        expect(await limited.latestQuotes(['AAPL']), isEmpty);
-        expect(await timeout.latestQuotes(['AAPL']), isEmpty);
-        expect(limited.lastRateLimitRemaining, 0);
-      },
-    );
+      expect(await missing.latestQuotes(['AAPL']), isEmpty);
+      await expectLater(
+        malformed.latestQuotes(['AAPL']),
+        throwsA(isA<OvernightFeedFailure>()),
+      );
+      await expectLater(
+        limited.latestQuotes(['AAPL']),
+        throwsA(isA<OvernightFeedFailure>()),
+      );
+      await expectLater(
+        timeout.latestQuotes(['AAPL']),
+        throwsA(isA<OvernightFeedFailure>()),
+      );
+      expect(limited.lastRateLimitRemaining, 0);
+    });
   });
 
   group('OvernightQuoteCoordinator', () {
@@ -209,6 +218,32 @@ void main() {
       disabledCoordinator.dispose();
       outsideCoordinator.dispose();
     });
+
+    test(
+      'a client failure publishes an empty snapshot marked failed',
+      () async {
+        final client = _FakeClient()..failing = true;
+        final coordinator = OvernightQuoteCoordinator(
+          client: client,
+          now: () => _now,
+          isInOvernightWindow: (_) => true,
+        )..register('watchlist', ['AAPL']);
+
+        final snapshot = await coordinator.tick();
+
+        expect(snapshot.quotes, isEmpty);
+        expect(snapshot.failed, isTrue);
+
+        client.failing = false;
+        client.response = {
+          'AAPL': OvernightQuote(midpoint: 315.84, timestamp: _now),
+        };
+        final recovered = await coordinator.tick();
+        expect(recovered.failed, isFalse);
+        expect(recovered.quotes.keys, ['AAPL']);
+        coordinator.dispose();
+      },
+    );
   });
 
   group('overnight merge', () {
@@ -281,5 +316,55 @@ void main() {
 
       expect(mergeOvernightQuote(quote, 'AAPL', snapshot, now: _now), quote);
     });
+
+    test('re-merging an overnight quote follows the latest snapshot', () {
+      final stamped = mergeOvernightQuote(
+        _regularQuote(),
+        'AAPL',
+        OvernightSnapshot(
+          quotes: {'AAPL': OvernightQuote(midpoint: 315.84, timestamp: _now)},
+          fetchedAt: _now,
+        ),
+        now: _now,
+      );
+
+      final updated = mergeOvernightQuote(
+        stamped,
+        'AAPL',
+        OvernightSnapshot(
+          quotes: {'AAPL': OvernightQuote(midpoint: 318.15, timestamp: _now)},
+          fetchedAt: _now,
+        ),
+        now: _now,
+      );
+      expect(updated.session, MarketSession.overnight);
+      expect(updated.extChangePct, closeTo(1.0, 0.000001));
+      expect(updated.price, 315);
+    });
+
+    test(
+      're-merging an overnight quote against a miss falls back to closed',
+      () {
+        final stamped = mergeOvernightQuote(
+          _regularQuote(),
+          'AAPL',
+          OvernightSnapshot(
+            quotes: {'AAPL': OvernightQuote(midpoint: 315.84, timestamp: _now)},
+            fetchedAt: _now,
+          ),
+          now: _now,
+        );
+
+        final fallen = mergeOvernightQuote(
+          stamped,
+          'AAPL',
+          OvernightSnapshot.empty(_now, failed: true),
+          now: _now,
+        );
+        expect(fallen.session, MarketSession.closed);
+        expect(fallen.extChangePct, isNull);
+        expect(fallen.price, 315);
+      },
+    );
   });
 }

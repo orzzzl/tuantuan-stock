@@ -7,6 +7,7 @@ const extendedSessionRefreshInterval = Duration(seconds: 30);
 const detailDayChartRegularRefreshInterval = Duration(seconds: 60);
 const _liveSessionStartMinute = 4 * 60;
 const _liveSessionEndMinute = 20 * 60;
+const _overnightWindowStartMinute = 20 * 60;
 
 Duration? detailQuoteRefreshInterval(Quote? latest) {
   return switch (latest?.session) {
@@ -54,6 +55,36 @@ Duration closedSessionRefreshDelay(DateTime now) {
   final nextStart = _nextLiveSessionStart(eastern);
   final delay = easternToUtc(nextStart).difference(utc);
   return delay.isNegative ? Duration.zero : delay;
+}
+
+/// Idle delay for the overnight polling loop: inside the Blue Ocean window it
+/// is the locked extended cadence; outside, sleep until the next window start
+/// so crossing 20:00 ET starts polling without a restart (design §5.3).
+Duration overnightWindowRefreshDelay(DateTime now) {
+  final utc = now.toUtc();
+  if (isOvernightSession(utc)) return extendedSessionRefreshInterval;
+
+  final nextStart = _nextOvernightWindowStart(utcToEastern(utc));
+  final delay = easternToUtc(nextStart).difference(utc);
+  return delay.isNegative ? Duration.zero : delay;
+}
+
+DateTime _nextOvernightWindowStart(DateTime eastern) {
+  var target = DateTime.utc(
+    eastern.year,
+    eastern.month,
+    eastern.day,
+    _overnightWindowStartMinute ~/ 60,
+  );
+  if (eastern.hour * 60 + eastern.minute >= _overnightWindowStartMinute) {
+    target = target.add(const Duration(days: 1));
+  }
+  // The window opens Sunday through Thursday evenings only.
+  while (target.weekday == DateTime.friday ||
+      target.weekday == DateTime.saturday) {
+    target = target.add(const Duration(days: 1));
+  }
+  return target;
 }
 
 DateTime _nextLiveSessionStart(DateTime eastern) {

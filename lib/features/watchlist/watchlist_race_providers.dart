@@ -3,6 +3,7 @@ import 'package:tuantuan_stock/core/live_polling.dart';
 import 'package:tuantuan_stock/data/market/live_market_refresh.dart';
 import 'package:tuantuan_stock/data/market/market_cache_store.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
+import 'package:tuantuan_stock/data/market/overnight_polling.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
 import 'package:tuantuan_stock/domain/models/chart_series.dart';
@@ -31,7 +32,11 @@ final indexStripQuotesProvider = StreamProvider<CachedQuoteBatch>(
 /// first-paint path: slow chart-derived decorations are filled by separate
 /// providers.
 final watchlistQuotesProvider = StreamProvider<CachedQuoteBatch>((ref) async* {
+  final coordinator = ref.watch(overnightQuoteCoordinatorProvider);
   final symbols = await ref.watch(watchlistProvider.future);
+  // Keep the watchlist registered for the overnight batch (design §5.3); the
+  // index strip is not registered — indices do not trade overnight.
+  coordinator.register(#watchlistQuotes, symbols);
   yield* _quoteSnapshotBatches(ref, symbols);
 });
 
@@ -109,7 +114,16 @@ final raceBoardProvider = Provider<AsyncValue<RaceBoard>>((ref) {
   );
 });
 
-Stream<CachedQuoteBatch> _quoteSnapshotBatches(
+Stream<CachedQuoteBatch> _quoteSnapshotBatches(Ref ref, List<String> symbols) {
+  // A new overnight snapshot re-merges the last CN batch in place; symbols
+  // absent from the snapshot (the index strip, misses) pass through untouched.
+  return overnightRemergedBatches(
+    ref,
+    _polledQuoteSnapshotBatches(ref, symbols),
+  );
+}
+
+Stream<CachedQuoteBatch> _polledQuoteSnapshotBatches(
   Ref ref,
   List<String> symbols,
 ) async* {

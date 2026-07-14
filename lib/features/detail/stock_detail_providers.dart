@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuantuan_stock/core/live_polling.dart';
 import 'package:tuantuan_stock/data/market/live_market_refresh.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
+import 'package:tuantuan_stock/data/market/overnight_polling.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
 import 'package:tuantuan_stock/domain/models/chart_series.dart';
 import 'package:tuantuan_stock/domain/models/data_failure.dart';
@@ -13,13 +14,21 @@ final detailQuoteProvider = StreamProvider.autoDispose.family<Quote, String>((
   ref,
   symbol,
 ) {
-  return livePollingStream(
+  // Register this symbol into the overnight batch while the screen is open;
+  // the screen never polls Alpaca itself (design §5.3).
+  final coordinator = ref.watch(overnightQuoteCoordinatorProvider);
+  final consumer = Object();
+  coordinator.register(consumer, [symbol]);
+  ref.onDispose(() => coordinator.unregister(consumer));
+
+  final quotes = livePollingStream(
     ref: ref,
     fetch: () => ref.read(quoteRepositoryProvider).quote(symbol),
     interval: detailQuoteRefreshInterval,
     nullIntervalDelay: (_) =>
         closedSessionRefreshDelay(ref.read(liveRefreshClockProvider)()),
   );
+  return overnightRemergedQuotes(ref, symbol, quotes);
 });
 
 final _detailQuoteSessionProvider = Provider.autoDispose

@@ -4,6 +4,7 @@ import 'package:tuantuan_stock/app/app_router.dart';
 import 'package:tuantuan_stock/app/app_theme.dart';
 import 'package:tuantuan_stock/app/cute_background.dart';
 import 'package:tuantuan_stock/core/app_lifecycle.dart';
+import 'package:tuantuan_stock/data/market/overnight_polling.dart';
 import 'package:tuantuan_stock/l10n/generated/app_localizations.dart';
 
 class TuanTuanStockApp extends ConsumerWidget {
@@ -13,6 +14,9 @@ class TuanTuanStockApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Keeps the overnight clock alive for the app's lifetime; the provider's
+    // value is void, so this never rebuilds the tree.
+    ref.watch(overnightPollingProvider);
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(

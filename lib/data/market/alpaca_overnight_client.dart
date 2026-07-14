@@ -11,6 +11,14 @@ class OvernightQuote {
   final DateTime timestamp;
 }
 
+/// A failed overnight fetch (timeout, transport error, non-200 including 429,
+/// or a malformed payload). Deliberately payload-free: no message, no status,
+/// no credentials — the coordinator turns it into an empty snapshot and the
+/// polling loop only counts consecutive occurrences for its backoff.
+class OvernightFeedFailure implements Exception {
+  const OvernightFeedFailure();
+}
+
 /// Minimal client seam so the coordinator can be tested without HTTP.
 abstract interface class OvernightQuoteClient {
   bool get isEnabled;
@@ -18,8 +26,9 @@ abstract interface class OvernightQuoteClient {
   Future<Map<String, OvernightQuote>> latestQuotes(List<String> symbols);
 }
 
-/// Alpaca Basic's batched latest-quotes endpoint. Every failure intentionally
-/// maps to an empty result: the overnight path is optional decoration.
+/// Alpaca Basic's batched latest-quotes endpoint. Every failure surfaces as
+/// one payload-free [OvernightFeedFailure] so the polling loop can back off;
+/// the coordinator still degrades it to absence before any consumer sees it.
 class AlpacaOvernightClient implements OvernightQuoteClient {
   AlpacaOvernightClient({
     required http.Client httpClient,
@@ -43,8 +52,9 @@ class AlpacaOvernightClient implements OvernightQuoteClient {
   Future<Map<String, OvernightQuote>> latestQuotes(List<String> symbols) async {
     if (!isEnabled || symbols.isEmpty) return const {};
 
+    final http.Response response;
     try {
-      final response = await _http
+      response = await _http
           .get(
             Uri.https('data.alpaca.markets', '/v2/stocks/quotes/latest', {
               'symbols': symbols.join(','),
@@ -57,29 +67,30 @@ class AlpacaOvernightClient implements OvernightQuoteClient {
             },
           )
           .timeout(timeout);
-      lastRateLimitRemaining = int.tryParse(
-        response.headers['x-ratelimit-remaining'] ?? '',
-      );
-      if (response.statusCode != 200) return const {};
-      return _parseLatestQuotes(response.body);
     } on Object {
-      return const {};
+      throw const OvernightFeedFailure();
     }
+    lastRateLimitRemaining = int.tryParse(
+      response.headers['x-ratelimit-remaining'] ?? '',
+    );
+    if (response.statusCode != 200) throw const OvernightFeedFailure();
+    return _parseLatestQuotes(response.body);
   }
 
   static Map<String, OvernightQuote> _parseLatestQuotes(String body) {
+    final Object? decoded;
     try {
-      final decoded = jsonDecode(body);
-      if (decoded is! Map<String, Object?>) return const {};
-      final rawQuotes = decoded['quotes'];
-      if (rawQuotes is! Map<String, Object?>) return const {};
-      return Map.unmodifiable({
-        for (final MapEntry(:key, :value) in rawQuotes.entries)
-          if (_parseQuote(value) case final OvernightQuote quote) key: quote,
-      });
+      decoded = jsonDecode(body);
     } on Object {
-      return const {};
+      throw const OvernightFeedFailure();
     }
+    if (decoded is! Map<String, Object?>) throw const OvernightFeedFailure();
+    final rawQuotes = decoded['quotes'];
+    if (rawQuotes is! Map<String, Object?>) throw const OvernightFeedFailure();
+    return Map.unmodifiable({
+      for (final MapEntry(:key, :value) in rawQuotes.entries)
+        if (_parseQuote(value) case final OvernightQuote quote) key: quote,
+    });
   }
 
   static OvernightQuote? _parseQuote(Object? raw) {
