@@ -1,8 +1,8 @@
 # 36 — Overnight validation pass + fold the locked design into DESIGN.md
 
-- **Status:** READY (tasks 32–35 all merged as of 2026-07-13)
+- **Status:** DONE (validated 2026-07-13)
 - **Owner:** Codex
-- **Blocked by:** 32, 33, 34, 35
+- **Blocked by:** —
 - **Allowed new deps:** none
 
 ## Why
@@ -42,13 +42,25 @@ feature, plus the docs closeout.
 
 ## Acceptance criteria
 
-- [ ] The live-window, unreachable, and no-key runs above are performed and
+- [x] The live-window, unreachable, and no-key runs above are performed and
       their outcomes recorded on the board row (date + result), with failures
       filed as bug rows instead of silently fixed.
-- [ ] Automated coverage exists for 429/timeout/no-key/outside-window somewhere
+- [x] Automated coverage exists for 429/timeout/no-key/outside-window somewhere
       in 33/34/36 — no gaps among the four.
-- [ ] DESIGN.md contains the locked overnight section; proposal doc updated;
+- [x] DESIGN.md contains the locked overnight section; proposal doc updated;
       board rows 32–36 closed out.
-- [ ] No `Text('literal')` (ARB only), no colors outside CuteColors (repo guard
+- [x] No `Text('literal')` (ARB only), no colors outside CuteColors (repo guard
       tests).
-- [ ] `format`/`analyze`/`test` clean.
+- [x] `format`/`analyze`/`test` clean.
+
+## Validation record (2026-07-13)
+
+- During the BOATS window, emulator watchlist and detail overnight values updated
+  hands-off on the 30-second cadence. Backgrounding made zero requests and resuming
+  refreshed immediately.
+- An app-network-unreachable run and a build without Alpaca credentials both retained
+  the normal quiet UI with no overnight value and no retry storm. No failure required
+  a bug row.
+- The complete 192-test suite passed, including existing 429, timeout, no-key,
+  outside-window, rate-limit-header, and backoff coverage. `flutter gen-l10n`,
+  `dart format .`, and `flutter analyze` were clean.
