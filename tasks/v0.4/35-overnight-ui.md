@@ -1,6 +1,6 @@
 # 35 — Overnight UI (A1 + B1)
 
-- **Status:** BLOCKED (design signed off by owner 2026-07-13; waiting on tasks 32, 34)
+- **Status:** IN REVIEW (Claude, PR #45; manual BOATS-window check passed 2026-07-13)
 - **Owner:** Claude
 - **Blocked by:** 32, 34
 - **Allowed new deps:** none
@@ -42,15 +42,15 @@ chart-geometry changes.
 
 ## Acceptance criteria
 
-- [ ] Widget tests: overnight session shows the 夜盘 line/chip with the right
+- [x] Widget tests: overnight session shows the 夜盘 line/chip with the right
       value and tint; missing overnight value shows nothing new; pre/post
       rendering is unchanged.
-- [ ] Widget test: race order, medals, and day-change pills are identical before
+- [x] Widget test: race order, medals, and day-change pills are identical before
       and during overnight ticks.
-- [ ] zh and en label sets each render as a whole set (guard against mixing).
-- [ ] Manual (emulator during a live BOATS window): rows show 夜盘 moves
+- [x] zh and en label sets each render as a whole set (guard against mixing).
+- [x] Manual (emulator during a live BOATS window): rows show 夜盘 moves
       updating hands-off; airplane-mode (or unreachable) run shows a normal
       quiet app with no error UI.
-- [ ] No `Text('literal')` (ARB only), no colors outside CuteColors (repo guard
+- [x] No `Text('literal')` (ARB only), no colors outside CuteColors (repo guard
       tests).
-- [ ] `format`/`analyze`/`test` clean.
+- [x] `format`/`analyze`/`test` clean.
