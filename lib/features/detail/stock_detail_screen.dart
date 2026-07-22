@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tuantuan_stock/app/candy_card.dart';
 import 'package:tuantuan_stock/app/cute_palette.dart';
+import 'package:tuantuan_stock/core/live_polling.dart';
+import 'package:tuantuan_stock/data/market/cn_eastern_time.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
@@ -112,6 +114,7 @@ class _StockDetailScreenState extends ConsumerState<StockDetailScreen> {
               series: ref
                   .watch(detailChartProvider((symbol: _symbol, range: _range)))
                   .valueOrNull,
+              clock: ref.watch(liveRefreshClockProvider),
             ),
             const SizedBox(height: 14),
             _RangeChips(
@@ -229,7 +232,12 @@ class _LogoAvatar extends StatelessWidget {
 }
 
 class _PriceHero extends StatelessWidget {
-  const _PriceHero({required this.quote, required this.range, this.series});
+  const _PriceHero({
+    required this.quote,
+    required this.range,
+    this.series,
+    required this.clock,
+  });
 
   final Quote quote;
   final ChartRange range;
@@ -237,6 +245,9 @@ class _PriceHero extends StatelessWidget {
   /// The selected range's series; null while it loads (the hero then falls
   /// back to today's change rather than showing nothing).
   final ChartSeries? series;
+
+  /// Wall clock for the extended-tag staleness gate.
+  final DateTime Function() clock;
 
   @override
   Widget build(BuildContext context) {
@@ -350,6 +361,9 @@ class _PriceHero extends StatelessWidget {
       MarketSession.regular || MarketSession.closed => null,
     };
     if (label == null) return null;
+    // Offline refreshes keep serving the last cached quote, so a cached
+    // session can outlive its own window; only render it while current.
+    if (!isExtendedSessionWindowNow(quote.session, clock())) return null;
     return '$label ${localizations.formatSignedPercent(extChangePct / 100)}';
   }
 }
