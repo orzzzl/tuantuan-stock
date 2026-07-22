@@ -123,3 +123,27 @@ design [`docs/overnight-design.md`](../docs/overnight-design.md) is **signed off
 - The A1 i18n whole-set label change (Pre / Post / Overnight; 1D zone labels
   Pre/Night → Pre/Post) is owner-approved but vetoable until implemented: task
   35 keeps it in its own commit (or a clearly separable change).
+
+## v0.5 — post-launch data quality (owner field reports, 2026-07-21)
+
+Owner report (2026-07-21): Forward P/E never shows a value; the extended-session
+tag sometimes reads stale/confusing (screenshot showed a **Post** tag matching the
+day change while the device was offline, deep into the overnight window); the 1D
+chart's pre/post zones are empty "most of the time." Diagnosed (no fix yet)
+against the current code + fresh live provider checks:
+
+| #  | Task | Status | Blocked by |
+|----|------|--------|-----------|
+| 38 | [Suppress stale pre/post/overnight tags when the cache is old](v0.5/38-stale-ext-session-tag.md) | READY (assigned: Claude) | — |
+| 39 | [Pre/post chart coverage: revisit the task-27 trade-off](v0.5/39-ext-hours-chart-coverage-decision.md) | BLOCKED (owner decision) | — |
+| 40 | [Forward P/E: no free source; decide hide-vs-spike](v0.5/40-forward-pe-decision.md) | BLOCKED (owner decision) | — |
+
+## Order of attack (v0.5)
+
+- 38 is a normal implementation task (root cause already diagnosed: cached
+  `Quote.session`/`extChangePct` render with no staleness check) — pick it up
+  like any other `READY` task.
+- 39 and 40 are decision write-ups, not code: both lay out options and a
+  recommendation, but need an explicit owner pick (mirrors the
+  `docs/overnight-design.md` §4 sign-off pattern) before any implementation task
+  gets filed under them.
