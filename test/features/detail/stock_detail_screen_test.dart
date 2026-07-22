@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tuantuan_stock/app/cute_palette.dart';
+import 'package:tuantuan_stock/core/live_polling.dart';
 import 'package:tuantuan_stock/data/market/market_providers.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
@@ -30,6 +31,8 @@ void main() {
     Quote? quote,
     Map<ChartRange, ChartSeries>? seriesByRange,
     List<String> watched = const [],
+    DateTime? now,
+    DateTime Function()? clock,
   }) async {
     final quotes = _FakeQuoteRepository(
       quoteValue: quote ?? _quote(),
@@ -40,9 +43,13 @@ void main() {
           },
     );
     final watchlist = _InMemoryWatchlistRepository(watched);
+    // Extended chips gate on the current ET clock (task 38); pin it inside
+    // the post window (Mon 17:00 EDT) unless a test moves it on purpose.
+    final instant = now ?? DateTime.utc(2026, 7, 13, 21);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          liveRefreshClockProvider.overrideWithValue(clock ?? () => instant),
           quoteRepositoryProvider.overrideWithValue(quotes),
           stockRepositoryProvider.overrideWithValue(_FakeStockRepository()),
           watchlistRepositoryProvider.overrideWithValue(watchlist),
@@ -131,6 +138,8 @@ void main() {
       seriesByRange: {
         ChartRange.day: _series(baseline: 100, closes: [101, 102, 103]),
       },
+      // Mon 21:00 EDT — inside the overnight window.
+      now: DateTime.utc(2026, 7, 14, 1),
     );
 
     expect(
@@ -145,6 +154,56 @@ void main() {
     // Night dressing (C2): moon + stars sky and the nightcap, overnight only.
     expect(skyChart(tester).nightDressing, isTrue);
     expect(tester.widget<PlaneRider>(find.byType(PlaneRider)).nightcap, isTrue);
+  });
+
+  testWidgets('a cached post chip is suppressed once the ET clock leaves the '
+      'post window (2026-07-21 offline field report)', (tester) async {
+    await pumpDetail(
+      tester,
+      quote: _quote(
+        dayChange: -2.1,
+        dayChangePct: -1.0,
+        session: MarketSession.post,
+        extChangePct: -1.5,
+      ),
+      // Tue 01:10 EDT — deep in the overnight window; the cached post chip
+      // must not keep rendering as if it were live nighttime data.
+      now: DateTime.utc(2026, 7, 14, 5, 10),
+    );
+
+    expect(
+      find.textContaining(localizations.postMarketSessionLabel),
+      findsNothing,
+    );
+    expect(find.textContaining('-1.50%'), findsNothing);
+  });
+
+  testWidgets('a rendered post chip vanishes when the clock crosses 20:00 ET '
+      'with no fresh quote', (tester) async {
+    // Mon 19:59 EDT; refreshes go offline right after the first quote lands,
+    // so nothing ever replaces the cached post quote.
+    var instant = DateTime.utc(2026, 7, 13, 23, 59);
+    final (repository, _) = await pumpDetail(
+      tester,
+      quote: _quote(session: MarketSession.post, extChangePct: -1.5),
+      clock: () => instant,
+    );
+    repository.quoteOffline = true;
+    expect(
+      find.textContaining(localizations.postMarketSessionLabel),
+      findsOneWidget,
+    );
+
+    // 20:01 EDT: only the staleness gate's own minute tick can take the
+    // chip down.
+    instant = DateTime.utc(2026, 7, 14, 0, 1);
+    await tester.pump(const Duration(minutes: 2));
+    await tester.pump();
+
+    expect(
+      find.textContaining(localizations.postMarketSessionLabel),
+      findsNothing,
+    );
   });
 
   testWidgets('closed session without an overnight value shows no chip', (
@@ -367,8 +426,15 @@ class _FakeQuoteRepository implements QuoteRepository {
   final Map<ChartRange, ChartSeries> seriesByRange;
   final chartCalls = <(String, ChartRange)>[];
 
+  /// When flipped on, quote refreshes fail like a dropped connection while
+  /// the polling stream keeps the already-emitted quote alive.
+  var quoteOffline = false;
+
   @override
-  Future<Quote> quote(String symbol) async => quoteValue;
+  Future<Quote> quote(String symbol) async {
+    if (quoteOffline) throw StateError('offline');
+    return quoteValue;
+  }
 
   @override
   Future<Map<String, Quote>> quotes(List<String> symbols) async => {

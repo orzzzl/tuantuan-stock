@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tuantuan_stock/app/app_router.dart';
 import 'package:tuantuan_stock/app/candy_card.dart';
 import 'package:tuantuan_stock/app/cute_palette.dart';
+import 'package:tuantuan_stock/data/market/extended_session_window.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
@@ -567,7 +568,7 @@ class _RaceRow extends ConsumerWidget {
                           ? entry.ytdChangePct
                           : quote.dayChangePct,
                     ),
-                    if (_extendedTag(localizations, quote) case final tag?)
+                    if (_extendedTag(localizations, quote, ref) case final tag?)
                       Padding(
                         padding: const EdgeInsets.only(top: 3),
                         child: Text(
@@ -592,7 +593,11 @@ class _RaceRow extends ConsumerWidget {
 
   /// `盘前/盘后/夜盘 ±x.x%` when an extended session is in progress; null
   /// hides the line entirely.
-  String? _extendedTag(AppLocalizations localizations, Quote quote) {
+  String? _extendedTag(
+    AppLocalizations localizations,
+    Quote quote,
+    WidgetRef ref,
+  ) {
     final extChangePct = quote.extChangePct;
     if (extChangePct == null) return null;
     final label = switch (quote.session) {
@@ -602,6 +607,10 @@ class _RaceRow extends ConsumerWidget {
       MarketSession.regular || MarketSession.closed => null,
     };
     if (label == null) return null;
+    // Watch the timed staleness gate, not the wall clock directly, so an
+    // already-rendered tag also vanishes when its window closes with no
+    // fresh quote to rebuild the row.
+    if (!ref.watch(extendedSessionWindowProvider(quote.session))) return null;
     return '$label ${localizations.formatSignedPercent(extChangePct / 100)}';
   }
 }

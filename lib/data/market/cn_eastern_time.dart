@@ -3,6 +3,8 @@
 /// (`Jul 07 07:59PM EDT`, report §4.2).
 library;
 
+import 'package:tuantuan_stock/domain/models/quote.dart';
+
 final _clockTime = RegExp(r'\b(\d{1,2}):(\d{2})(AM|PM)\b');
 final _monthDay = RegExp(
   r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2})\b',
@@ -65,6 +67,25 @@ bool isOvernightSession(DateTime instant) {
     DateTime.friday => minutes < end,
     DateTime.saturday => false,
     _ => false,
+  };
+}
+
+/// Whether [instant] falls inside the window [session] claims: `pre`
+/// 04:00-09:30 and `post` 16:00-20:00 ET on weekdays, `overnight` per
+/// [isOvernightSession]; `regular`/`closed` carry no extended window.
+///
+/// This is the staleness gate for extended-session tags rendered from the
+/// cache: quote refreshes degrade to the last-known quote when offline, so a
+/// cached `session` can outlive its own window and must not keep rendering.
+bool isExtendedSessionWindowNow(MarketSession session, DateTime instant) {
+  final eastern = utcToEastern(instant);
+  final minutes = eastern.hour * 60 + eastern.minute;
+  final weekday = eastern.weekday <= DateTime.friday;
+  return switch (session) {
+    MarketSession.pre => weekday && minutes >= 4 * 60 && minutes < 9 * 60 + 30,
+    MarketSession.post => weekday && minutes >= 16 * 60 && minutes < 20 * 60,
+    MarketSession.overnight => isOvernightSession(instant),
+    MarketSession.regular || MarketSession.closed => false,
   };
 }
 
