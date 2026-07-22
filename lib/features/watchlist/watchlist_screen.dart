@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tuantuan_stock/app/app_router.dart';
 import 'package:tuantuan_stock/app/candy_card.dart';
 import 'package:tuantuan_stock/app/cute_palette.dart';
-import 'package:tuantuan_stock/core/live_polling.dart';
-import 'package:tuantuan_stock/data/market/cn_eastern_time.dart';
+import 'package:tuantuan_stock/data/market/extended_session_window.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/quote.dart';
 import 'package:tuantuan_stock/domain/models/stock.dart';
@@ -569,12 +568,7 @@ class _RaceRow extends ConsumerWidget {
                           ? entry.ytdChangePct
                           : quote.dayChangePct,
                     ),
-                    if (_extendedTag(
-                          localizations,
-                          quote,
-                          ref.watch(liveRefreshClockProvider),
-                        )
-                        case final tag?)
+                    if (_extendedTag(localizations, quote, ref) case final tag?)
                       Padding(
                         padding: const EdgeInsets.only(top: 3),
                         child: Text(
@@ -602,7 +596,7 @@ class _RaceRow extends ConsumerWidget {
   String? _extendedTag(
     AppLocalizations localizations,
     Quote quote,
-    DateTime Function() clock,
+    WidgetRef ref,
   ) {
     final extChangePct = quote.extChangePct;
     if (extChangePct == null) return null;
@@ -613,9 +607,10 @@ class _RaceRow extends ConsumerWidget {
       MarketSession.regular || MarketSession.closed => null,
     };
     if (label == null) return null;
-    // Offline refreshes keep serving the last cached quote, so a cached
-    // session can outlive its own window; only render it while current.
-    if (!isExtendedSessionWindowNow(quote.session, clock())) return null;
+    // Watch the timed staleness gate, not the wall clock directly, so an
+    // already-rendered tag also vanishes when its window closes with no
+    // fresh quote to rebuild the row.
+    if (!ref.watch(extendedSessionWindowProvider(quote.session))) return null;
     return '$label ${localizations.formatSignedPercent(extChangePct / 100)}';
   }
 }

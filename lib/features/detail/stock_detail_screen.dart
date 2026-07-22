@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tuantuan_stock/app/candy_card.dart';
 import 'package:tuantuan_stock/app/cute_palette.dart';
-import 'package:tuantuan_stock/core/live_polling.dart';
-import 'package:tuantuan_stock/data/market/cn_eastern_time.dart';
+import 'package:tuantuan_stock/data/market/extended_session_window.dart';
 import 'package:tuantuan_stock/data/watchlist/watchlist_providers.dart';
 import 'package:tuantuan_stock/domain/models/candle.dart';
 import 'package:tuantuan_stock/domain/models/chart_range.dart';
@@ -114,7 +113,9 @@ class _StockDetailScreenState extends ConsumerState<StockDetailScreen> {
               series: ref
                   .watch(detailChartProvider((symbol: _symbol, range: _range)))
                   .valueOrNull,
-              clock: ref.watch(liveRefreshClockProvider),
+              sessionWindowActive: ref.watch(
+                extendedSessionWindowProvider(quote.session),
+              ),
             ),
             const SizedBox(height: 14),
             _RangeChips(
@@ -236,7 +237,7 @@ class _PriceHero extends StatelessWidget {
     required this.quote,
     required this.range,
     this.series,
-    required this.clock,
+    required this.sessionWindowActive,
   });
 
   final Quote quote;
@@ -246,8 +247,10 @@ class _PriceHero extends StatelessWidget {
   /// back to today's change rather than showing nothing).
   final ChartSeries? series;
 
-  /// Wall clock for the extended-tag staleness gate.
-  final DateTime Function() clock;
+  /// Timed staleness gate for the extended chip: whether the quote's session
+  /// window contains the current ET instant. Watched by the parent so the
+  /// chip vanishes at the window edge even with no fresh quote.
+  final bool sessionWindowActive;
 
   @override
   Widget build(BuildContext context) {
@@ -363,7 +366,7 @@ class _PriceHero extends StatelessWidget {
     if (label == null) return null;
     // Offline refreshes keep serving the last cached quote, so a cached
     // session can outlive its own window; only render it while current.
-    if (!isExtendedSessionWindowNow(quote.session, clock())) return null;
+    if (!sessionWindowActive) return null;
     return '$label ${localizations.formatSignedPercent(extChangePct / 100)}';
   }
 }

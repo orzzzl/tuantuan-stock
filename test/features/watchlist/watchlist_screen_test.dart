@@ -57,6 +57,7 @@ void main() {
     StockRepository? stockRepository,
     MarketCacheStore? marketCache,
     DateTime? now,
+    DateTime Function()? clock,
     bool settle = true,
   }) async {
     final watchlist = _InMemoryWatchlistRepository(watched);
@@ -67,7 +68,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          liveRefreshClockProvider.overrideWithValue(() => instant),
+          liveRefreshClockProvider.overrideWithValue(clock ?? () => instant),
           quoteRepositoryProvider.overrideWithValue(
             quoteRepository ?? _FakeQuoteRepository(quotes ?? _quotes),
           ),
@@ -367,6 +368,29 @@ void main() {
     expect(find.byKey(WatchlistScreen.sessionTagKey('BBB')), findsNothing);
   });
 
+  testWidgets('a rendered post tag vanishes when the clock crosses 20:00 ET '
+      'with no fresh quote', (tester) async {
+    // Mon 19:59 EDT; refreshes go offline right after the first round lands,
+    // the cache degradation that keeps re-serving the old post quote.
+    var instant = DateTime.utc(2026, 7, 13, 23, 59);
+    final repository = _FakeQuoteRepository(_quotes);
+    await pumpWatchlist(
+      tester,
+      quoteRepository: repository,
+      clock: () => instant,
+    );
+    repository.quotesOffline = true;
+    expect(find.byKey(WatchlistScreen.sessionTagKey('BBB')), findsOneWidget);
+
+    // 20:01 EDT: no new quote ever arrived, so only the staleness gate's own
+    // minute tick can take the tag down.
+    instant = DateTime.utc(2026, 7, 14, 0, 1);
+    await tester.pump(const Duration(minutes: 2));
+    await tester.pump();
+
+    expect(find.byKey(WatchlistScreen.sessionTagKey('BBB')), findsNothing);
+  });
+
   testWidgets('a cached post tag is suppressed on the weekend', (tester) async {
     // Sat 17:00 EDT — post o'clock, but no session runs on Saturday.
     await pumpWatchlist(tester, now: DateTime.utc(2026, 7, 18, 21));
@@ -546,13 +570,18 @@ class _FakeQuoteRepository implements QuoteRepository {
 
   final Map<String, Quote> bySymbol;
 
+  /// When flipped on, quote refreshes fail like a dropped connection while
+  /// the polling streams keep their already-emitted quotes alive.
+  var quotesOffline = false;
+
   @override
   Future<Quote> quote(String symbol) async => bySymbol[symbol]!;
 
   @override
-  Future<Map<String, Quote>> quotes(List<String> symbols) async => {
-    for (final symbol in symbols) symbol: ?bySymbol[symbol],
-  };
+  Future<Map<String, Quote>> quotes(List<String> symbols) async {
+    if (quotesOffline) throw StateError('offline');
+    return {for (final symbol in symbols) symbol: ?bySymbol[symbol]};
+  }
 
   @override
   Future<ChartSeries> chart(String symbol, ChartRange range) async {

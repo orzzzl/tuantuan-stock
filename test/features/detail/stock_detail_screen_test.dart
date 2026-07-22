@@ -32,6 +32,7 @@ void main() {
     Map<ChartRange, ChartSeries>? seriesByRange,
     List<String> watched = const [],
     DateTime? now,
+    DateTime Function()? clock,
   }) async {
     final quotes = _FakeQuoteRepository(
       quoteValue: quote ?? _quote(),
@@ -48,7 +49,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          liveRefreshClockProvider.overrideWithValue(() => instant),
+          liveRefreshClockProvider.overrideWithValue(clock ?? () => instant),
           quoteRepositoryProvider.overrideWithValue(quotes),
           stockRepositoryProvider.overrideWithValue(_FakeStockRepository()),
           watchlistRepositoryProvider.overrideWithValue(watchlist),
@@ -175,6 +176,34 @@ void main() {
       findsNothing,
     );
     expect(find.textContaining('-1.50%'), findsNothing);
+  });
+
+  testWidgets('a rendered post chip vanishes when the clock crosses 20:00 ET '
+      'with no fresh quote', (tester) async {
+    // Mon 19:59 EDT; refreshes go offline right after the first quote lands,
+    // so nothing ever replaces the cached post quote.
+    var instant = DateTime.utc(2026, 7, 13, 23, 59);
+    final (repository, _) = await pumpDetail(
+      tester,
+      quote: _quote(session: MarketSession.post, extChangePct: -1.5),
+      clock: () => instant,
+    );
+    repository.quoteOffline = true;
+    expect(
+      find.textContaining(localizations.postMarketSessionLabel),
+      findsOneWidget,
+    );
+
+    // 20:01 EDT: only the staleness gate's own minute tick can take the
+    // chip down.
+    instant = DateTime.utc(2026, 7, 14, 0, 1);
+    await tester.pump(const Duration(minutes: 2));
+    await tester.pump();
+
+    expect(
+      find.textContaining(localizations.postMarketSessionLabel),
+      findsNothing,
+    );
   });
 
   testWidgets('closed session without an overnight value shows no chip', (
@@ -397,8 +426,15 @@ class _FakeQuoteRepository implements QuoteRepository {
   final Map<ChartRange, ChartSeries> seriesByRange;
   final chartCalls = <(String, ChartRange)>[];
 
+  /// When flipped on, quote refreshes fail like a dropped connection while
+  /// the polling stream keeps the already-emitted quote alive.
+  var quoteOffline = false;
+
   @override
-  Future<Quote> quote(String symbol) async => quoteValue;
+  Future<Quote> quote(String symbol) async {
+    if (quoteOffline) throw StateError('offline');
+    return quoteValue;
+  }
 
   @override
   Future<Map<String, Quote>> quotes(List<String> symbols) async => {
