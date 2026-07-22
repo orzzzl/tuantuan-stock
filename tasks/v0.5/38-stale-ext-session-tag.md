@@ -1,6 +1,6 @@
 # 38 — Suppress stale pre/post/overnight tags when the cache is old
 
-- **Status:** READY
+- **Status:** DONE (Claude, PR #51)
 - **Owner:** Claude
 - **Blocked by:** —
 - **Allowed new deps:** none

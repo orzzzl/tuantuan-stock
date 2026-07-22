@@ -134,7 +134,7 @@ against the current code + fresh live provider checks:
 
 | #  | Task | Status | Blocked by |
 |----|------|--------|-----------|
-| 38 | [Suppress stale pre/post/overnight tags when the cache is old](v0.5/38-stale-ext-session-tag.md) | READY (assigned: Claude) | — |
+| 38 | [Suppress stale pre/post/overnight tags when the cache is old](v0.5/38-stale-ext-session-tag.md) | DONE (Claude, PR #51) | — |
 | 39 | [Pre/post chart coverage: revisit the task-27 trade-off](v0.5/39-ext-hours-chart-coverage-decision.md) | BLOCKED (owner decision) | — |
 | 40 | [Forward P/E: no free source; decide hide-vs-spike](v0.5/40-forward-pe-decision.md) | BLOCKED (owner decision) | — |
 
